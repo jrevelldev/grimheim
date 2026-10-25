@@ -373,6 +373,10 @@ class CharacterReviewModal {
 }
 
 // Initialize the modal when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new CharacterReviewModal();
+    });
+} else {
     new CharacterReviewModal();
-});
+}

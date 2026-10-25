@@ -1,6 +1,6 @@
 import { MASTER_EQUIPMENT_LIST, WARBANDS, MASTER_INJURY_LIST, VEHICLES, SKILLS } from './data/index.js';
 import { findSkillForWarband } from './skill-lookup.js';
-import { translateEquipmentCategory, translateEquipment } from './i18n.js';
+import { translateEquipmentCategory, translateEquipment, translateRarity } from './i18n.js';
 
 // Global variables for storage modal
 window.selectedItemId = null;
@@ -321,23 +321,21 @@ export const renderGradeFilterCheckboxes = (category) => {
 
 /** Formats equipment rarity for display */
 export const formatEquipmentRarity = (rarity, warbandName, race) => {
-    if (!rarity) return '';
-    if (typeof rarity === 'string') {
-        return `Rarity: ${rarity}`;
+    if (!rarity && rarity !== 0) return '';
+    let val = rarity;
+    if (typeof rarity === 'object' && rarity !== null) {
+        if (race && rarity[race] !== undefined) {
+            val = rarity[race];
+        } else if (warbandName && rarity[warbandName] !== undefined) {
+            val = rarity[warbandName];
+        } else if (rarity.base !== undefined) {
+            val = rarity.base;
+        } else {
+            return '';
+        }
     }
-    // Check for race-specific rarity first
-    if (race && rarity[race]) {
-        return `Rarity: ${rarity[race]}`;
-    }
-    // Then warband-specific
-    if (warbandName && rarity[warbandName]) {
-        return `Rarity: ${rarity[warbandName]}`;
-    }
-    // Fall back to base
-    if (rarity.base) {
-        return `Rarity: ${rarity.base}`;
-    }
-    return '';
+    const translated = translateRarity(val);
+    return translated ? `Rareza: ${translated}` : '';
 };
 
 /** Renders the equipment selector with categories and initial options */
@@ -648,15 +646,18 @@ export const renderEquipmentOptions = () => {
         const itemElement = document.createElement('div');
         itemElement.className = 'flex justify-between items-center p-2 rounded-lg hover:bg-slate-700 cursor-pointer text-sm transition';
         const rulesId = `equip-rules-${item.id}`;
+        const displayName = translateEquipment(item.name) !== item.name
+            ? `${translateEquipment(item.name)} <span class="text-slate-400 font-normal">(${item.name})</span>`
+            : item.name;
         itemElement.innerHTML = `
             <div style="flex: 1; min-width: 0;">
                 <p class="font-semibold equip-name-toggle" data-rules-target="${rulesId}" style="cursor: pointer;">
-                    <i class="fas fa-chevron-right text-xs text-slate-500 equip-chevron" style="transition: transform 0.2s; margin-right: 4px; font-size: 0.6rem;"></i>${item.name} <span class="text-${textColor} text-xs">(${displayedCost}${variableCostDisplay} GC${originalCostText})</span>${rarityDisplay}
+                    <i class="fas fa-chevron-right text-xs text-slate-500 equip-chevron" style="transition: transform 0.2s; margin-right: 4px; font-size: 0.6rem;"></i>${displayName} <span class="text-${textColor} text-xs">(${displayedCost}${variableCostDisplay} CO${originalCostText})</span>${rarityDisplay}
                 </p>
                 <p id="${rulesId}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules)}</p>
             </div>
             <button class="text-green-400 hover:text-green-300 ml-2 flex-shrink-0" data-action="add-equipment" data-item-id="${item.id}">
-                <i class="fas fa-plus-circle"></i> Add
+                <i class="fas fa-plus-circle"></i> Añadir
             </button>
         `;
         // Add click handler to toggle description visibility
@@ -850,7 +851,7 @@ window.updateWeaponModifier = (checkbox, itemId, modifierType) => {
         
         // Update display with modified name
         const modifiedName = `${item.name} - ${modifierName}`;
-        nameSpan.innerHTML = `${modifiedName} <span class="text-slate-400 text-xs">(${newCost} GC)</span>`;
+        nameSpan.innerHTML = `${modifiedName} <span class="text-slate-400 text-xs">(${newCost} CO)</span>`;
         rulesP.textContent = newRules;
         button.dataset.cost = newCost;
         button.dataset.rules = newRules;
@@ -860,7 +861,7 @@ window.updateWeaponModifier = (checkbox, itemId, modifierType) => {
         const originalCost = button.dataset.originalCost;
         const originalText = button.dataset.originalText || '';
         const textColor = button.dataset.textColor || 'slate-400';
-        nameSpan.innerHTML = `${item.name} <span class="text-${textColor} text-xs">(${originalCost} GC${originalText})</span>`;
+        nameSpan.innerHTML = `${item.name} <span class="text-${textColor} text-xs">(${originalCost} CO${originalText})</span>`;
         rulesP.textContent = item.rules;
         delete button.dataset.cost;
         delete button.dataset.rules;
@@ -1029,7 +1030,7 @@ export const renderSelectedEquipment = () => {
     const totalCostPerFighter = calculateEquipmentCost(selectedEquipment);
 
     if (selectedEquipment.length === 0) {
-         listContainer.innerHTML = `<li class="text-slate-500">No equipment selected.</li>`;
+         listContainer.innerHTML = `<li class="text-slate-500">Ningún equipo seleccionado.</li>`;
     }
 
     selectedEquipment.forEach((item, index) => {
@@ -1046,9 +1047,9 @@ export const renderSelectedEquipment = () => {
             displayCost = item.variableCost;
         }
         
-        let costDisplay = `(${displayCost} GC)`;
+        let costDisplay = `(${displayCost} CO)`;
         if (masterItem && displayCost != originalCost) {
-            costDisplay = `(${displayCost} GC, Base: ${originalCost} GC)`;
+            costDisplay = `(${displayCost} CO, Base: ${originalCost} CO)`;
         }
 
         // Format rarity for display
@@ -1058,8 +1059,12 @@ export const renderSelectedEquipment = () => {
         const isEditing = document.getElementById('fighter-id').value !== '';
         const canRemove = !(masterItem && masterItem.category === "Blessings of Nurgle" && isEditing);
 
+        const displayName = translateEquipment(item.name) !== item.name
+            ? `${translateEquipment(item.name)} <span class="text-slate-400 font-normal text-xs">(${item.name})</span>`
+            : item.name;
+
         listItem.innerHTML = `
-            <span>${item.name} <span class="text-slate-400 text-xs">${costDisplay}</span>${rarityDisplay}</span>
+            <span>${displayName} <span class="text-slate-400 text-xs">${costDisplay}</span>${rarityDisplay}</span>
             ${canRemove ? `
             <button class="text-red-400 hover:text-red-300" data-action="remove-equipment" data-item-index="${index}" data-item-name="${item.name}" data-item-cost="${displayCost}" data-item-rules="${item.rules}">
                 <i class="fas fa-times-circle"></i>
@@ -1069,7 +1074,7 @@ export const renderSelectedEquipment = () => {
         listContainer.appendChild(listItem);
     });
 
-    document.getElementById('equipment-cost-total').textContent = ` (Total: ${totalCostPerFighter} GC)`;
+    document.getElementById('equipment-cost-total').textContent = ` (Total: ${totalCostPerFighter} CO)`;
 
     // Enable the Reorder button only when there are at least 2 items to reorder
     const reorderBtn = document.getElementById('reorder-equipment-btn');
@@ -2863,7 +2868,7 @@ export const renderModalEquipmentSelector = () => {
         searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.id = 'modal-equipment-search';
-        searchInput.placeholder = 'Search equipment...';
+        searchInput.placeholder = 'Buscar equipo...';
         searchInput.className = 'w-full p-2 mb-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:ring-mordheim-gold focus:border-mordheim-gold';
         categorySelect.parentNode.insertBefore(searchInput, categorySelect.nextSibling);
     }
@@ -3057,7 +3062,10 @@ export const renderModalEquipmentOptions = () => {
     const searchInput = document.getElementById('modal-equipment-search');
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
     if (searchTerm) {
-        items = items.filter(item => item.name.toLowerCase().includes(searchTerm));
+        items = items.filter(item => {
+            const esName = (translateEquipment(item.name) || '').toLowerCase();
+            return item.name.toLowerCase().includes(searchTerm) || esName.includes(searchTerm);
+        });
     }
 
     const isNewFighterModal = document.getElementById('fighter-id').value === '';
@@ -3085,13 +3093,13 @@ export const renderModalEquipmentOptions = () => {
         const armourShieldResultModal = applyArmourShieldHalfCostDiscount(displayedCost, item);
         if (armourShieldResultModal.discountApplied) {
             displayedCost = armourShieldResultModal.finalCost;
-            originalCostText = ` (House Rule: 50% Armour/Shield Discount - Was: ${armourShieldResultModal.originalCost} GC)`;
+            originalCostText = ` (House Rule: 50% Armour/Shield Discount - Was: ${armourShieldResultModal.originalCost} CO)`;
             textColor = 'green-300';
         }
 
         // Check if cost is different from base (for display purposes)
         if (!armourShieldResultModal.discountApplied && modifiedCost !== baseCost) {
-            originalCostText = ` (Base: ${baseCost} GC)`;
+            originalCostText = ` (Base: ${baseCost} CO)`;
             textColor = modifiedCost < baseCost ? 'green-300' : 'red-300';
         }
 
@@ -3183,12 +3191,12 @@ export const renderModalEquipmentOptions = () => {
         if (blackpowder20ResultModal.discountApplied || preGameDiscountAppliedModal) {
             if (preGameDiscountAppliedModal && blackpowder20ResultModal.discountApplied) {
                 displayedCost = blackpowder20ResultModal.finalCost;
-                originalCostText = ` (House Rules: Pre-Game 1/3 + 20% Blackpowder Discount - Was: ${preGameOriginalCostModal} GC)`;
+                originalCostText = ` (House Rules: Pre-Game 1/3 + 20% Blackpowder Discount - Was: ${preGameOriginalCostModal} CO)`;
             } else if (blackpowder20ResultModal.discountApplied) {
                 displayedCost = blackpowder20ResultModal.finalCost;
-                originalCostText = ` (House Rule: 20% Blackpowder Discount - Was: ${blackpowder20ResultModal.originalCost} GC)`;
+                originalCostText = ` (House Rule: 20% Blackpowder Discount - Was: ${blackpowder20ResultModal.originalCost} CO)`;
             } else {
-                originalCostText = ` (House Rule: Pre-Game Blackpowder Discount - Was: ${preGameOriginalCostModal} GC)`;
+                originalCostText = ` (House Rule: Pre-Game Blackpowder Discount - Was: ${preGameOriginalCostModal} CO)`;
             }
             textColor = 'green-300';
         }

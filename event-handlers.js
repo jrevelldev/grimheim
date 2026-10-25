@@ -26,8 +26,8 @@ import { showEquipmentReorderModal } from './equipment-reorder-modal.js'; // Equ
 import { openGearModal } from './fighter-gear-modal.js'; // Fighter Gear quick-manage modal
 
 export const setupEventListeners = () => {
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log('DOMContentLoaded event fired. Setting up event listeners...');
+    const initApp = async () => {
+        console.log('Setting up event listeners and initializing app...');
         // Initialize Firebase on load
         populateWarbandTypes(); // Ensure warband types are populated early
         await initializeAppAndData();
@@ -1778,6 +1778,13 @@ export const setupModalEvents = () => {
             updateCasualtyResolution(fighterId, e.target.value);
         }
     });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
+    }
 };
 
 // Toggle warband hamburger menu

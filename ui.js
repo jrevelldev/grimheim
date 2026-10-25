@@ -850,14 +850,14 @@ export const renderRacialMaximums = () => {
     const selectedRace = raceSelect.value;
 
     if (!selectedRace || selectedRace === '') {
-        displayDiv.innerHTML = `<p class="text-slate-400">Select a race to view stat maximums.</p>`;
+        displayDiv.innerHTML = `<p class="text-slate-400">Selecciona una raza para ver los atributos máximos.</p>`;
         return;
     }
 
     const maximums = RACIAL_MAXIMUMS[selectedRace];
 
     if (!maximums) {
-        displayDiv.innerHTML = `<p class="text-red-400">Racial maximums not found for ${selectedRace}.</p>`;
+        displayDiv.innerHTML = `<p class="text-red-400">No se han encontrado atributos máximos para ${translateRace(selectedRace)}.</p>`;
         return;
     }
 
@@ -874,12 +874,12 @@ export const renderRacialMaximums = () => {
 
         return `
             <span class="${isOverMax ? 'text-red-400 font-bold' : 'text-slate-300'}">
-                ${stat}: ${maxVal}
+                ${getStatLabel(stat)}: ${maxVal}
             </span>
         `;
     }).join(' | ');
 
-    displayDiv.innerHTML = `<p class="font-bold text-mordheim-gold">Max. Stats (${selectedRace}):</p><p class="mt-1">${maxHtml}</p>`;
+    displayDiv.innerHTML = `<p class="font-bold text-mordheim-gold">Atributos Máximos (${translateRace(selectedRace)}):</p><p class="mt-1">${maxHtml}</p>`;
 
     // Re-render stat inputs to apply any color/styling changes based on new max.
     // For simplicity, we rely on the save function to check the actual data.
@@ -948,7 +948,7 @@ export const renderRaceOptions = (selectedRace, races = null) => {
     if (!races) {
         races = Object.keys(RACIAL_MAXIMUMS).sort();
     }
-    select.innerHTML = races.map(race => `<option value="${race}" ${race === selectedRace ? 'selected' : ''}>${race}</option>`).join('');
+    select.innerHTML = races.map(race => `<option value="${race}" ${race === selectedRace ? 'selected' : ''}>${translateRace(race)}</option>`).join('');
 };
 
 /** Populates the warband selection with collapsible grade sections */
@@ -1307,7 +1307,7 @@ export const handleTrapperSkillSelection = () => {
         const skillsHtml = currentSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
         skillsDisplay.innerHTML = skillsHtml;
     } else {
-        skillsDisplay.textContent = 'None';
+        skillsDisplay.textContent = 'Ninguna';
     }
 };
 

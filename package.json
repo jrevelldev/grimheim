@@ -1,0 +1,16 @@
+{
+  "name": "rosterheim-local",
+  "version": "1.0.0",
+  "description": "Gestor de Bandas de Mordheim - Versión Local en Castellano",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "mordheim",
+    "roster",
+    "warband"
+  ],
+  "author": "",
+  "license": "ISC"
+}

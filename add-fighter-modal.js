@@ -50,7 +50,7 @@ const createNewFighter = async (fighterId, name, role, warriorChoice, race, grou
 
     // Purchase
     if (currentWarband.gc_treasury < newTotalGroupCost) {
-        showMessage(`Insufficient Gold Crowns. Purchase requires ${newTotalGroupCost} GC (for ${groupSize} models), but treasury only has ${currentWarband.gc_treasury} GC.`, 'error');
+        showMessage(`Coronas de Oro insuficientes. La compra requiere ${newTotalGroupCost} CO (para ${groupSize} miniaturas), pero la tesorería solo dispone de ${currentWarband.gc_treasury} CO.`, 'error');
         return false;
     }
     currentWarband.gc_treasury -= newTotalGroupCost;
@@ -131,7 +131,7 @@ const createNewFighter = async (fighterId, name, role, warriorChoice, race, grou
     };
 
     currentWarband.members.push(newFighterData);
-    showMessage(`${name} recruited (${groupSize} models) for ${newTotalGroupCost} GC!`);
+    showMessage(`¡${name} reclutado (${groupSize} miniaturas) por ${newTotalGroupCost} CO!`);
     await saveWarband();
     return true;
 };
@@ -140,11 +140,11 @@ const createNewFighter = async (fighterId, name, role, warriorChoice, race, grou
 const showNewFighterModal = () => {
     // Check if a warband is loaded
     if (!currentWarband) {
-        showMessage("Please load a warband before adding fighters.", 'error');
+        showMessage("Por favor, carga una banda antes de añadir guerreros.", 'error');
         return;
     }
     
-    document.getElementById('fighter-modal-title').textContent = 'Add New Fighter';
+    document.getElementById('fighter-modal-title').textContent = 'Añadir Nuevo Guerrero';
     document.getElementById('fighter-id').value = '';
     document.getElementById('delete-fighter-btn').classList.add('hidden');
     document.getElementById('cost-breakdown-btn').classList.add('hidden');
@@ -214,15 +214,15 @@ const showNewFighterModal = () => {
     document.getElementById('f-cost').value = 35;
     document.getElementById('f-xp').value = 0;
     document.getElementById('f-skills-hidden').value = '[]';
-    document.getElementById('f-skills').textContent = 'None';
+    document.getElementById('f-skills').textContent = 'Ninguna';
     document.getElementById('f-injuries-json').value = '[]';
-    document.getElementById('warrior-rules-display').textContent = 'None';
+    document.getElementById('warrior-rules-display').textContent = 'Ninguna';
     document.getElementById('f-special-rules').value = '';
     document.getElementById('f-chosen-magic-lore').value = '';
 
     // Reset cost and upkeep labels to default
-    document.getElementById('f-cost-label').textContent = 'Cost (GC, per fighter)';
-    document.getElementById('f-upkeep-label').textContent = 'Upkeep Cost (GC per battle)';
+    document.getElementById('f-cost-label').textContent = 'Coste (CO, por guerrero)';
+    document.getElementById('f-upkeep-label').textContent = 'Coste de Mantenimiento (CO por batalla)';
 
     // Clear any leftover magic spell checkboxes from previous modal sessions
     document.getElementById('magic-spells-container').innerHTML = '';

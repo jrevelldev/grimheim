@@ -11,6 +11,7 @@ import { useLocalStorage, userId, currentWarband, warbands, tempItemToRemove, te
 import { isSlowWitted, isElemental, hasHalfXPRate, formatXPDisplay } from './slow-witted.js';
 import { handleChosenOfChaosSkillChange } from './equiprules/marauders-of-chaos.js';
 import { applyMountStats } from './equiprules/mounts.js';
+import { translateEquipment } from './i18n.js';
 
 
 /** Updates the race display in the edit fighter modal when race changes */
@@ -56,7 +57,7 @@ const refreshModalDataFromWarband = (fighterId) => {
             `).join('');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
     }
 
@@ -154,7 +155,7 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
     }
     setCurrentFighterBaseStats({ ...fighterStats });
 
-    document.getElementById('fighter-modal-title').textContent = `Edit ${fighter.name}`;
+    document.getElementById('fighter-modal-title').textContent = `Editar ${fighter.name}`;
     document.getElementById('fighter-id').value = fighter.id;
     document.getElementById('delete-fighter-btn').classList.remove('hidden');
     document.getElementById('cost-breakdown-btn').classList.remove('hidden');
@@ -286,8 +287,8 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
     document.getElementById('f-xp').value = fighter.xp;
     
     // Reset cost and upkeep labels to default for editing
-    document.getElementById('f-cost-label').textContent = 'Cost (GC, per fighter)';
-    document.getElementById('f-upkeep-label').textContent = 'Upkeep Cost (GC per battle)';
+    document.getElementById('f-cost-label').textContent = 'Coste (CO, por guerrero)';
+    document.getElementById('f-upkeep-label').textContent = 'Coste de Mantenimiento (CO por batalla)';
     
     // Filter out spells from skills display
     const groupName = getMagicGroupForFighter(fighter);
@@ -324,7 +325,7 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
         `).join('');
         skillsDisplay.innerHTML = skillsHtml;
     } else {
-        skillsDisplay.textContent = 'None';
+        skillsDisplay.textContent = 'Ninguna';
     }
     document.getElementById('f-injuries-json').value = JSON.stringify(Array.isArray(fighter.injuries) ? fighter.injuries : []);
     document.getElementById('f-chosen-magic-lore').value = fighter.chosen_magic_lore || '';
@@ -337,7 +338,7 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
         takenList.textContent = fighter.advancements.join(', ');
         takenWrapper.classList.remove('hidden');
     } else {
-        takenList.textContent = 'None';
+        takenList.textContent = 'Ninguno';
         takenWrapper.classList.add('hidden');
     }
 
@@ -405,7 +406,7 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
         }).join('<br>');
         rulesDisplay.innerHTML = rulesHtml;
     } else {
-        rulesDisplay.textContent = 'None';
+        rulesDisplay.textContent = 'Ninguna';
     }
 
     // Update the hidden input with the combined unique rules
@@ -622,17 +623,17 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
         
         if (specialUpkeepTreasure > 0) {
             upkeepCostElement.textContent = specialUpkeepTreasure;
-            document.getElementById('f-upkeep-label').textContent = 'Upkeep Cost (Treasure per battle)';
+            document.getElementById('f-upkeep-label').textContent = 'Coste de Mantenimiento (Tesoro por batalla)';
         } else {
             upkeepCostElement.textContent = upkeepCost;
-            document.getElementById('f-upkeep-label').textContent = 'Upkeep Cost (GC per battle)';
+            document.getElementById('f-upkeep-label').textContent = 'Coste de Mantenimiento (CO por batalla)';
         }
         
         // Update cost label based on whether this was a treasure hire
         if (specialHireTreasure > 0) {
-            document.getElementById('f-cost-label').textContent = 'Cost (Treasure, per fighter)';
+            document.getElementById('f-cost-label').textContent = 'Coste (Tesoro, por guerrero)';
         } else {
-            document.getElementById('f-cost-label').textContent = 'Cost (GC, per fighter)';
+            document.getElementById('f-cost-label').textContent = 'Coste (CO, por guerrero)';
         }
     } else if (fighterRole === 'Dramatis Personae') {
         // Look up dramatis personae data to get upkeep fee
@@ -641,8 +642,8 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
         upkeepWrapper.classList.remove('hidden');
         upkeepCostElement.textContent = upkeepCost;
         // Dramatis Personae don't have special treasure costs in current data
-        document.getElementById('f-upkeep-label').textContent = 'Upkeep Cost (GC per battle)';
-        document.getElementById('f-cost-label').textContent = 'Cost (GC, per fighter)';
+        document.getElementById('f-upkeep-label').textContent = 'Coste de Mantenimiento (CO por batalla)';
+        document.getElementById('f-cost-label').textContent = 'Coste (CO, por guerrero)';
     } else {
         // Hide upkeep for regular warriors, heroes, henchmen, and vehicles
         upkeepWrapper.classList.add('hidden');
@@ -748,7 +749,7 @@ const removeSkill = (skillName, skillIndex, saveWarband) => {
                     `).join('');
                     skillsDisplay.innerHTML = skillsHtml;
                 } else {
-                    skillsDisplay.textContent = 'None';
+                    skillsDisplay.textContent = 'Ninguna';
                 }
             }
 
@@ -788,19 +789,23 @@ const showCostBreakdownModal = () => {
             // Check if cost differs from base cost (custom value entered)
             const masterItem = MASTER_EQUIPMENT_LIST.find(i => i.name === item.name);
             const originalCost = masterItem ? masterItem.baseCost : null;
-            let costLabel = `${cost} GC`;
+            let costLabel = `${cost} CO`;
             if (originalCost !== null && cost != originalCost) {
-                costLabel = `${cost} GC <span class="text-slate-500 text-xs line-through">${originalCost} GC</span>`;
+                costLabel = `${cost} CO <span class="text-slate-500 text-xs line-through">${originalCost} CO</span>`;
             }
+
+            const itemDisplayName = translateEquipment(item.name) !== item.name
+                ? `${translateEquipment(item.name)} <span class="text-slate-400 font-normal">(${item.name})</span>`
+                : item.name;
 
             equipmentRowsHtml += `
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-slate-300">${item.name}</span>
+                    <span class="text-slate-300">${itemDisplayName}</span>
                     <span class="text-yellow-200">${costLabel}</span>
                 </div>`;
         });
     } else {
-        equipmentRowsHtml = `<div class="text-sm text-slate-500">No equipment</div>`;
+        equipmentRowsHtml = `<div class="text-sm text-slate-500">Ningún equipo</div>`;
     }
 
     const perFighterTotal = baseCost + equipmentTotal;
@@ -810,17 +815,17 @@ const showCostBreakdownModal = () => {
         <div class="bg-slate-800 p-3 rounded-lg">
             <div class="flex justify-between items-center">
                 <span class="text-slate-300 font-medium">${fighter.name}</span>
-                <span class="text-mordheim-gold font-bold">${baseCost} GC</span>
+                <span class="text-mordheim-gold font-bold">${baseCost} CO</span>
             </div>
         </div>
 
         <!-- Equipment Costs -->
         <div class="bg-slate-800 p-3 rounded-lg">
-            <div class="text-sm font-medium text-slate-400 mb-2">Equipment</div>
+            <div class="text-sm font-medium text-slate-400 mb-2">Equipo</div>
             ${equipmentRowsHtml}
             <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-600 text-sm">
-                <span class="text-slate-400">Equipment Subtotal</span>
-                <span class="text-yellow-200 font-medium">${equipmentTotal} GC</span>
+                <span class="text-slate-400">Subtotal de Equipo</span>
+                <span class="text-yellow-200 font-medium">${equipmentTotal} CO</span>
             </div>
         </div>`;
 
@@ -829,11 +834,11 @@ const showCostBreakdownModal = () => {
         html += `
         <div class="bg-slate-800 p-3 rounded-lg">
             <div class="flex justify-between items-center text-sm">
-                <span class="text-slate-300">Cost per fighter</span>
-                <span class="text-yellow-200">${perFighterTotal} GC</span>
+                <span class="text-slate-300">Coste por guerrero</span>
+                <span class="text-yellow-200">${perFighterTotal} CO</span>
             </div>
             <div class="flex justify-between items-center text-sm mt-1">
-                <span class="text-slate-300">Group size</span>
+                <span class="text-slate-300">Tamaño del grupo</span>
                 <span class="text-yellow-200">&times; ${groupSize}</span>
             </div>
         </div>`;
@@ -845,7 +850,7 @@ const showCostBreakdownModal = () => {
         <div class="bg-slate-900 p-3 rounded-lg border border-mordheim-gold">
             <div class="flex justify-between items-center">
                 <span class="text-mordheim-gold font-bold text-lg">Total</span>
-                <span class="text-mordheim-gold font-bold text-lg">${totalCost} GC</span>
+                <span class="text-mordheim-gold font-bold text-lg">${totalCost} CO</span>
             </div>
         </div>`;
 
