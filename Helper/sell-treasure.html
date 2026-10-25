@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venta de Tesoro - Rosterheim</title>
+    <meta name="description" content="Tabla de Eficiencia de Piedra Bruja - Calcula las coronas de oro por fragmento individual según el tamaño de la banda">
+    <meta name="google-site-verification" content="L2sLb6QHHUNrfBQhDqlBMtDuX11XHfAZUnmJvKW2BW0" />
+    <meta property="og:site_name" content="Rosterheim">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Load Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicon.ico">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Rosterheim",
+      "url": "https://rosterheim.net/",
+      "description": "A comprehensive Mordheim warband roster manager app for tabletop gaming"
+    }
+    </script>
+    
+    <!-- Set Firebase Config -->
+    <script>
+    window.__firebase_config = JSON.stringify({
+      apiKey: "AIzaSyDhV9n0WBM0gLHq0a-lpGuWOpZK_hlsrw8",
+      //authDomain: "rosterheim.firebaseapp.com",
+      authDomain: "rosterheim.net",
+      projectId: "rosterheim",
+      storageBucket: "rosterheim.firebasestorage.app",
+      messagingSenderId: "125343728273",
+      appId: "1:125343728273:web:2bcfa74ee9836d17c4b530",
+      measurementId: "G-GPF9PBV8JP"
+    });
+    </script>
+    
+    <style>
+        /* Gradient styles for efficiency table */
+        .efficiency-cell {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .efficiency-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Color gradient from red (low) to green (high) */
+        .efficiency-15 { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .efficiency-20 { background: linear-gradient(135deg, #ea580c, #f97316); }
+        .efficiency-25 { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .efficiency-30 { background: linear-gradient(135deg, #ca8a04, #eab308); }
+        .efficiency-35 { background: linear-gradient(135deg, #65a30d, #84cc16); }
+        .efficiency-40 { background: linear-gradient(135deg, #16a34a, #22c55e); }
+        .efficiency-45 { background: linear-gradient(135deg, #059669, #10b981); }
+        .efficiency-50 { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+        .efficiency-55 { background: linear-gradient(135deg, #0284c7, #0ea5e9); }
+        .efficiency-60 { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+        .efficiency-65 { background: linear-gradient(135deg, #6d28d9, #7c3aed); }
+        .efficiency-70 { background: linear-gradient(135deg, #4c1d95, #6d28d9); }
+        .efficiency-75 { background: linear-gradient(135deg, #4338ca, #4f46e5); }
+        .efficiency-80 { background: linear-gradient(135deg, #3730a3, #4338ca); }
+        .efficiency-90 { background: linear-gradient(135deg, #312e81, #3730a3); }
+        .efficiency-100 { background: linear-gradient(135deg, #1e1b4b, #312e81); }
+        .efficiency-110 { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+        .efficiency-120 { background: linear-gradient(135deg, #18181b, #27272a); }
+        .efficiency-130 { background: linear-gradient(135deg, #0f172a, #1e293b); }
+        .efficiency-140 { background: linear-gradient(135deg, #020617, #0f172a); }
+        .efficiency-145 { background: linear-gradient(135deg, #000000, #020617); }
+        .efficiency-155 { background: linear-gradient(135deg, #000000, #000000); }
+        
+        /* Legend styles */
+        .legend-gradient {
+            background: linear-gradient(to top, #dc2626, #f97316, #f59e0b, #eab308, #84cc16, #22c55e, #10b981, #06b6d4, #0ea5e9, #8b5cf6, #6d28d9, #4f46e5, #4338ca, #3730a3, #312e81, #1e40af, #27272a, #1e293b, #0f172a, #020617, #000000);
+            height: 300px;
+            width: 40px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+
+    <div id="app" class="max-w-7xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="header-bg p-4 rounded-t-xl shadow-lg mb-6 relative">
+            <div class="beta-build">Versión Local</div>
+            <div class="text-center">
+                <h1 class="text-4xl font-extrabold tracking-tight text-mordheim-gold uppercase">
+                    Rosterheim
+                </h1>
+                <p class="text-sm mt-2 text-slate-300">Tabla de Eficiencia de Piedra Bruja</p>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex justify-end items-center space-x-2 mt-3 pt-3 border-t border-mordheim-gold/30">
+                <a href="../index.html" onclick="preserveAuthAndNavigate(event)" class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition">
+                    Home
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="bg-slate-800 p-6 rounded-xl shadow-2xl">
+            <div class="mb-6">
+                <!-- Chart Title and Description -->
+                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                    <h4 id="chart-title" class="text-lg font-bold text-mordheim-gold mb-3">
+                        Coronas de Oro por Fragmento Individual
+                    </h4>
+                    <p id="chart-description" class="text-slate-300 text-sm">
+                        Esta tabla muestra la eficiencia (Coronas de Oro por Fragmento de Piedra Bruja) al vender tesoro según el número de fragmentos vendidos y el tamaño de tu banda. ¡Valores más altos indican mejor rendimiento por fragmento!
+                    </p>
+                </div>
+                
+                <!-- Efficiency Table -->
+                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm" id="efficiency-table">
+                            <thead>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-2 px-3 text-slate-400 text-xs font-medium w-32">Número de Guerreros<br/>en la Banda →</th>
+                                    <th class="text-center py-2 px-3 text-slate-300 font-bold">1-3</th>
+                                    <th class="text-center py-2 px-3 text-slate-300 font-bold">4-6</th>
+                                    <th class="text-center py-2 px-3 text-slate-300 font-bold">7-9</th>
+                                    <th class="text-center py-2 px-3 text-slate-300 font-bold">10-12</th>
+                                    <th class="text-center py-2 px-3 text-slate-300 font-bold">13-15</th>
+                                    <th class="text-center py-2 px-3 text-slate-300 font-bold">16+</th>
+                                </tr>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-1 px-3 text-slate-300 text-sm w-32">Nº de Fragmentos Vendidos</th>
+                                    <th colspan="6" class="text-center py-1 px-3 text-slate-400 text-xs"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="efficiency-tbody">
+                                <!-- Table rows will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                            </div>
+
+            <div class="flex justify-between">
+                <a href="../index.html" onclick="preserveAuthAndNavigate(event)" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver al Inicio
+                </a>
+                <div class="space-x-2">
+                    <button id="toggle-view-btn" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition font-bold">
+                        <i class="fas fa-exchange-alt mr-2"></i>Mostrar Valor Total
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts for Authentication Persistence -->
+    <script type="module" src="../firebase.js"></script>
+    <script type="module" src="../firebase-logic.js"></script>
+    <script type="module">
+        import { initializeFirebase } from '../firebase-logic.js';
+        
+        // Wait for DOM to be ready before initializing Firebase
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Sell Treasure page: DOM ready, initializing Firebase...");
+            
+            try {
+                await initializeFirebase(
+                    (user) => {
+                        if (user) {
+                            console.log("Sell Treasure page: User authenticated", user.uid, user.isAnonymous ? "(anonymous)" : user.email || "");
+                        } else {
+                            console.log("Sell Treasure page: No user authenticated");
+                        }
+                    },
+                    (error) => {
+                        console.warn("Sell Treasure page: Firebase authentication failed, continuing offline:", error);
+                    }
+                );
+                console.log("Sell Treasure page: Firebase initialization completed");
+            } catch (error) {
+                console.error("Sell Treasure page: Error during Firebase initialization:", error);
+            }
+        });
+    </script>
+
+    <script>
+        // Check current authentication state
+        function checkAuthState() {
+            if (typeof window.firebaseAuth !== 'undefined') {
+                const user = window.firebaseAuth.currentUser;
+                if (user) {
+                    console.log("Auth check: User is authenticated", user.uid, user.isAnonymous ? "(anonymous)" : user.email || "");
+                    return true;
+                } else {
+                    console.log("Auth check: No user authenticated");
+                    return false;
+                }
+            } else {
+                console.log("Auth check: Firebase auth not available");
+                return false;
+            }
+        }
+        
+        // Preserve authentication state when navigating back to main app
+        function preserveAuthAndNavigate(event) {
+            event.preventDefault();
+            console.log("Navigation: preserveAuthAndNavigate called");
+            
+            // Check authentication state before navigating
+            const isAuthenticated = checkAuthState();
+            console.log("Navigation: Authentication state before navigation:", isAuthenticated);
+            
+            try {
+                // Store the current page in session storage so the main app knows we're returning
+                sessionStorage.setItem('returningFromSellTreasure', 'true');
+                sessionStorage.setItem('sellTreasureAuthState', isAuthenticated ? 'authenticated' : 'not-authenticated');
+                console.log("Navigation: Setting flag for returning from sell treasure");
+                
+                // Navigate to index.html
+                console.log("Navigation: Navigating to index.html");
+                window.location.href = '../index.html';
+            } catch (error) {
+                console.error("Error during navigation:", error);
+                // Fallback: just navigate normally
+                window.location.href = '../index.html';
+            }
+        }
+        
+        // Get efficiency class based on per-shard value
+        function getEfficiencyClass(value) {
+            const numValue = parseFloat(value);
+            const efficiencyClasses = {
+                12.5: 'efficiency-15', 15: 'efficiency-20', 17.5: 'efficiency-25', 20: 'efficiency-30',
+                22.5: 'efficiency-35', 25: 'efficiency-40', 27.5: 'efficiency-45', 30: 'efficiency-50',
+                32.5: 'efficiency-55', 35: 'efficiency-60', 37.5: 'efficiency-65', 40: 'efficiency-70',
+                42.5: 'efficiency-75', 45: 'efficiency-80'
+            };
+            
+            // Find the closest class
+            const values = Object.keys(efficiencyClasses).map(Number).sort((a, b) => a - b);
+            const closest = values.reduce((prev, curr) => Math.abs(curr - numValue) < Math.abs(prev - numValue) ? curr : prev);
+            
+            return efficiencyClasses[closest];
+        }
+        
+        // Generate the efficiency table
+        function generateEfficiencyTable() {
+            const tbody = document.getElementById('efficiency-tbody');
+            const shardRanges = ["1", "2", "3", "4", "5", "6", "7", "8+"];
+            const warbandSizes = ["1-3", "4-6", "7-9", "10-12", "13-15", "16+"];
+            
+            // Update chart title and description based on current view
+            const titleElement = document.getElementById('chart-title');
+            const descElement = document.getElementById('chart-description');
+            
+            if (currentView === 'efficiency') {
+                titleElement.textContent = 'Coronas de Oro por Fragmento Individual';
+                descElement.textContent = 'This chart shows the efficiency (Gold Crowns per Wyrdstone Shard) when selling treasure based on the number of shards sold and the size of your warband. Higher values indicate better efficiency - you get more gold per shard!';
+            } else {
+                titleElement.textContent = 'Total de Coronas de Oro por Tesoro Vendido';
+                descElement.textContent = 'This chart shows the total Gold Crowns received when selling treasure based on the number of shards sold and the size of your warband. Higher values indicate more total gold received.';
+            }
+            
+            // Values from selling_treasure.js
+            const values = [
+                [45, 40, 35, 30, 30, 25], // 1 shard
+                [60, 55, 50, 45, 40, 35], // 2 shards
+                [75, 70, 65, 60, 55, 50], // 3 shards
+                [90, 80, 70, 65, 60, 55], // 4 shards
+                [110, 100, 90, 80, 70, 65], // 5 shards
+                [120, 110, 100, 90, 80, 70], // 6 shards
+                [145, 130, 120, 110, 100, 90], // 7 shards
+                [155, 140, 130, 120, 110, 100]  // 8+ shards
+            ];
+            
+            tbody.innerHTML = '';
+            
+            shardRanges.forEach((shardRange, shardIndex) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-700';
+                
+                // Shard range cell
+                const shardCell = document.createElement('td');
+                shardCell.className = 'py-3 px-3 text-slate-300 font-medium w-32';
+                shardCell.innerHTML = shardRange;
+                row.appendChild(shardCell);
+                
+                // Value cells
+                values[shardIndex].forEach((value, warbandIndex) => {
+                    const cell = document.createElement('td');
+                    // Calculate value based on current view
+                    const shardCount = shardIndex + 1; // Convert index to actual shard count (1-8)
+                    let displayValue, unitText, tooltipText;
+                    
+                    if (currentView === 'efficiency') {
+                        displayValue = (value / shardCount).toFixed(2);
+                        unitText = 'CO/fragmento';
+                        tooltipText = `${shardRange} shard(s) sold, ${warbandSizes[warbandIndex]} warriors: ${displayValue} GC per shard (${value} total/${shardCount} shards)`;
+                    } else {
+                        displayValue = value.toString();
+                        unitText = 'CO total';
+                        tooltipText = `${shardRange} shard(s) sold, ${warbandSizes[warbandIndex]} warriors: ${displayValue} GC total (${(displayValue/shardCount).toFixed(2)} per shard)`;
+                    }
+                    
+                    cell.className = `py-3 px-3 text-center font-bold text-white efficiency-cell ${getEfficiencyClass(currentView === 'efficiency' ? displayValue : (value / shardCount).toFixed(2))} cursor-pointer rounded`;
+                    cell.innerHTML = `
+                        <div class="text-lg">${displayValue}</div>
+                        <div class="text-xs opacity-75">${unitText}</div>
+                    `;
+                    cell.title = tooltipText;
+                    row.appendChild(cell);
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        
+        // Toggle view functionality
+        let currentView = 'efficiency'; // 'efficiency' or 'total'
+        
+        document.getElementById('toggle-view-btn').addEventListener('click', () => {
+            // Toggle between views
+            currentView = currentView === 'efficiency' ? 'total' : 'efficiency';
+            
+            // Update button text and icon
+            const btn = document.getElementById('toggle-view-btn');
+            if (currentView === 'efficiency') {
+                btn.innerHTML = '<i class="fas fa-exchange-alt mr-2"></i>Mostrar Valor Total';
+            } else {
+                btn.innerHTML = '<i class="fas fa-exchange-alt mr-2"></i>Mostrar Eficiencia';
+            }
+            
+            // Track view toggle
+            if (typeof window.trackEvent === 'function') {
+                window.trackEvent('sell_treasure_toggle_view', { view: currentView });
+            }
+
+            // Regenerate table with new view
+            generateEfficiencyTable();
+        });
+        
+        // Initialize table when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            generateEfficiencyTable();
+        });
+    </script>
+    <script type="module">
+        import { trackEvent } from '../analytics.js';
+        trackEvent('screen_view', { screen_name: 'Sell Treasure Helper' });
+        window.trackEvent = trackEvent;
+    </script>
+</body>
+</html>

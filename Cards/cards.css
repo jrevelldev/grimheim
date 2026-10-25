@@ -1,0 +1,1904 @@
+/**
+ * Card Builder & 63mm x 88mm Fighter Cards Styling
+ * Supports visual studio, interactive live preview, responsive drag-and-drop, and 3x3 print sheets.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* ==========================================================================
+   1. Studio Modal Layout & Chrome
+   ========================================================================== */
+
+#card-builder-studio-modal {
+    z-index: 10000 !important;
+}
+
+#card-print-modal {
+    z-index: 99999 !important;
+}
+
+.studio-dialog {
+    display: flex;
+    flex-direction: column;
+    width: 96vw;
+    max-width: 1400px;
+    height: 92vh;
+    max-height: 950px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+    overflow: hidden;
+}
+
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: #0f172a;
+    border-bottom: 1px solid #334155;
+}
+
+.studio-title-group h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #e2b714;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.studio-type-tabs {
+    display: flex;
+    gap: 4px;
+    background: #1e293b;
+    padding: 4px 16px;
+    border-bottom: 1px solid #334155;
+    overflow-x: auto;
+}
+
+.studio-tab-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.studio-tab-btn:hover {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.studio-tab-btn.active {
+    color: #e2b714;
+    border-bottom-color: #e2b714;
+    background: rgba(226, 183, 20, 0.08);
+}
+
+.studio-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Left Configuration Sidebar */
+.studio-sidebar {
+    width: 420px;
+    min-width: 360px;
+    background: #1e293b;
+    border-right: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.sidebar-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-config-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Block Item in Sidebar */
+.card-config-item {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: all 0.15s ease;
+    cursor: grab;
+    position: relative;
+}
+
+.card-config-item:hover {
+    border-color: #64748b;
+}
+
+.card-config-item.is-dragging {
+    opacity: 0.4;
+    border-color: #e2b714;
+}
+
+.card-config-item.drag-over-above {
+    border-top: 3px solid #e2b714;
+}
+
+.card-config-item.drag-over-below {
+    border-bottom: 3px solid #e2b714;
+}
+
+.config-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.config-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.config-drag-handle {
+    color: #64748b;
+    cursor: grab;
+    padding: 2px 4px;
+}
+
+.config-drag-handle:hover {
+    color: #e2b714;
+}
+
+.config-item-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-item-desc {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.config-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.config-btn-move {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+.config-btn-move:hover {
+    color: #f1f5f9;
+    background: #334155;
+}
+
+.config-placement-toggle {
+    display: inline-flex;
+    background: #1e293b;
+    border-radius: 4px;
+    padding: 1px;
+    border: 1px solid #334155;
+    margin-right: 4px;
+}
+
+.btn-placement {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-placement:hover {
+    color: #cbd5e1;
+}
+
+.btn-placement.active {
+    background: #0f172a;
+    color: #e2b714;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Center / Right Preview Workspace */
+.studio-workspace {
+    flex: 1;
+    background: #0b1120;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.workspace-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+    font-size: 0.85rem;
+}
+
+.studio-lock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #475569;
+}
+
+.studio-lock-btn:hover:not(:disabled) {
+    background: #334155;
+    color: #f8fafc;
+    border-color: #64748b;
+}
+
+.studio-lock-btn.is-locked {
+    background: rgba(217, 119, 6, 0.25);
+    color: #fbbf24;
+    border-color: #d97706;
+    box-shadow: 0 0 8px rgba(217, 119, 6, 0.35);
+}
+
+.studio-lock-btn.is-locked:hover:not(:disabled) {
+    background: rgba(217, 119, 6, 0.4);
+    border-color: #f59e0b;
+    color: #fef3c7;
+}
+
+.studio-lock-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.workspace-preview-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    overflow: auto;
+    position: relative;
+    background: radial-gradient(#1e293b 1px, transparent 1px);
+    background-size: 16px 16px;
+}
+
+.card-scale-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: center center;
+}
+
+/* ==========================================================================
+   2. 63mm x 88mm Card Definition & Typography
+   ========================================================================== */
+
+.mordheim-card {
+    /* Exact physical poker/card size */
+    width: 63mm;
+    min-width: 63mm;
+    max-width: 63mm;
+    height: 88mm;
+    min-height: 88mm;
+    max-height: 88mm;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    color: #111;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border-radius: 2.5mm;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Card Themes */
+.mordheim-card.theme-parchment {
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+    background: #f6eedb;
+    background-image:
+        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.5) 0%, rgba(230, 215, 185, 0.7) 100%),
+        radial-gradient(#d6c4a1 16%, transparent 17%);
+    background-size: 100% 100%, 7px 7px;
+    color: #23160a;
+}
+
+.mordheim-card.theme-clean {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    background-image: none;
+    color: #0f172a;
+}
+
+/* Outer Border Frame */
+.card-outer-border {
+    border: 1.5mm solid #1e293b;
+    height: 100%;
+    box-sizing: border-box;
+    border-radius: 2mm;
+    display: flex;
+    flex-direction: column;
+}
+
+.theme-parchment .card-outer-border {
+    border-color: #2e1d11;
+    border-radius: 2mm;
+    box-shadow: inset 0 0 2mm rgba(120, 53, 15, 0.18);
+}
+
+.theme-clean .card-outer-border {
+    border-color: #000000;
+    border-radius: 1mm;
+    box-shadow: none;
+}
+
+.card-inner-frame {
+    border: 0.3mm solid #78350f;
+    margin: 0.4mm;
+    padding: 1.2mm 1.5mm;
+    height: calc(100% - 0.8mm);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+}
+
+.theme-parchment .card-inner-frame {
+    border: 0.35mm solid #854d0e;
+    border-radius: 1mm;
+    background: rgba(255, 252, 244, 0.35);
+}
+
+.theme-clean .card-inner-frame {
+    border: 0.3mm solid #000000;
+    border-radius: 0.6mm;
+    background: #ffffff;
+}
+
+.card-flow-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.card-flow-spacer {
+    flex: 1 1 auto;
+    min-height: 0.5mm;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.card-spacer-drop-hint {
+    display: none;
+    width: 75%;
+    height: 3.2mm;
+    min-height: 3.2mm;
+    max-height: 3.5mm;
+    border: 1px dashed #d97706;
+    background: rgba(217, 119, 6, 0.08);
+    border-radius: 1mm;
+    align-items: center;
+    justify-content: center;
+    font-size: 5pt;
+    font-weight: 600;
+    color: #b45309;
+    pointer-events: none;
+    white-space: nowrap;
+    line-height: 1;
+    margin: 0 auto;
+    transition: all 0.15s ease;
+}
+
+/* Only display drop hint when dragging a TOP block downwards */
+.mordheim-card.is-dragging-top-block .card-spacer-drop-hint {
+    display: flex;
+}
+
+/* Explicitly hide drop hint when dragging a block that is already in bottom flow */
+.mordheim-card.is-dragging-bottom-block .card-spacer-drop-hint {
+    display: none !important;
+}
+
+.card-flow-spacer.is-drop-active .card-spacer-drop-hint {
+    background: rgba(217, 119, 6, 0.25);
+    border-color: #f59e0b;
+    border-width: 1.5px;
+    color: #78350f;
+    transform: scale(1.02);
+}
+
+.card-flow-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+    width: 100%;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+/* Density Modifiers */
+.density-compact .card-inner-frame {
+    padding: 0.8mm 1mm;
+}
+
+.density-compact .card-flow-top,
+.density-compact .card-flow-bottom {
+    gap: 0.5mm;
+}
+
+.density-compact .card-fighter-name {
+    font-size: 8.5pt !important;
+}
+
+.density-compact .card-stat-cell {
+    padding: 0 !important;
+}
+
+/* ==========================================================================
+   3. Card Sections & Components
+   ========================================================================== */
+
+.card-block-wrapper {
+    position: relative;
+    box-sizing: border-box;
+    transition: background 0.15s;
+}
+
+/* Interactive Mode Dragging */
+.mordheim-card.interactive .card-block-wrapper {
+    cursor: grab;
+    border-radius: 2px;
+}
+
+.mordheim-card.interactive .card-block-wrapper:hover {
+    outline: 1px dashed #d97706;
+    background: rgba(217, 119, 6, 0.08);
+}
+
+.mordheim-card.interactive .card-block-drag-handle {
+    display: none;
+    position: absolute;
+    left: -1mm;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #d97706;
+    font-size: 7pt;
+}
+
+.mordheim-card.interactive .card-block-wrapper:hover .card-block-drag-handle {
+    display: block;
+}
+
+.card-block-wrapper.is-dragging {
+    opacity: 0.3;
+}
+
+.card-block-wrapper.drag-over-above {
+    border-top: 1.5px solid #d97706 !important;
+}
+
+.card-block-wrapper.drag-over-below {
+    border-bottom: 1.5px solid #d97706 !important;
+}
+
+/* --- Header Block --- */
+.card-header-block {
+    border-bottom: 0.4mm double #451a03;
+    padding-bottom: 0.6mm;
+}
+
+.theme-parchment .card-header-block {
+    border-bottom: 0.45mm double #78350f;
+}
+
+.theme-clean .card-header-block {
+    border-bottom: 0.45mm solid #000000;
+}
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1mm;
+}
+
+.card-name-group {
+    display: flex;
+    align-items: baseline;
+    gap: 1mm;
+    overflow: hidden;
+}
+
+.card-fighter-name {
+    font-size: 9.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.theme-parchment .card-fighter-name {
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #2b1708;
+}
+
+.theme-clean .card-fighter-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #000000;
+}
+
+.card-cost-badge {
+    font-size: 6.5pt;
+    font-weight: bold;
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 0.2mm 1mm;
+    border-radius: 1mm;
+    white-space: nowrap;
+}
+
+.theme-parchment .card-cost-badge {
+    background: #78350f;
+    color: #fef3c7;
+    border: 0.2mm solid #451a03;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-cost-badge {
+    background: #000000;
+    color: #ffffff;
+    border: none;
+    box-shadow: none;
+    border-radius: 0.6mm;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+}
+
+.card-group-badge {
+    font-size: 7pt;
+    font-weight: bold;
+    color: #92400e;
+}
+
+.theme-parchment .card-group-badge {
+    color: #92400e;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-group-badge {
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+}
+
+.card-casualty {
+    color: #b91c1c;
+    font-size: 6pt;
+}
+
+.card-fighter-subtitle {
+    font-size: 6.5pt;
+    font-style: italic;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.theme-parchment .card-fighter-subtitle {
+    color: #5c3e26;
+    font-family: Georgia, serif;
+}
+
+.theme-clean .card-fighter-subtitle {
+    color: #64748b;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+}
+
+.card-fees-line {
+    font-size: 6pt;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.theme-parchment .card-fees-line {
+    color: #78350f;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-fees-line {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+}
+
+/* --- Characteristics Block --- */
+.card-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    border: 0.3mm solid #334155;
+    background: #ffffff;
+    border-collapse: collapse;
+}
+
+.theme-parchment .card-stat-grid {
+    border: 0.35mm solid #78350f;
+    background: #fdfaf3;
+}
+
+.theme-clean .card-stat-grid {
+    border: 0.35mm solid #000000;
+    background: #ffffff;
+}
+
+.card-stat-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0;
+    border-right: 0.2mm solid #cbd5e1;
+    overflow: hidden;
+}
+
+.theme-parchment .card-stat-cell {
+    border-right: 0.2mm solid #dfd2be;
+}
+
+.theme-clean .card-stat-cell {
+    border-right: 0.2mm solid #000000;
+}
+
+.card-stat-cell:last-child {
+    border-right: none;
+}
+
+.card-stat-name {
+    font-size: 5.5pt;
+    font-weight: bold;
+    color: #475569;
+    text-transform: uppercase;
+    border-bottom: 0.2mm solid #e2e8f0;
+    width: 100%;
+    text-align: center;
+    background: #f1f5f9;
+    padding: 0.5mm 0 0.4mm 0;
+    margin: 0;
+    box-sizing: border-box;
+    display: block;
+    line-height: 1.1;
+}
+
+.theme-parchment .card-stat-name {
+    background: #ebdcb9;
+    color: #451a03;
+    border-bottom: 0.25mm solid #c8b796;
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 700;
+    font-size: 5.2pt;
+}
+
+.theme-clean .card-stat-name {
+    background: #000000;
+    color: #ffffff;
+    border-bottom: 0.25mm solid #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 5.5pt;
+    letter-spacing: 0.04em;
+}
+
+.density-compact .card-stat-name {
+    padding: 0.3mm 0 0.2mm 0;
+}
+
+.card-stat-val {
+    font-size: 7pt;
+    font-weight: bold;
+    color: #0f172a;
+    width: 100%;
+    text-align: center;
+    padding: 0.6mm 0 0.5mm 0;
+    margin: 0;
+    box-sizing: border-box;
+    display: block;
+    line-height: 1.1;
+}
+
+.theme-parchment .card-stat-val {
+    color: #23160a;
+    font-weight: 700;
+    font-size: 7.5pt;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-stat-val {
+    color: #000000;
+    font-weight: 800;
+    font-size: 7.5pt;
+    font-family: 'Inter', sans-serif;
+}
+
+.density-compact .card-stat-val {
+    padding: 0.4mm 0 0.3mm 0;
+}
+
+.card-multi-stat-row {
+    margin-bottom: 0.6mm;
+}
+
+.card-multi-stat-label {
+    font-size: 5.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #78350f;
+    margin-bottom: 0.2mm;
+}
+
+.theme-parchment .card-multi-stat-label {
+    color: #78350f;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-multi-stat-label {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+/* --- Armour Save & Labels --- */
+.card-section {
+    font-size: 6.5pt;
+    line-height: 1.25;
+}
+
+.card-label {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 6pt;
+    color: #334155;
+    margin-right: 0.8mm;
+}
+
+.theme-parchment .card-label {
+    color: #54371f;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-label {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+.card-label-small {
+    font-weight: bold;
+    font-size: 5.5pt;
+    color: #475569;
+    margin-right: 0.6mm;
+}
+
+.theme-parchment .card-label-small {
+    color: #6c4b31;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-label-small {
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+}
+
+.card-val-subtle {
+    font-style: italic;
+    color: #64748b;
+}
+
+.theme-parchment .card-val-subtle {
+    color: #7c5c42;
+    font-style: italic;
+}
+
+.theme-clean .card-val-subtle {
+    color: #64748b;
+    font-style: normal;
+}
+
+.card-save-split {
+    font-size: 6.5pt;
+}
+
+/* --- Pill Tags (Equipment, Skills, Injuries, Rules) --- */
+.card-pill-container {
+    display: inline;
+    line-height: 1.4;
+}
+
+.card-pill {
+    display: inline-block;
+    padding: 0.2mm 1mm;
+    border-radius: 0.8mm;
+    font-size: 6pt;
+    font-weight: 500;
+    margin: 0.2mm 0.4mm 0.2mm 0;
+    border: 0.2mm solid transparent;
+}
+
+.card-pill-equip,
+.card-pill-rule,
+.card-pill-skill,
+.card-pill-spell,
+.card-pill-injury {
+    background: #e2e8f0;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+.theme-parchment .card-pill-equip,
+.theme-parchment .card-pill-rule,
+.theme-parchment .card-pill-skill,
+.theme-parchment .card-pill-spell,
+.theme-parchment .card-pill-injury {
+    background: #e9dec9;
+    color: #352312;
+    border-color: #cbbaa1;
+    font-family: Georgia, serif;
+}
+
+.theme-clean .card-pill-equip,
+.theme-clean .card-pill-rule,
+.theme-clean .card-pill-skill,
+.theme-clean .card-pill-spell,
+.theme-clean .card-pill-injury {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000;
+    border-radius: 0.6mm;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+}
+
+/* --- Advancement Track --- */
+.card-xp-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1mm;
+    font-size: 6pt;
+    margin-bottom: 0.4mm;
+}
+
+.theme-parchment .card-xp-header {
+    color: #54371f;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-xp-header {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+.card-xp-subtle {
+    font-size: 5pt;
+    color: #64748b;
+}
+
+.theme-parchment .card-xp-subtle {
+    color: #7c5c42;
+}
+
+.theme-clean .card-xp-subtle {
+    color: #64748b;
+}
+
+.card-xp-track-14 {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 0.3mm;
+}
+
+.card-xp-box {
+    height: 3mm;
+    border: 0.25mm solid #334155;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4.5pt;
+    font-weight: bold;
+    color: #0f172a;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.theme-parchment .card-xp-box {
+    background: #fcf8ee;
+    border-color: #854d0e;
+}
+
+.theme-clean .card-xp-box {
+    background: #ffffff;
+    border-color: #000000;
+    border-radius: 0.3mm;
+}
+
+.card-xp-box.milestone {
+    border-color: #b45309;
+    background: #fef3c7;
+    font-weight: 900;
+}
+
+.theme-parchment .card-xp-box.milestone {
+    background: #fae7b3;
+    border-color: #78350f;
+    border-width: 0.35mm;
+}
+
+.theme-clean .card-xp-box.milestone {
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
+}
+
+.card-xp-box.checked {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.card-xp-box.milestone.checked {
+    background: #fef3c7;
+    border-color: #b45309;
+    color: #b45309;
+}
+
+.theme-clean .card-xp-box.milestone.checked {
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
+}
+
+.card-xp-box .card-xp-ms-num {
+    font-size: 4.5pt;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    color: #78350f;
+}
+
+.theme-parchment .card-xp-box .card-xp-ms-num {
+    color: #6b3304;
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: bold;
+}
+
+.theme-clean .card-xp-box .card-xp-ms-num {
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+.card-hero-ms-grid {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 0.3mm;
+}
+
+.card-hero-ms {
+    border: 0.2mm solid #64748b;
+    background: #ffffff;
+    padding: 0.2mm 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.theme-parchment .card-hero-ms {
+    border-color: #854d0e;
+    background: #fdfaf3;
+}
+
+.theme-clean .card-hero-ms {
+    border-color: #000000;
+    background: #ffffff;
+}
+
+.card-hero-ms-num {
+    font-size: 4.5pt;
+    font-weight: bold;
+    color: #334155;
+}
+
+.theme-parchment .card-hero-ms-num {
+    color: #6b3304;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-hero-ms-num {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+.card-hero-ms-box {
+    width: 2.2mm;
+    height: 2.2mm;
+    border: 0.15mm solid #94a3b8;
+    margin-top: 0.1mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5pt;
+    position: relative;
+    background: #ffffff;
+}
+
+.theme-parchment .card-hero-ms-box {
+    border-color: #854d0e;
+    background: #faf4e6;
+}
+
+.theme-clean .card-hero-ms-box {
+    border-color: #000000;
+    background: #ffffff;
+}
+
+.card-hero-ms.reached .card-hero-ms-box {
+    background: #ffffff;
+    border-color: #334155;
+}
+
+.theme-clean .card-hero-ms.reached .card-hero-ms-box {
+    border-color: #000000;
+}
+
+/* --- Full 90-Box Advancement Grid --- */
+.card-xp-grid-90 {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    gap: 0.25mm;
+}
+
+.card-xp-box-full {
+    height: 2.6mm;
+    border: 0.2mm solid #475569;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5pt;
+    font-weight: bold;
+    color: #0f172a;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.theme-parchment .card-xp-box-full {
+    background: #fdfaf3;
+    border-color: #926938;
+}
+
+.theme-clean .card-xp-box-full {
+    background: #ffffff;
+    border-color: #000000;
+    border-radius: 0.2mm;
+}
+
+.card-xp-box-full.milestone {
+    border-color: #b45309;
+    background: #fef3c7;
+    font-weight: 900;
+}
+
+.theme-parchment .card-xp-box-full.milestone {
+    background: #fae7b3;
+    border-color: #78350f;
+    border-width: 0.3mm;
+}
+
+.theme-clean .card-xp-box-full.milestone {
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
+}
+
+.card-xp-box-full.checked {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.card-xp-box-full.milestone.checked {
+    background: #fef3c7;
+    border-color: #b45309;
+    color: #78350f;
+}
+
+.theme-clean .card-xp-box-full.milestone.checked {
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
+}
+
+.card-xp-box-full .ms-marker {
+    font-size: 3.2pt;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    color: #78350f;
+}
+
+.theme-parchment .card-xp-box-full .ms-marker {
+    color: #6b3304;
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: bold;
+}
+
+.theme-clean .card-xp-box-full .ms-marker {
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+.density-compact .card-xp-box-full {
+    height: 2mm;
+    font-size: 3pt;
+}
+
+.density-compact .card-xp-box-full .ms-marker {
+    font-size: 2.8pt;
+}
+
+/* Vector X-mark for Earned Experience Boxes */
+.card-xp-x {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    stroke: #0f172a;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+}
+
+.theme-parchment .card-xp-x {
+    stroke: #3d2411;
+    stroke-width: 1.6;
+}
+
+.theme-clean .card-xp-x {
+    stroke: #000000;
+    stroke-width: 1.8;
+}
+
+.density-compact .card-xp-box-full .card-xp-x {
+    stroke-width: 1.4;
+}
+
+/* --- In-Game Trackers --- */
+.card-tracker-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4mm 0;
+    border-top: 0.2mm dashed #cbd5e1;
+}
+
+.theme-parchment .card-tracker-row {
+    border-top: 0.2mm dashed #a89276;
+}
+
+.theme-clean .card-tracker-row {
+    border-top: 0.2mm dashed #64748b;
+}
+
+.card-tracker-group {
+    display: flex;
+    align-items: center;
+}
+
+.card-tracker-boxes {
+    display: flex;
+    align-items: center;
+    gap: 0.6mm;
+}
+
+.card-tracker-box {
+    display: inline-block;
+    width: 2.8mm;
+    height: 2.8mm;
+    border: 0.3mm solid #1e293b;
+    background: #ffffff;
+}
+
+.theme-parchment .card-tracker-box {
+    border: 0.3mm solid #78350f;
+    background: #fdfaf3;
+}
+
+.theme-clean .card-tracker-box {
+    border: 0.35mm solid #000000;
+    background: #ffffff;
+    border-radius: 0.3mm;
+}
+
+.card-tracker-box.small {
+    width: 2mm;
+    height: 2mm;
+    margin-left: 0.4mm;
+}
+
+.card-status-box {
+    font-size: 5pt;
+    font-weight: bold;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    margin-left: 1mm;
+}
+
+.theme-parchment .card-status-box {
+    color: #54371f;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-status-box {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+}
+
+/* --- Notes Block --- */
+.card-notes-text {
+    font-size: 5.5pt;
+    font-style: italic;
+    color: #334155;
+    line-height: 1.2;
+}
+
+.theme-parchment .card-notes-text {
+    color: #54371f;
+    font-family: Georgia, serif;
+}
+
+.theme-clean .card-notes-text {
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+}
+
+/* --- Blank Writing Lines Component --- */
+.card-blank-lines {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 0.5mm 0;
+}
+
+.card-ruled-line {
+    width: 100%;
+    height: 4mm;
+    border-bottom: 0.25mm solid rgba(120, 53, 15, 0.45);
+    box-sizing: border-box;
+}
+
+.theme-parchment .card-ruled-line {
+    border-bottom: 0.25mm solid rgba(120, 53, 15, 0.45);
+}
+
+.theme-clean .card-ruled-line {
+    border-bottom: 0.25mm solid #64748b;
+}
+
+.density-compact .card-ruled-line {
+    height: 3.2mm;
+}
+
+/* --- Blank Template Card Styles --- */
+.card-header-blank {
+    padding-bottom: 0.8mm;
+}
+
+.card-blank-name-group {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 1mm;
+}
+
+.card-blank-label {
+    font-size: 6pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #451a03;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.theme-parchment .card-blank-label {
+    color: #451a03;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-blank-label {
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+}
+
+.card-blank-line-field {
+    flex: 1;
+    border-bottom: 0.25mm solid rgba(120, 53, 15, 0.45);
+    height: 3.5mm;
+    box-sizing: border-box;
+    display: inline-block;
+}
+
+.theme-parchment .card-blank-line-field {
+    border-bottom-color: rgba(120, 53, 15, 0.45);
+}
+
+.theme-clean .card-blank-line-field {
+    border-bottom-color: #64748b;
+}
+
+.density-compact .card-blank-line-field {
+    height: 2.8mm;
+}
+
+.card-blank-save-field {
+    width: 25mm;
+    max-width: 30mm;
+    flex: none;
+    margin-left: 1.5mm;
+    vertical-align: middle;
+}
+
+.card-blank-cost-group {
+    display: flex;
+    align-items: flex-end;
+    gap: 1mm;
+    margin-left: 1.5mm;
+}
+
+.card-blank-cost-field {
+    width: 10mm;
+    border-bottom: 0.25mm solid rgba(120, 53, 15, 0.45);
+    height: 3.5mm;
+    box-sizing: border-box;
+    display: inline-block;
+}
+
+.theme-parchment .card-blank-cost-field {
+    border-bottom-color: rgba(120, 53, 15, 0.45);
+}
+
+.theme-clean .card-blank-cost-field {
+    border-bottom-color: #64748b;
+}
+
+.density-compact .card-blank-cost-field {
+    height: 2.8mm;
+}
+
+.card-blank-sub-group {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 1mm;
+    margin-top: 0.6mm;
+}
+
+.card-blank-group-badge {
+    font-size: 6.5pt;
+    font-weight: bold;
+    color: #92400e;
+    margin-left: 1mm;
+    white-space: nowrap;
+}
+
+.theme-parchment .card-blank-group-badge {
+    color: #92400e;
+    font-family: 'Cinzel', Georgia, serif;
+}
+
+.theme-clean .card-blank-group-badge {
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+}
+
+.card-blank-save-field {
+    max-width: 25mm;
+    margin-left: 1.5mm;
+    vertical-align: bottom;
+}
+
+.card-blank-xp-field {
+    max-width: 14mm;
+    margin-left: 1.5mm;
+    vertical-align: bottom;
+}
+
+.card-blank-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-blank-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-blank-lines-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.3mm;
+}
+
+.card-blank-lines-group .card-ruled-line {
+    height: 2.7mm;
+}
+
+.density-compact .card-blank-lines-group .card-ruled-line {
+    height: 2.5mm;
+}
+
+.card-blank-characteristics .card-stat-val {
+    min-height: 3.8mm;
+}
+
+.density-compact .card-blank-characteristics .card-stat-val {
+    min-height: 3mm;
+}
+
+/* Overflow Warning Badge */
+.card-overflow-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #991b1b;
+    color: #fef2f2;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.card-fits-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #14532d;
+    color: #f0fdf4;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* ==========================================================================
+   4. Mobile & Responsive Layout (< 1024px)
+   Desktop layout (>= 1024px) remains preserved and completely unchanged.
+   ========================================================================== */
+
+/* Mobile controls hidden on desktop */
+.studio-mobile-nav,
+.studio-mobile-switch-banner,
+.studio-mobile-edit-btn {
+    display: none !important;
+}
+
+@media (max-width: 1023px) {
+    #card-builder-studio-modal {
+        padding: 0 !important;
+    }
+
+    .studio-dialog {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        max-height: 100% !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    .studio-header {
+        padding: 8px 12px !important;
+    }
+
+    .studio-title-group h2 {
+        font-size: 1rem !important;
+        gap: 6px !important;
+    }
+
+    .studio-type-tabs {
+        padding: 4px 8px !important;
+        gap: 4px !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .studio-tab-btn {
+        padding: 6px 12px !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* Mobile sub-navigation bar */
+    .studio-mobile-nav {
+        display: flex !important;
+        background: #090e17;
+        border-bottom: 1px solid #334155;
+        padding: 6px 8px;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .studio-mobile-nav-btn {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #94a3b8;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+    }
+
+    .studio-mobile-nav-btn:hover {
+        color: #f1f5f9;
+        background: #334155;
+    }
+
+    .studio-mobile-nav-btn.active {
+        background: #e2b714;
+        color: #0f172a;
+        border-color: #d97706;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Mobile Body Views */
+    .studio-body {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    /* When Card Preview is active on mobile */
+    .studio-body.mobile-view-preview .studio-sidebar {
+        display: none !important;
+    }
+
+    .studio-body.mobile-view-preview .studio-workspace {
+        display: flex !important;
+        width: 100% !important;
+        height: 100% !important;
+        flex: 1 !important;
+    }
+
+    /* When Components is active on mobile */
+    .studio-body.mobile-view-components .studio-sidebar {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        flex: 1 !important;
+        border-right: none !important;
+    }
+
+    .studio-body.mobile-view-components .studio-workspace {
+        display: none !important;
+    }
+
+    /* Mobile switch banner in sidebar */
+    .studio-mobile-switch-banner {
+        display: block !important;
+        margin-top: 16px;
+        padding: 12px 0 24px 0;
+        border-top: 1px solid #334155;
+    }
+
+    .studio-mobile-card-preview-btn {
+        width: 100%;
+        padding: 11px 16px;
+        background: #e2b714;
+        color: #0f172a;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        transition: background 0.15s;
+    }
+
+    .studio-mobile-card-preview-btn:hover {
+        background: #f59e0b;
+    }
+
+    /* Mobile Edit button in preview toolbar */
+    .studio-mobile-edit-btn {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background: #e2b714;
+        color: #0f172a;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .studio-mobile-edit-btn:hover {
+        background: #f59e0b;
+    }
+
+    /* Workspace Toolbar wrapping on small screens */
+    .workspace-toolbar {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 8px 12px !important;
+    }
+
+    .workspace-toolbar > div:first-child {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+    }
+
+    #studio-fighter-select {
+        flex: 1 !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .studio-zoom-controls {
+        width: 100% !important;
+        justify-content: flex-end !important;
+    }
+
+    .workspace-preview-area {
+        padding: 12px 6px !important;
+    }
+}
+
+/* ==========================================================================
+   5. Card Print Engine Styles (@media print)
+   ========================================================================== */
+
+@media print {
+    /* Hide all main app UI and modals when printing cards */
+    body.printing-cards > *:not(#cards-print-container) {
+        display: none !important;
+    }
+
+    html,
+    body.printing-cards {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body.printing-cards #cards-print-container {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    body.printing-cards #cards-print-container * {
+        visibility: visible !important;
+    }
+
+    /* Page configuration for cards: portrait with 7.5mm top margin to center cards vertically and clear printer hardware margins */
+    @page {
+        size: portrait;
+        margin: 7.5mm 0 5.5mm 0;
+    }
+
+    /* 3x3 Grid Sheet (up to 9 cards per sheet, exactly 189mm wide x 264mm high) */
+    .cards-print-sheet {
+        display: grid !important;
+        grid-template-columns: 63mm 63mm 63mm !important;
+        grid-template-rows: 88mm 88mm 88mm !important;
+        gap: 0 !important;
+        width: 189mm !important;
+        max-width: 189mm !important;
+        height: 264mm !important;
+        max-height: 264mm !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .cards-print-sheet:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+    }
+
+    .cards-print-cell {
+        width: 63mm !important;
+        height: 88mm !important;
+        min-width: 63mm !important;
+        max-width: 63mm !important;
+        min-height: 88mm !important;
+        max-height: 88mm !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border: none !important;
+    }
+
+    /* Cut guides using inset outlines so cell dimensions and cards are never shrunk or clipped */
+    .guides-dashed .cards-print-cell:not(.empty-cell) {
+        outline: 0.25mm dashed rgba(100, 116, 139, 0.8) !important;
+        outline-offset: -0.25mm !important;
+        border: none !important;
+    }
+
+    .guides-crop .cards-print-cell:not(.empty-cell) {
+        outline: 0.25mm solid rgba(148, 163, 184, 0.9) !important;
+        outline-offset: -0.25mm !important;
+        border: none !important;
+    }
+
+    .guides-none .cards-print-cell {
+        border: none !important;
+        outline: none !important;
+    }
+
+    .cards-print-cell.empty-cell {
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+    }
+
+    .cards-print-cell .mordheim-card {
+        width: 63mm !important;
+        height: 88mm !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        max-width: 63mm !important;
+        max-height: 88mm !important;
+        box-sizing: border-box !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .cards-print-cell .card-outer-border {
+        border-radius: 0 !important;
+        height: 100% !important;
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .cards-print-cell .card-inner-frame {
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}

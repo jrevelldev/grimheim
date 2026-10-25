@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploración - Rosterheim</title>
+    <meta name="description" content="Herramienta de Exploración de Mordheim - Calcula los fragmentos de piedra bruja obtenidos en las tiradas de exploración">
+    <meta name="google-site-verification" content="L2sLb6QHHUNrfBQhDqlBMtDuX11XHfAZUnmJvKW2BW0" />
+    <meta property="og:site_name" content="Rosterheim">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Load Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.ico">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Rosterheim",
+      "url": "https://rosterheim.net/",
+      "description": "A comprehensive Mordheim warband roster manager app for tabletop gaming"
+    }
+    </script>
+
+    <!-- Set Firebase Config -->
+    <script>
+    window.__firebase_config = JSON.stringify({
+      apiKey: "AIzaSyDhV9n0WBM0gLHq0a-lpGuWOpZK_hlsrw8",
+      //authDomain: "rosterheim.firebaseapp.com",
+      authDomain: "rosterheim.net",
+      projectId: "rosterheim",
+      storageBucket: "rosterheim.firebasestorage.app",
+      messagingSenderId: "125343728273",
+      appId: "1:125343728273:web:2bcfa74ee9836d17c4b530",
+      measurementId: "G-GPF9PBV8JP"
+    });
+    </script>
+    
+</head>
+<body class="text-white min-h-screen">
+
+    <div id="app" class="max-w-7xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="header-bg p-4 rounded-t-xl shadow-lg mb-6 relative">
+            <div class="beta-build">Versión Local</div>
+            <div class="text-center">
+                <h1 class="text-4xl font-extrabold tracking-tight text-mordheim-gold uppercase">
+                    Rosterheim
+                </h1>
+                <p class="text-sm mt-2 text-slate-300">Fase de Exploración de Tesoro</p>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex justify-end items-center space-x-2 mt-3 pt-3 border-t border-mordheim-gold/30">
+                <a href="index.html" onclick="preserveAuthAndNavigate(event)" class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition">
+                    Home
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="bg-slate-800 p-6 rounded-xl shadow-2xl">
+            <div class="mb-6">
+                <!-- Dice Input Section -->
+                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                    <h4 class="text-lg font-bold text-mordheim-gold mb-3">Introduce tus Tiradas de Dados</h4>
+                    
+                    <!-- Toggle between individual dice and advanced -->
+                    <div class="flex space-x-4 mb-4">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="dice-input-mode" value="individual" checked class="mr-2">
+                            <span class="text-slate-300">Dados Individuales</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="dice-input-mode" value="advanced" class="mr-2">
+                            <span class="text-slate-300">Avanzado</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Individual Dice Inputs -->
+                    <div id="individual-input-section">
+                        <label class="block text-slate-300 font-medium mb-2">Resultados Individuales:</label>
+                        <div class="grid grid-cols-6 gap-2">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 1" data-dice-index="1">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 2" data-dice-index="2">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 3" data-dice-index="3">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 4" data-dice-index="4">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 5" data-dice-index="5">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 6" data-dice-index="6">
+                        </div>
+                        <div class="mt-2 text-slate-400 text-sm">
+                            Total Calculado: <span id="calculated-total" class="text-mordheim-gold font-bold">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Input Section -->
+                    <div id="advanced-input-section" class="hidden">
+                        <label class="block text-slate-300 font-medium mb-2">Número Total de Dados Lanzados:</label>
+                        <input type="number" inputmode="numeric" id="total-dice-count-input" class="w-56 px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold" min="1" max="10" placeholder="Número de dados (1-10)">
+
+                        <!-- Dynamically generated dice inputs -->
+                        <div id="advanced-dice-inputs-container" class="mt-4 hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-slate-300 font-medium">Resultados de los Dados:</label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="advanced-locked-toggle" class="mr-2">
+                                    <span class="text-slate-300">Bloqueado</span>
+                                </label>
+                            </div>
+                            <div id="advanced-dice-inputs" class="grid grid-cols-6 gap-2">
+                                <!-- Dice inputs will be generated here -->
+                            </div>
+                            <div class="mt-2 text-slate-400 text-sm">
+                                Auto-calculated Total (<span id="calculation-mode-label">todos los dados</span>): <span id="advanced-calculated-total" class="text-mordheim-gold font-bold">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Maximize Total Button -->
+                        <div class="mt-4">
+                            <button id="maximize-total-btn" class="w-full py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-500 transition">
+                                Maximize Total
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Treasure Chart -->
+                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                    <h4 class="text-lg font-bold text-mordheim-gold mb-3">Tabla de Hallazgo de Tesoro</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-600">
+                                    <th class="text-left py-2 px-3 text-slate-300">Tirada de Dados</th>
+                                    <th class="text-left py-2 px-3 text-slate-300">Fragmentos Hallados</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-2 px-3 text-slate-300">1-5</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">1</td>
+                                </tr>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-2 px-3 text-slate-300">6-11</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">2</td>
+                                </tr>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-2 px-3 text-slate-300">12-17</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">3</td>
+                                </tr>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-2 px-3 text-slate-300">18-24</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">4</td>
+                                </tr>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-2 px-3 text-slate-300">25-30</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">5</td>
+                                </tr>
+                                <tr class="border-b border-slate-700">
+                                    <td class="py-2 px-3 text-slate-300">31-35</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">6</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-3 text-slate-300">36+</td>
+                                    <td class="py-2 px-3 text-mordheim-gold font-bold">7</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Result Display -->
+                <div id="treasure-result" class="hidden bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                    <div class="text-center">
+                        <div class="text-lg text-slate-300 mb-2">Tesoro Encontrado:</div>
+                        <div class="text-3xl font-bold text-mordheim-gold">
+                            <i class="fas fa-gem mr-2"></i>
+                            <span id="treasure-shards">0</span> Fragmentos de Piedra Bruja
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exploration Results Display (only shown in individual dice mode and advanced mode) -->
+                <div id="exploration-result" class="hidden bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                    <h4 class="text-lg font-bold text-mordheim-gold mb-3">
+                        Resultado de la Exploración
+                    </h4>
+                    <div id="exploration-results-list" class="space-y-3">
+                        <!-- Results will be dynamically generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <a href="index.html" onclick="preserveAuthAndNavigate(event)" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver al Inicio
+                </a>
+                <div class="space-x-2">
+                    <button id="calculate-treasure-btn" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition font-bold">
+                        Calculate Treasure
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts for Authentication Persistence -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="firebase-logic.js"></script>
+    <script type="module">
+        import { initializeFirebase } from './firebase-logic.js';
+        
+        // Wait for DOM to be ready before initializing Firebase
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Exploration page: DOM ready, initializing Firebase...");
+            
+            try {
+                await initializeFirebase(
+                    (user) => {
+                        if (user) {
+                            console.log("Exploration page: User authenticated", user.uid, user.isAnonymous ? "(anonymous)" : user.email || "");
+                        } else {
+                            console.log("Exploration page: No user authenticated");
+                        }
+                    },
+                    (error) => {
+                        console.warn("Exploration page: Firebase authentication failed, continuing offline:", error);
+                    }
+                );
+                console.log("Exploration page: Firebase initialization completed");
+            } catch (error) {
+                console.error("Exploration page: Error during Firebase initialization:", error);
+            }
+        });
+    </script>
+
+    <script>
+        // Check current authentication state
+        function checkAuthState() {
+            if (typeof window.firebaseAuth !== 'undefined') {
+                const user = window.firebaseAuth.currentUser;
+                if (user) {
+                    console.log("Auth check: User is authenticated", user.uid, user.isAnonymous ? "(anonymous)" : user.email || "");
+                    return true;
+                } else {
+                    console.log("Auth check: No user authenticated");
+                    return false;
+                }
+            } else {
+                console.log("Auth check: Firebase auth not available");
+                return false;
+            }
+        }
+        
+        // Preserve authentication state when navigating back to main app
+        function preserveAuthAndNavigate(event) {
+            event.preventDefault();
+            console.log("Navigation: preserveAuthAndNavigate called");
+            
+            // Check authentication state before navigating
+            const isAuthenticated = checkAuthState();
+            console.log("Navigation: Authentication state before navigation:", isAuthenticated);
+            
+            try {
+                // Store the current page in session storage so the main app knows we're returning
+                sessionStorage.setItem('returningFromExploration', 'true');
+                sessionStorage.setItem('explorationAuthState', isAuthenticated ? 'authenticated' : 'not-authenticated');
+                console.log("Navigation: Setting flag for returning from exploration");
+                
+                // Navigate to index.html
+                console.log("Navigation: Navigating to index.html");
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error during navigation:", error);
+                // Fallback: just navigate normally
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+    <script type="module" src="exploration-standalone.js"></script>
+</body>
+</html>

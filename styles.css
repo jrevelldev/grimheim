@@ -1,0 +1,628 @@
+:root {
+    --mordheim-gold: #c99f35;
+    --mordheim-brown: #2C3E50;
+    --terracotta-red: #c1440e;
+    --sage-green: #6b8454;
+}
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #1e293b; /* Slate 800 */
+}
+/* Hide browser default number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    display: none;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+/* Custom scrollbar for better look */
+.custom-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--mordheim-gold);
+    border-radius: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+    background: #334155; /* Slate 700 */
+}
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    border-width: 2px;
+    --tw-border-opacity: 1;
+    border-color: rgb(71 85 105 / var(--tw-border-opacity));
+    --tw-bg-opacity: 1;
+    background-color: rgb(30 41 59 / var(--tw-bg-opacity));
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    height: 3.5rem;
+    transition: all 0.2s;
+    text-align: center;
+}
+/* Collapsible Grade Sections for Warband Selection */
+.grade-section {
+    margin-bottom: 0.5rem;
+    border: 1px solid #475569;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.grade-header {
+    background-color: #334155;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.grade-header:hover {
+    background-color: #475569;
+}
+
+.grade-header .chevron {
+    transition: transform 0.2s;
+    color: #94a3b8;
+}
+
+.grade-header.expanded .chevron {
+    transform: rotate(90deg);
+}
+
+.grade-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background-color: #1e293b;
+}
+
+.grade-content.expanded {
+    max-height: none;
+    overflow-y: visible;
+}
+
+/* Nested structure for All Warbands */
+.all-warbands-wrapper {
+    width: 100%;
+}
+
+.grades-nested-container {
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #475569;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.grades-nested-container.expanded {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.grade-section.nested {
+    margin-bottom: 0.25rem;
+    border: 1px solid #475569;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    background-color: #1e293b;
+}
+
+.grade-section.nested .grade-header {
+    background-color: #334155;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.grade-section.nested .grade-content {
+    background-color: #0f172a;
+}
+
+.grade-section.nested .warband-option {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.grade-section.nested .sub-warband {
+    padding-left: 1.5rem;
+    font-size: 0.8rem;
+}
+
+/* Timing filter options */
+.timing-option {
+    transition: background-color 0.2s;
+}
+
+.timing-option:hover {
+    background-color: #475569;
+}
+
+/* Mobile Tab Layout Styles */
+@media (max-width: 1023px) {
+    /* Active tab styling */
+    .mobile-tab-active {
+        background-color: var(--mordheim-gold) !important;
+        color: #1e293b !important;
+    }
+    
+    /* Mobile tab content adjustments */
+    #mobile-management-content {
+        width: 100%;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    #mobile-members-content {
+        width: 100%;
+    }
+    
+    /* Set initial mobile state - management hidden, members visible */
+    #mobile-management-content {
+        display: none;
+    }
+    
+    #mobile-members-content {
+        display: block;
+    }
+}
+
+/* Desktop override - ensure normal layout on larger screens */
+@media (min-width: 1024px) {
+    #mobile-management-content,
+    #mobile-members-content {
+        display: block !important;
+    }
+}
+
+.timing-checkbox {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #d4af37;
+    cursor: pointer;
+}
+
+.timing-checkbox:focus {
+    outline: 2px solid #d4af37;
+    outline-offset: 2px;
+}
+
+.warband-option {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-left: 3px solid transparent;
+    color: #cbd5e1;
+}
+
+.warband-option:hover {
+    background-color: #334155;
+}
+
+.warband-option.selected {
+    background-color: #475569;
+    border-left-color: var(--mordheim-gold);
+    color: white;
+}
+
+.warband-option.sub-warband {
+    padding-left: 2rem;
+    font-size: 0.875rem;
+}
+
+.stat-box-value {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+}
+.stat-box-label {
+    display: block;
+    margin-top: -0.25rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    text-transform: uppercase;
+    --tw-text-opacity: 1;
+    color: rgb(148 163 184 / var(--tw-text-opacity));
+}
+.header-bg {
+    background-color: var(--mordheim-brown);
+    border-bottom: 4px solid var(--mordheim-gold);
+}
+/* CRITICAL FIX: Ensure the input elements fit perfectly inside the flex box, */
+.stat-box input {
+    max-width: 100%;
+    height: 1.5rem; /* Fixed height to control spacing */
+    line-height: 1.5rem;
+}
+/* XP Bar Styling */
+#xp-bar-track {
+    height: 16px;
+    background-color: #334155;
+    border-radius: 8px;
+    position: relative;
+}
+#xp-bar-fill {
+    height: 100%;
+    background-color: #10b981; /* Emerald 500 */
+    border-radius: 8px;
+    transition: width 0.5s ease-out;
+}
+.xp-marker {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: var(--mordheim-gold);
+    transform: translateX(-50%);
+    z-index: 10;
+}
+.xp-marker-label {
+    position: absolute;
+    top: 20px;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+.xp-marker.current {
+    background-color: #f59e0b; /* Amber 500 */
+    height: 140%;
+    top: -3px;
+    width: 4px;
+    border-radius: 2px;
+    z-index: 20;
+}
+.xp-marker.current .xp-marker-label {
+    color: #f59e0b;
+    font-weight: bold;
+}
+
+[data-rule] {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Warband member cards: match skills/injuries (inherit slate-400 from parent) */
+#roster-container [data-skill],
+#roster-container [data-injury],
+#roster-container [data-rule],
+#roster-container [data-spell] {
+    color: inherit;
+}
+
+#roster-container [data-skill]:hover,
+#roster-container [data-injury]:hover,
+#roster-container [data-rule]:hover,
+#roster-container [data-spell]:hover {
+    color: #cbd5e1; /* slate-300 */
+}
+
+/* Add to Storage Modal Specific Styles */
+#add-to-storage-modal .bg-slate-700 {
+    border-top: 4px solid var(--mordheim-gold);
+}
+
+#storage-equipment-options-list .hover\:bg-slate-700:hover {
+    background-color: #475569; /* A slightly lighter slate for hover effect */
+}
+
+/* Changelog list item hanging indent fix */
+.changelog-entry ul li {
+    text-indent: -1em;
+    padding-left: 1em;
+}
+
+/* Hamburger Menu Styles */
+#mobile-menu {
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+#mobile-menu.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+#mobile-menu:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Hamburger button animation */
+#mobile-menu-btn.active i::before {
+    content: "\f00d"; /* Times icon */
+}
+
+/* Mobile menu slide animation */
+#mobile-menu .flex-col {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+}
+
+#mobile-menu:not(.hidden) .flex-col {
+    transform: translateX(0);
+}
+
+/* Character submenu animation */
+#mobile-character-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, margin 0.3s ease-out;
+}
+
+#mobile-character-submenu:not(.hidden) {
+    max-height: 200px;
+    margin-top: 0.5rem;
+}
+
+/* Ensure hamburger menu stays above all content */
+#mobile-menu-btn {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+}
+
+/* Adjust header padding to account for fixed hamburger button */
+@media (max-width: 767px) {
+    header {
+        position: relative;
+    }
+    
+    /* Prevent body scroll when mobile menu is open */
+    body.mobile-menu-open {
+        overflow: hidden;
+    }
+}
+
+/* Blog Styles */
+.blog-category-btn {
+    padding: 0.75rem 1rem;
+    background-color: #475569;
+    color: white;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.blog-category-btn.active {
+    background-color: var(--mordheim-gold);
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.blog-post-item {
+    transition: all 0.2s ease;
+}
+
+.blog-post-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.blog-post-content h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mordheim-gold);
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+}
+
+.blog-post-content h3,
+.blog-post-content .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--mordheim-gold);
+    margin-bottom: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.blog-post-content h4,
+.blog-post-content .prose h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+
+.blog-post-content p,
+.blog-post-content .prose p {
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+    line-height: 1.625;
+}
+
+.blog-post-content ul,
+.blog-post-content .prose ul {
+    margin-bottom: 1rem;
+    margin-left: 1.5rem;
+    list-style-type: disc;
+    color: #cbd5e1;
+}
+
+.blog-post-content li,
+.blog-post-content .prose li {
+    margin-bottom: 0.5rem;
+}
+
+.blog-post-content strong,
+.blog-post-content .prose strong {
+    color: var(--mordheim-gold);
+    font-weight: 600;
+}
+
+.blog-post-content code {
+    background-color: #1e293b;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--mordheim-gold);
+}
+
+.blog-post-content .prose {
+    max-width: none;
+}
+
+/* Beta / Alpha Build Styling */
+.beta-build,
+.alpha-build {
+    color: #ef4444; /* Red 500 */
+    font-size: 1.25rem; /* 20px - bigger than default */
+    font-weight: 700; /* Bold */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ===== Equipment Reorder Modal ===== */
+.equip-reorder-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem;
+    background-color: #0f172a; /* slate-900 */
+    border-radius: 0.5rem;
+    overflow-y: auto;
+    min-height: 3rem;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.equip-reorder-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.25rem;
+    background-color: #1e293b; /* slate-800 */
+    border: 1px solid #334155; /* slate-700 */
+    border-radius: 0.5rem;
+    color: #fef08a; /* yellow-200, matches the selected-equipment list */
+    font-size: 0.875rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    user-select: none;
+}
+
+.equip-reorder-item:hover {
+    border-color: #475569; /* slate-600 */
+}
+
+.equip-reorder-grab {
+    cursor: grab;
+    touch-action: none; /* allow pointer-based dragging on touch screens */
+}
+
+.equip-reorder-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    min-height: 1.75rem;
+    color: #64748b; /* slate-500 */
+    flex-shrink: 0;
+}
+
+.equip-reorder-item:hover .equip-reorder-handle {
+    color: var(--mordheim-gold, #d4af37);
+}
+
+.equip-reorder-position {
+    color: #64748b;
+    font-size: 0.75rem;
+    min-width: 1.25rem;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.equip-reorder-name {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.equip-reorder-cost {
+    margin-left: 0.375rem;
+    color: #94a3b8; /* slate-400 */
+    font-size: 0.75rem;
+}
+
+.equip-reorder-arrows {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.equip-reorder-arrow {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    background-color: #334155; /* slate-700 */
+    color: #e2e8f0;
+    font-size: 0.75rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.equip-reorder-arrow:hover:not(:disabled) {
+    background-color: #2563eb; /* blue-600 */
+    color: #fff;
+}
+
+.equip-reorder-arrow:focus-visible {
+    outline: 2px solid var(--mordheim-gold, #d4af37);
+    outline-offset: 1px;
+}
+
+.equip-reorder-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Dragging state */
+.equip-reorder-list.is-drag-active,
+.equip-reorder-list.is-drag-active .equip-reorder-grab {
+    cursor: grabbing;
+}
+
+.equip-reorder-item.is-dragging {
+    background-color: #273449;
+    border-color: var(--mordheim-gold, #d4af37);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+    transform: scale(1.02);
+    position: relative;
+    z-index: 1;
+}
+
+/* Brief highlight on the row that was just moved */
+@keyframes equip-reorder-flash {
+    from { background-color: rgba(212, 175, 55, 0.25); border-color: var(--mordheim-gold, #d4af37); }
+    to   { background-color: #1e293b; border-color: #334155; }
+}
+
+.equip-reorder-item.equip-reorder-moved {
+    animation: equip-reorder-flash 0.6s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .equip-reorder-item,
+    .equip-reorder-item.equip-reorder-moved {
+        transition: none;
+        animation: none;
+    }
+}

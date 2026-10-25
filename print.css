@@ -1,0 +1,349 @@
+/* Print Styles */
+@media print {
+    /* Page setup for standard warband roster */
+    @page {
+        margin: 8mm;
+    }
+    
+    /* Hide unnecessary elements when printing roster */
+    body:not(.printing-cards) * {
+        visibility: hidden;
+    }
+    
+    /* Show only print content when printing roster */
+    body:not(.printing-cards) .print-content,
+    body:not(.printing-cards) .print-content * {
+        visibility: visible;
+    }
+    
+    /* Reset body for print when printing roster */
+    body:not(.printing-cards) {
+        background: white !important;
+        color: black !important;
+        font-family: 'Times New Roman', serif !important;
+        font-size: 12pt !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Print container for roster */
+    .print-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 10px;
+        background: white !important;
+    }
+    
+    /* Warband header */
+    .print-header {
+        text-align: center;
+        border-bottom: 2px solid black;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .print-header h1 {
+        font-size: 24pt !important;
+        color: black !important;
+        margin: 0 0 5px 0;
+    }
+    
+    .print-header .warband-info {
+        font-size: 14pt;
+        margin: 5px 0;
+    }
+    
+    /* Fighter cards */
+    .print-fighter {
+        border: 1px solid black;
+        margin-bottom: 15px;
+        padding: 10px;
+        page-break-inside: avoid;
+        background: white !important;
+        margin-top: 30px;
+    }
+    
+    /* Remove top margin from first fighter on first page */
+    .print-content > .print-warband-summary + h2 + .print-fighter:first-of-type {
+        margin-top: 20px;
+    }
+    
+    .print-fighter-header {
+        border-bottom: 1px solid black;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        font-size: 14pt;
+    }
+    
+    .print-stats {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .print-stat {
+        text-align: center;
+        border: 1px solid #ccc;
+        padding: 5px;
+    }
+    
+    .print-stat-name {
+        font-size: 10pt;
+        font-weight: bold;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 2px;
+        margin-bottom: 2px;
+    }
+    
+    .print-stat-value {
+        font-size: 12pt;
+        font-weight: bold;
+    }
+    
+    .print-equipment {
+        margin-top: 10px;
+    }
+    
+    .print-equipment-item {
+        display: inline-block;
+        background: #f0f0f0;
+        padding: 2px 6px;
+        margin: 2px;
+        border: 1px solid #ccc;
+        font-size: 10pt;
+    }
+    
+    .print-skills {
+        margin-top: 10px;
+    }
+    
+    .print-skill {
+        display: inline-block;
+        background: #e8f4e8;
+        padding: 2px 6px;
+        margin: 2px;
+        border: 1px solid #ccc;
+        font-size: 10pt;
+    }
+    
+    .print-special-rules {
+        margin-top: 10px;
+    }
+    
+    .print-special-rule {
+        display: inline-block;
+        background: #fff4e8;
+        padding: 2px 6px;
+        margin: 2px;
+        border: 1px solid #ccc;
+        font-size: 10pt;
+    }
+    
+    .print-injuries {
+        margin-top: 10px;
+    }
+    
+    .print-injury {
+        display: inline-block;
+        background: #fef2f2;
+        color: #991b1b;
+        padding: 2px 6px;
+        margin: 2px;
+        border: 1px solid #fecaca;
+        font-size: 10pt;
+    }
+    
+    .print-armour-save {
+        margin-top: 10px;
+        font-weight: bold;
+        font-size: 11pt;
+        color: #000;
+        border: 1px solid #999;
+        background: #f0f8ff;
+        padding: 5px 8px;
+        display: inline-block;
+    }
+    
+    /* Experience section styling */
+    .print-experience-section {
+        margin-top: 10px !important;
+        padding: 6px !important;
+        border: 1px solid #999 !important;
+        background: #fafafa !important;
+    }
+    
+    .print-xp-boxes {
+        display: flex !important;
+        gap: 2px !important;
+        margin-top: 5px !important;
+        flex-wrap: wrap !important;
+        max-width: 400px !important;
+    }
+    
+    .print-xp-boxes-hero {
+        max-width: 418px !important;
+    }
+    
+    .print-xp-box {
+        width: 12px !important;
+        height: 12px !important;
+        box-sizing: border-box !important;
+        border: 1px solid black !important;
+        background: white !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+    }
+    
+    .print-xp-box-checked {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .print-xp-box-milestone {
+        border: 2px solid black !important;
+    }
+
+    .print-xp-x {
+        width: 100% !important;
+        height: 100% !important;
+        stroke: black !important;
+        stroke-width: 1.8 !important;
+        stroke-linecap: round !important;
+        display: block !important;
+    }
+    
+    /* Multi-stat fighters */
+    .print-multi-stat {
+        margin-bottom: 15px;
+    }
+    
+    .print-stat-line-name {
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        font-size: 11pt;
+    }
+    
+    /* Page breaks */
+    .print-page-break {
+        page-break-before: always;
+    }
+    
+    /* Ensure proper spacing between sections */
+    h2 {
+        page-break-after: avoid;
+        margin-top: 30px;
+        font-size: 18pt !important;
+        color: black !important;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+    
+    /* Add extra spacing before section headers that come after page breaks */
+    h2 {
+        page-break-before: auto;
+    }
+    
+    /* Ensure proper spacing */
+    .print-warband-summary {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid black;
+        background: #f9f9f9;
+    }
+    
+    .print-notes-lines {
+        margin-top: 10px;
+    }
+    
+    .print-notes-line {
+        height: 24px;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 8px;
+    }
+    
+    .print-warband-summary h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 16pt;
+    }
+    
+    .print-warband-summary p {
+        margin: 5px 0;
+        font-size: 12pt;
+    }
+    
+    /* Hide colored backgrounds and borders */
+    .bg-slate-700, .bg-slate-800, .header-bg {
+        background: white !important;
+        border: 1px solid black !important;
+    }
+    
+    /* Remove interactive elements */
+    button, .btn, input, select, textarea {
+        display: none !important;
+    }
+    
+    /* Links should show URL */
+    a[href]:after {
+        content: " (" attr(href) ")";
+        font-size: 9pt;
+        color: #666;
+    }
+
+    /* Skills reference page */
+    .print-skills-reference {
+        margin-top: 30px;
+    }
+
+    .print-skills-reference h2 {
+        font-size: 18pt !important;
+        margin-bottom: 15px;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+    }
+
+    .print-skill-entry {
+        margin-bottom: 8px;
+        font-size: 10pt;
+        line-height: 1.4;
+    }
+
+    .print-skill-entry strong {
+        display: block;
+        font-size: 11pt;
+    }
+
+    .print-skill-entry p {
+        margin: 2px 0 0 0;
+        color: #333;
+    }
+
+    /* Warband notes page */
+    .print-warband-notes-page {
+        margin-top: 30px;
+    }
+
+    .print-warband-notes-page h2 {
+        font-size: 18pt !important;
+        margin-bottom: 15px;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+    }
+
+    .print-warband-notes-body {
+        font-size: 10pt;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: #333;
+    }
+}
