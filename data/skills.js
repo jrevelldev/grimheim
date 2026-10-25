@@ -2,15 +2,20 @@ import { RULES } from './rules.js';
 
 // Helper function to create rule reference links
 const createRuleReference = (ruleName) => {
-    const rule = RULES.find(r => r.name === ruleName);
+    const clean = (ruleName || '').toLowerCase().trim();
+    const rule = RULES.find(r => 
+        r.name.toLowerCase().trim() === clean ||
+        (r.englishName && r.englishName.toLowerCase().trim() === clean) ||
+        (r.aliases && r.aliases.some(a => a.toLowerCase().trim() === clean))
+    );
     if (!rule) {
-        return `<span class="text-red-400">Rule "${ruleName}" not found</span>`;
+        return `<span class="text-red-400">Regla "${ruleName}" no encontrada</span>`;
     }
 
     return `
         <span class="text-mordheim-gold hover:text-yellow-400 cursor-pointer inline-block" 
-              onclick="window.showRuleModal('${ruleName}')"
-              title="Click to view ${ruleName} rules"
+              onclick="window.showRuleModal('${rule.name}')"
+              title="Ver reglas de ${rule.name}"
               style="text-decoration: underline; text-underline-offset: 2px;">
             ${ruleName}
         </span>

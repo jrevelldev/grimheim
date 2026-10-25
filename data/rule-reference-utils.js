@@ -3,7 +3,12 @@ import { RULES } from './rules.js';
 
 // Global function to show rule modal
 window.showRuleModal = function(ruleName) {
-    const rule = RULES.find(r => r.name === ruleName);
+    const clean = (ruleName || '').toLowerCase().trim();
+    const rule = RULES.find(r => 
+        r.name.toLowerCase().trim() === clean ||
+        (r.englishName && r.englishName.toLowerCase().trim() === clean) ||
+        (r.aliases && r.aliases.some(a => a.toLowerCase().trim() === clean))
+    );
     if (!rule) {
         console.error(`Rule "${ruleName}" not found`);
         return;
@@ -27,7 +32,7 @@ window.showRuleModal = function(ruleName) {
                     }
                     ${rule.timing ? `
                         <div class="mt-4 pt-4 border-t border-slate-600">
-                            <span class="text-sm text-slate-400">Timing: </span>
+                            <span class="text-sm text-slate-400">Momento: </span>
                             <span class="text-sm text-mordheim-gold">${rule.timing.join(', ')}</span>
                         </div>
                     ` : ''}

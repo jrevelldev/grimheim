@@ -121,46 +121,6 @@
                         </div>
                     </div>
 
-                    <!-- Blog Section -->
-                    <div class="mb-4">
-                        <button id="mobile-blog-btn"
-                            class="w-full text-left px-4 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition flex items-center justify-between">
-                            <span>Blog</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div id="mobile-blog-submenu" class="hidden mt-2 ml-4 space-y-2">
-                            <button id="mobile-blog-link"
-                                class="w-full text-left px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
-                                Blog
-                            </button>
-                            <button id="mobile-special-thanks-btn"
-                                class="w-full text-left px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
-                                Agradecimientos
-                        </button>
-                        </div>
-                    </div>
-                    <!-- Feedback Review Section -->
-                    <div class="mb-4">
-                        <button id="mobile-feedback-review-btn"
-                            class="w-full text-left px-4 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition flex items-center justify-between">
-                            <span>Comentarios</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div id="mobile-feedback-submenu" class="hidden mt-2 ml-4 space-y-2">
-                            <button id="mobile-submit-feedback-btn"
-                                class="w-full text-left px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
-                                Enviar Comentarios
-                        </button>
-                            <button id="mobile-feedback-status-btn"
-                                class="w-full text-left px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
-                                Estado
-                        </button>
-                            <button id="mobile-changelog-link"
-                                class="w-full text-left px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
-                                Registro de Cambios
-                        </button>
-                        </div>
-                    </div>
 
                     <!-- Botones de Importar / Exportar Local -->
                     <div id="mobile-auth-buttons" class="mt-4 pt-4 border-t border-slate-700">
@@ -238,48 +198,7 @@
                         </button>
                     </div>
                 </div>
-                <!-- Blog Dropdown -->
-                <div class="relative">
-                    <button id="blog-dropdown-btn"
-                        class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition flex items-center">
-                        Blog
-                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
-                    </button>
-                    <div id="blog-dropdown"
-                        class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-lg shadow-lg z-50">
-                        <button id="blog-link"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Blog
-                        </button>
-                        <button id="special-thanks-btn"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Agradecimientos
-                        </button>
-                    </div>
-                </div>
-                <!-- Feedback Review Dropdown -->
-                <div class="relative">
-                    <button id="feedback-dropdown-btn"
-                        class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition flex items-center">
-                        Comentarios
-                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
-                    </button>
-                    <div id="feedback-dropdown"
-                        class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-lg shadow-lg z-50">
-                        <button id="submit-feedback-btn"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Enviar Comentarios
-                        </button>
-                        <button id="feedback-status-btn"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Estado
-                        </button>
-                        <button id="changelog-link"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Registro de Cambios
-                        </button>
-                    </div>
-                </div>
+
                 <div id="auth-buttons" class="flex items-center">
                     <input type="file" id="import-file-input" accept=".json" class="hidden">
                     <button id="import-warband-btn"
@@ -1966,11 +1885,11 @@
         class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-slate-700 p-6 rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
             <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-2">
-                <h3 id="equip-skill-modal-title" class="text-xl font-bold text-mordheim-gold">Choose a Skill</h3>
+                <h3 id="equip-skill-modal-title" class="text-xl font-bold text-mordheim-gold">Elige una Habilidad</h3>
                 <button id="equip-skill-modal-cancel-btn"
                     class="text-slate-300 hover:text-white transition flex items-center gap-2">
                     <i class="fas fa-times"></i>
-                    <span class="text-sm">Cancel</span>
+                    <span class="text-sm">Cancelar</span>
                 </button>
             </div>
             <div id="equip-skill-modal-info" class="mb-4 p-3 bg-slate-800 rounded-lg border border-mordheim-gold/30">
@@ -1988,7 +1907,7 @@
         class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
             <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Introducir Tirada de Dados</h3>
-            <p class="text-slate-300 mb-2">Item: <span id="dice-roll-item-name"
+            <p class="text-slate-300 mb-2">Objeto: <span id="dice-roll-item-name"
                     class="font-bold text-yellow-200"></span></p>
             <p class="text-slate-400 mb-4">Coste Base: <span id="dice-roll-base-cost" class="font-bold"></span> CO</p>
             <div>
@@ -2010,7 +1929,7 @@
         class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
             <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Vender Objeto de la Armería</h3>
-            <p class="text-slate-300 mb-2">Item: <span id="sell-storage-item-name"
+            <p class="text-slate-300 mb-2">Objeto: <span id="sell-storage-item-name"
                     class="font-bold text-yellow-200"></span></p>
             <p class="text-slate-400 mb-4">Coste Original: <span id="sell-storage-item-cost" class="font-bold"></span> CO</p>
             <div class="space-y-4">
@@ -2541,11 +2460,9 @@
                 <h3 class="text-2xl font-bold text-mordheim-gold">Registro de Cambios</h3>
                 <div class="flex space-x-2">
                     <button id="collapse-all-btn"
-                        class="px-2 py-1 text-xs bg-slate-600 text-white rounded hover:bg-slate-500 transition">Collapse
-                        All</button>
+                        class="px-2 py-1 text-xs bg-slate-600 text-white rounded hover:bg-slate-500 transition">Plegar Todo</button>
                     <button id="expand-all-btn"
-                        class="px-2 py-1 text-xs bg-slate-600 text-white rounded hover:bg-slate-500 transition">Expand
-                        All</button>
+                        class="px-2 py-1 text-xs bg-slate-600 text-white rounded hover:bg-slate-500 transition">Desplegar Todo</button>
                 </div>
             </div>
 
@@ -2569,7 +2486,7 @@
         class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-slate-700 p-6 rounded-xl w-full max-w-6xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-2">
-                <h3 id="character-review-title" class="text-2xl font-bold text-mordheim-gold">Character Review</h3>
+                <h3 id="character-review-title" class="text-2xl font-bold text-mordheim-gold">Revisión de Personajes</h3>
                 <button id="close-character-review-btn" class="text-slate-300 hover:text-white transition">
                     <i class="fas fa-times text-xl"></i>
                 </button>
@@ -2579,26 +2496,26 @@
             <div class="bg-slate-800 p-4 rounded-lg mb-4 flex-shrink-0">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block mb-1 text-slate-300 text-sm">Alignment Filter</label>
+                        <label class="block mb-1 text-slate-300 text-sm">Filtro de Alineamiento</label>
                         <select id="alignment-filter"
                             class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600 text-white">
-                            <option value="any">Any Alignment</option>
-                            <option value="good">Good Only</option>
-                            <option value="evil">Evil Only</option>
+                            <option value="any">Cualquier Alineamiento</option>
+                            <option value="good">Solo Bondadosos</option>
+                            <option value="evil">Solo Malvados</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block mb-1 text-slate-300 text-sm">Warband Filter</label>
+                        <label class="block mb-1 text-slate-300 text-sm">Filtro de Banda</label>
                         <select id="warband-filter"
                             class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600 text-white">
-                            <option value="">All Warbands</option>
+                            <option value="">Todas las Bandas</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block mb-1 text-slate-300 text-sm">Grade Filter</label>
+                        <label class="block mb-1 text-slate-300 text-sm">Filtro de Rango</label>
                         <select id="grade-filter"
                             class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600 text-white">
-                            <option value="">All Grades</option>
+                            <option value="">Todos los Rangos</option>
                         </select>
                     </div>
                 </div>
@@ -2669,7 +2586,7 @@
                 </button>
                 <button id="casualty-yes-btn"
                     class="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                    Yes
+                    Sí
                 </button>
             </div>
         </div>
@@ -2789,7 +2706,7 @@
             <div class="flex justify-end space-x-3 mt-auto pt-4 border-t border-slate-600">
                 <button id="cancel-end-battle-btn"
                     class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
-                    Cancel
+                    Cancelar
                 </button>
                 <button id="confirm-end-battle-btn"
                     class="py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition disabled:opacity-50 disabled:cursor-not-allowed"

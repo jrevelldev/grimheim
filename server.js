@@ -1,9 +1,13 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
-const PUBLIC_DIR = __dirname;
+const PUBLIC_DIR = path.resolve(__dirname);
 
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
@@ -34,7 +38,7 @@ const server = http.createServer((req, res) => {
         return res.end('Bad Request');
     }
 
-    let filePath = path.join(PUBLIC_DIR, decodeURIComponent(reqUrl.pathname));
+    let filePath = path.resolve(PUBLIC_DIR, '.' + decodeURIComponent(reqUrl.pathname));
 
     // Prevent directory traversal
     if (!filePath.startsWith(PUBLIC_DIR)) {
@@ -62,9 +66,10 @@ const server = http.createServer((req, res) => {
             const ext = path.extname(filePath).toLowerCase();
             const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
+            // Cache static assets locally for fast reloads
             res.writeHead(200, {
                 'Content-Type': contentType,
-                'Cache-Control': 'no-cache, no-store, must-revalidate'
+                'Cache-Control': 'no-cache'
             });
             res.end(content);
         });
@@ -78,13 +83,4 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`  > Local:   http://localhost:${PORT}`);
     console.log(`  > IP:      http://127.0.0.1:${PORT}`);
     console.log(`=======================================================`);
-});
-
-server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`El puerto ${PORT} ya está en uso. Probando puerto ${PORT + 1}...`);
-        server.listen(PORT + 1, '0.0.0.0');
-    } else {
-        console.error('Error del servidor:', err);
-    }
 });

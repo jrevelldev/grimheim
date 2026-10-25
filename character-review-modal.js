@@ -97,7 +97,7 @@ class CharacterReviewModal {
         const modal = document.getElementById('character-review-modal');
         
         // Set title
-        title.textContent = characterType === 'hired-sword' ? 'Hired Sword Review' : 'Dramatis Personae Review';
+        title.textContent = characterType === 'hired-sword' ? 'Revisión de Espadas de Alquiler' : 'Revisión de Personajes Ilustres';
         
         // Load characters
         this.loadCharacters();
@@ -146,7 +146,7 @@ class CharacterReviewModal {
 
     populateGradeFilter() {
         const gradeFilter = document.getElementById('grade-filter');
-        gradeFilter.innerHTML = '<option value="">All Grades</option>';
+        gradeFilter.innerHTML = '<option value="">Todos los Rangos</option>';
         
         this.gradeList.sort().forEach(grade => {
             const option = document.createElement('option');
@@ -209,7 +209,7 @@ class CharacterReviewModal {
             characterList.innerHTML = `
                 <div class="text-center py-8 text-slate-400">
                     <i class="fas fa-search text-4xl mb-4"></i>
-                    <p>No characters found matching your filters.</p>
+                    <p>No se han encontrado personajes que coincidan con los filtros.</p>
                 </div>
             `;
             return;
@@ -261,30 +261,30 @@ class CharacterReviewModal {
                 <div class="text-sm text-slate-300 mb-3">
                     <div class="grid grid-cols-3 gap-2 text-xs mb-2">
                         <div><strong>M:</strong> ${stats.M || 0}</div>
-                        <div><strong>WS:</strong> ${stats.WS || 0}</div>
-                        <div><strong>BS:</strong> ${stats.BS || 0}</div>
-                        <div><strong>S:</strong> ${stats.S || 0}</div>
-                        <div><strong>T:</strong> ${stats.T || 0}</div>
-                        <div><strong>W:</strong> ${stats.W || 0}</div>
+                        <div><strong>HA:</strong> ${stats.WS || 0}</div>
+                        <div><strong>HP:</strong> ${stats.BS || 0}</div>
+                        <div><strong>F:</strong> ${stats.S || 0}</div>
+                        <div><strong>R:</strong> ${stats.T || 0}</div>
+                        <div><strong>H:</strong> ${stats.W || 0}</div>
                         <div><strong>I:</strong> ${stats.I || 0}</div>
                         <div><strong>A:</strong> ${stats.A || 0}</div>
-                        <div><strong>Ld:</strong> ${stats.Ld || 0}</div>
+                        <div><strong>L:</strong> ${stats.Ld || 0}</div>
                     </div>
                     
                     <div class="space-y-1">
-                        <div><strong class="text-slate-400">Hire Fee:</strong> ${data.hire_fee ? `${data.hire_fee} gold crowns` : 'N/A'}</div>
-                        <div><strong class="text-slate-400">Upkeep:</strong> ${data.upkeep_fee ? `${data.upkeep_fee} gold crowns per game` : 'N/A'}</div>
-                        ${data.may_be_hired_alignment ? `<div><strong class="text-slate-400">Alignment:</strong> ${data.may_be_hired_alignment}</div>` : ''}
-                        <div><strong class="text-slate-400">Rating:</strong> <span class="text-mordheim-gold">+${data.rating || 'N/A'}</span></div>
+                        <div><strong class="text-slate-400">Coste:</strong> ${data.hire_fee ? `${data.hire_fee} coronas de oro` : 'N/A'}</div>
+                        <div><strong class="text-slate-400">Mantenimiento:</strong> ${data.upkeep_fee ? `${data.upkeep_fee} coronas de oro por partida` : 'N/A'}</div>
+                        ${data.may_be_hired_alignment ? `<div><strong class="text-slate-400">Alineamiento:</strong> ${data.may_be_hired_alignment === 'good' ? 'Bondadoso' : data.may_be_hired_alignment === 'evil' ? 'Malvado' : 'Cualquiera'}</div>` : ''}
+                        <div><strong class="text-slate-400">Valoración:</strong> <span class="text-mordheim-gold">+${data.rating || 'N/A'}</span></div>
                     </div>
                 </div>
 
                 <div class="text-xs text-slate-400 space-y-1">
-                    ${equipmentNames ? `<div><strong>Equipment:</strong> ${equipmentNames}</div>` : ''}
-                    ${skills ? `<div><strong>Skills:</strong> ${skills}</div>` : ''}
-                    ${startingSkills ? `<div><strong>Starting Skills:</strong> ${this.createSkillLinks(startingSkills)}</div>` : ''}
-                    ${data.rules ? `<div><strong>Rules:</strong> ${this.createRuleLinks(data.rules)}</div>` : ''}
-                    ${data.special_rules ? `<div><strong>Special Rules:</strong> ${this.createRuleLinks(data.special_rules)}</div>` : ''}
+                    ${equipmentNames ? `<div><strong>Equipo:</strong> ${equipmentNames}</div>` : ''}
+                    ${skills ? `<div><strong>Habilidades:</strong> ${skills}</div>` : ''}
+                    ${startingSkills ? `<div><strong>Habilidades Iniciales:</strong> ${this.createSkillLinks(startingSkills)}</div>` : ''}
+                    ${data.rules ? `<div><strong>Reglas:</strong> ${this.createRuleLinks(data.rules)}</div>` : ''}
+                    ${data.special_rules ? `<div><strong>Reglas Especiales:</strong> ${this.createRuleLinks(data.special_rules)}</div>` : ''}
                 </div>
             </div>
         `;
@@ -362,7 +362,7 @@ class CharacterReviewModal {
         document.getElementById('description-title').textContent = title;
         document.getElementById('description-content').innerHTML = `
             <div class="mb-2">
-                <span class="text-xs bg-${type === 'skill' ? 'blue' : 'green'}-600 text-white px-2 py-1 rounded">${type === 'skill' ? 'Skill' : 'Special Rule'}</span>
+                <span class="text-xs bg-${type === 'skill' ? 'blue' : 'green'}-600 text-white px-2 py-1 rounded">${type === 'skill' ? 'Habilidad' : 'Regla Especial'}</span>
             </div>
             <p class="text-sm">${description}</p>
         `;

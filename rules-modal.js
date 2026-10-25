@@ -74,17 +74,20 @@ class RulesModal {
         if (!this.container) return;
 
         // Sort a copy alphabetically so the shared RULES array isn't mutated
-        let filteredRules = [...RULES].sort((a, b) => a.name.localeCompare(b.name));
+        let filteredRules = [...RULES].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
         // Apply search filter
         if (searchTerm) {
             const term = searchTerm.toLowerCase().trim();
 
-            // Rank: 0 = title starts with term, 1 = title contains term, 2 = body only
+            // Rank: 0 = title starts with term, 1 = title or alias contains term, 2 = body only
             const getRank = (rule) => {
                 const name = rule.name.toLowerCase();
-                if (name.startsWith(term)) return 0;
-                if (name.includes(term)) return 1;
+                const enName = (rule.englishName || '').toLowerCase();
+                const aliases = (rule.aliases || []).map(a => a.toLowerCase());
+
+                if (name.startsWith(term) || enName.startsWith(term)) return 0;
+                if (name.includes(term) || enName.includes(term) || aliases.some(a => a.includes(term))) return 1;
                 if (stripHtml(rule.rules).toLowerCase().includes(term)) return 2;
                 return -1;
             };
@@ -101,7 +104,7 @@ class RulesModal {
             this.container.innerHTML = `
                 <div class="text-center py-8">
                     <i class="fas fa-search text-4xl text-slate-400 mb-4"></i>
-                    <p class="text-slate-400">No rules found matching "${searchTerm}"</p>
+                    <p class="text-slate-400">No se han encontrado reglas que coincidan con "${searchTerm}"</p>
                 </div>
             `;
             return;

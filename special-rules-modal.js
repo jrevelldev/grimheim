@@ -6,19 +6,19 @@ import { getWarbands, setCurrentWarband } from './state.js';
 
 // Timing mapping constants
 const TIMING_MAP = {
-    '1': 'Pre Game',
-    '2': 'Recovery',
-    '3': 'Movement',
-    '4': 'My Movement',
-    '5': 'Opponent Movement',
-    '6': 'Shooting',
-    '7': 'My Shooting',
-    '8': 'Opponent Shooting',
-    '9': 'Melee',
-    '10': 'My Melee',
-    '11': 'Opponent Melee',
-    '12': 'Misc',
-    '13': 'Post Game'
+    '1': 'Antes de la Partida',
+    '2': 'Fase de Recuperación',
+    '3': 'Fase de Movimiento',
+    '4': 'Mi Movimiento',
+    '5': 'Movimiento del Rival',
+    '6': 'Fase de Disparo',
+    '7': 'Mi Disparo',
+    '8': 'Disparo del Rival',
+    '9': 'Combate Cuerpo a Cuerpo',
+    '10': 'Mi Combate',
+    '11': 'Combate del Rival',
+    '12': 'Varios',
+    '13': 'Después de la Partida'
 };
 
 class SpecialRulesModal {
@@ -149,7 +149,7 @@ class SpecialRulesModal {
         // Reset selection
         this.selectedWarband = '';
         this.selectedTimings.clear();
-        this.timingFilterText.textContent = 'Timing: All';
+        this.timingFilterText.textContent = 'Momento: Todos';
         
         // Initial render with all rules
         this.filterAndRenderRules();
@@ -167,7 +167,7 @@ class SpecialRulesModal {
         const allWarbandsOption = document.createElement('div');
         allWarbandsOption.className = 'warband-option p-3 rounded-lg bg-slate-700 border border-slate-600 text-white font-semibold cursor-pointer hover:bg-slate-600 transition flex justify-between items-center';
         allWarbandsOption.innerHTML = `
-            <span>All Warbands</span>
+            <span>Todas las Bandas</span>
             <i class="fas fa-chevron-right chevron"></i>
         `;
         allWarbandsOption.dataset.value = '';
@@ -177,7 +177,7 @@ class SpecialRulesModal {
             
             // Only select if not clicking the chevron
             if (!e.target.classList.contains('chevron')) {
-                this.selectWarband('', 'All Warbands');
+                this.selectWarband('', 'Todas las Bandas');
             }
         });
         allWarbandsWrapper.appendChild(allWarbandsOption);
@@ -272,7 +272,7 @@ class SpecialRulesModal {
         allOption.className = 'timing-option flex items-center p-3 hover:bg-slate-600 cursor-pointer';
         allOption.innerHTML = `
             <input type="checkbox" class="timing-checkbox mr-3" value="all" checked>
-            <span>All Timings</span>
+            <span>Todos los Momentos</span>
         `;
         allOption.querySelector('input').addEventListener('change', (e) => {
             if (e.target.checked) {
@@ -332,10 +332,10 @@ class SpecialRulesModal {
 
     updateTimingFilterText() {
         if (this.selectedTimings.has('all') || this.selectedTimings.size === 0) {
-            this.timingFilterText.textContent = 'Timing: All';
+            this.timingFilterText.textContent = 'Momento: Todos';
         } else {
             const timingNames = Array.from(this.selectedTimings).map(code => TIMING_MAP[code]).join(', ');
-            this.timingFilterText.textContent = `Timing: ${timingNames}`;
+            this.timingFilterText.textContent = `Momento: ${timingNames}`;
         }
     }
 
@@ -413,8 +413,8 @@ class SpecialRulesModal {
         
         if (filteredRules.length === 0) {
             const emptyMessage = selectedWarband 
-                ? `No special rules found for "${selectedWarband}"${searchTerm ? ` matching "${searchTerm}"` : ''}`
-                : `No special rules found matching "${searchTerm}"`;
+                ? `No se han encontrado reglas especiales para "${selectedWarband}"${searchTerm ? ` que coincidan con "${searchTerm}"` : ''}`
+                : `No se han encontrado reglas especiales que coincidan con "${searchTerm}"`;
             
             this.container.innerHTML = `
                 <div class="text-center py-8">
@@ -428,7 +428,7 @@ class SpecialRulesModal {
         const rulesHTML = filteredRules.map(rule => {
             const timingInfo = rule.timing && rule.timing.length > 0 
                 ? `<div class="text-xs text-slate-400 mb-2">
-                    Timing: ${rule.timing.map(t => {
+                    Momento: ${rule.timing.map(t => {
                         return TIMING_MAP[t] || t;
                     }).join(', ')}
                    </div>`
