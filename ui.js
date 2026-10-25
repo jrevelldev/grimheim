@@ -1037,7 +1037,9 @@ export const populateWarbandTypes = () => {
                 option.classList.add('selected');
                 
                 // Update hidden input
-                document.getElementById('new-warband-type').value = option.dataset.value;
+                const typeInput = document.getElementById('new-warband-type');
+                typeInput.value = option.dataset.value;
+                typeInput.dispatchEvent(new Event('change'));
                 
                 // Check if create button should be enabled
                 checkCreateButtonState();

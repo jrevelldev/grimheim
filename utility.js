@@ -697,6 +697,9 @@ export const showNewWarbandModal = () => {
     // Reset form fields
     document.getElementById('new-warband-name').value = '';
     document.getElementById('new-warband-type').value = '';
+    document.querySelectorAll('#warband-selection-container .warband-option.selected').forEach(opt => {
+        opt.classList.remove('selected');
+    });
     
     // Reset validation state
     const createBtn = document.getElementById('create-warband-confirm-btn');

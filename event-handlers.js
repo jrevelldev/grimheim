@@ -1618,8 +1618,13 @@ export const setupEventListeners = () => {
                 renderExperienceSection();
             }
         });
+    };
 
-            });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
+    }
 };
 
 /** Switches between Gold Crowns, Treasure, and Ledger tabs in the Treasury section */
@@ -1778,13 +1783,6 @@ export const setupModalEvents = () => {
             updateCasualtyResolution(fighterId, e.target.value);
         }
     });
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initApp);
-    } else {
-        initApp();
-    }
 };
 
 // Toggle warband hamburger menu
