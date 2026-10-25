@@ -1278,18 +1278,18 @@ export const setupEventListeners = () => {
         document.getElementById('cancel-confirmation-btn').addEventListener('click', () => hideModal('confirmation-modal'));
 
         // Blog Link and Modal
-        document.getElementById('blog-link').addEventListener('click', () => {
+        document.getElementById('blog-link')?.addEventListener('click', () => {
             trackPageAccess('blog');
             openBlogModal();
         });
-        document.getElementById('close-blog-btn').addEventListener('click', () => hideModal('blog-modal'));
+        document.getElementById('close-blog-btn')?.addEventListener('click', () => hideModal('blog-modal'));
 
         // Change Log Link and Modal
-        document.getElementById('changelog-link').addEventListener('click', () => {
+        document.getElementById('changelog-link')?.addEventListener('click', () => {
             trackPageAccess('change_log');
             displayModal('changelog-modal');
         });
-        document.getElementById('close-changelog-btn').addEventListener('click', () => hideModal('changelog-modal'));
+        document.getElementById('close-changelog-btn')?.addEventListener('click', () => hideModal('changelog-modal'));
 
         // Special Rules Button
         const specialRulesBtn = document.getElementById('special-rules-btn');

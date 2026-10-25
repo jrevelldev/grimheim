@@ -18,34 +18,40 @@ class FeedbackStatusModal {
         const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
         const feedbackStatusBtn = document.getElementById('feedback-status-btn');
         
-        dropdownBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closeAllDropdowns('feedback-dropdown');
-            dropdown.classList.toggle('hidden');
-        });
+        if (dropdownBtn && dropdown) {
+            dropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeAllDropdowns('feedback-dropdown');
+                dropdown.classList.toggle('hidden');
+            });
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target) && e.target !== dropdownBtn) {
-                dropdown.classList.add('hidden');
-            }
-        });
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target) && e.target !== dropdownBtn) {
+                    dropdown.classList.add('hidden');
+                }
+            });
 
-        // Prevent dropdown clicks from bubbling to document
-        dropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+            // Prevent dropdown clicks from bubbling to document
+            dropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
 
         // Feedback option buttons
-        submitFeedbackBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.openSubmitFeedback();
-        });
+        if (submitFeedbackBtn) {
+            submitFeedbackBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openSubmitFeedback();
+            });
+        }
 
-        feedbackStatusBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.openFeedbackStatus();
-        });
+        if (feedbackStatusBtn) {
+            feedbackStatusBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openFeedbackStatus();
+            });
+        }
 
         // Mobile dropdown menu
         const mobileDropdownBtn = document.getElementById('mobile-feedback-review-btn');
