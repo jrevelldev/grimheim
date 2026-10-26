@@ -7,6 +7,7 @@ import { SKILLS, MASTER_EQUIPMENT_LIST } from '../data/index.js';
 import { checkFighterHasMagicRule, MAGIC } from '../spell-management.js';
 import { returnToAdvancementHub } from './advancement-hub.js';
 import { hasDemiVampireRule, getDemiVampireBlockers, getDemiVampireRuleText } from './demi-vampire-handler.js';
+import { translateSkill, translateSkillCategory, translateSpecialRule, translateEquipment, translateEquipmentRules, translateRace, getSpecialRuleSummary } from '../i18n.js';
 import {
     getFighterChanges,
     setXPChange,
@@ -57,7 +58,7 @@ function renderFighterView(fighter) {
     header.innerHTML = `
         <button id="adv-back-to-hub-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back to List</span>
+            <span class="text-sm">Volver a la Lista</span>
         </button>
         <h3 class="text-xl font-bold text-mordheim-gold truncate max-w-[60%]">${fighter.name}</h3>
     `;
@@ -142,20 +143,20 @@ function createXPSection(fighter, changes) {
 
     let instructionMsg = '';
     if (slowWitted) {
-        instructionMsg = `<p class="text-xs text-amber-400 text-center mt-2"><i class="fas fa-info-circle"></i> Slow Witted: XP changes by ±${formatXPDisplay(increment)} per click</p>`;
+        instructionMsg = `<p class="text-xs text-amber-400 text-center mt-2"><i class="fas fa-info-circle"></i> Lento de Reflejos: La PX cambia ±${formatXPDisplay(increment)} por clic</p>`;
     } else if (elemental) {
-        instructionMsg = `<p class="text-xs text-amber-400 text-center mt-2"><i class="fas fa-info-circle"></i> Elemental: XP changes by ±${formatXPDisplay(increment)} per click</p>`;
+        instructionMsg = `<p class="text-xs text-amber-400 text-center mt-2"><i class="fas fa-info-circle"></i> Elemental: La PX cambia ±${formatXPDisplay(increment)} por clic</p>`;
     }
 
     section.innerHTML = `
-        <h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide">Experience Points</h4>
+        <h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide">Puntos de Experiencia</h4>
         <div class="flex items-center justify-center gap-4">
             <button id="adv-xp-down" class="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold text-lg transition flex items-center justify-center">
                 <i class="fas fa-minus"></i>
             </button>
             <div class="text-center">
                 <span class="text-3xl font-bold text-yellow-200">${formatXPDisplay(stagedXP)}</span>
-                ${changes.xpChange !== 0 ? `<div class="text-xs text-slate-400 mt-1">(${changes.xpChange > 0 ? '+' : ''}${formatXPDisplay(changes.xpChange)} from base ${formatXPDisplay(currentXP)})</div>` : '<div class="text-xs text-slate-400 mt-1">Current XP</div>'}
+                ${changes.xpChange !== 0 ? `<div class="text-xs text-slate-400 mt-1">(${changes.xpChange > 0 ? '+' : ''}${formatXPDisplay(changes.xpChange)} respecto a base ${formatXPDisplay(currentXP)})</div>` : '<div class="text-xs text-slate-400 mt-1">PX Actual</div>'}
             </div>
             <button id="adv-xp-up" class="w-10 h-10 rounded-full bg-green-600 hover:bg-green-700 text-white font-bold text-lg transition flex items-center justify-center">
                 <i class="fas fa-plus"></i>
@@ -167,7 +168,7 @@ function createXPSection(fighter, changes) {
     section.querySelector('#adv-xp-down').addEventListener('click', () => {
         const newChange = changes.xpChange - increment;
         if ((fighter.xp || 0) + newChange < 0) {
-            showMessage('XP cannot go below 0.', 'error');
+            showMessage('La PX no puede ser menor que 0.', 'error');
             return;
         }
         setXPChange(fighter.id, newChange);
@@ -194,10 +195,10 @@ function createAdvancementSection(fighter, changes, pendingAdvs) {
     section.innerHTML = `
         <div class="flex justify-between items-center mb-3">
             <h4 class="text-sm font-semibold text-mordheim-gold uppercase tracking-wide">
-                ${usesHenchmanPath ? 'Henchman' : 'Hero'} Advancement
+                Avance de ${usesHenchmanPath ? 'Secuaz' : 'Héroe'}
             </h4>
             <span class="text-xs bg-mordheim-gold text-slate-900 font-bold px-2 py-1 rounded-full">
-                ${pendingAdvs} available
+                ${pendingAdvs} disponible${pendingAdvs !== 1 ? 's' : ''}
             </span>
         </div>
     `;
@@ -269,7 +270,7 @@ function createAdvancementSection(fighter, changes, pendingAdvs) {
     if (canChooseSkill) {
         const skillBtn = document.createElement('button');
         skillBtn.className = 'w-full p-2 rounded-lg text-white font-semibold text-sm transition bg-purple-600 hover:bg-purple-700 mb-2';
-        skillBtn.innerHTML = '<i class="fas fa-book mr-1"></i> Choose a Skill';
+        skillBtn.innerHTML = '<i class="fas fa-book mr-1"></i> Elegir una Habilidad';
         skillBtn.addEventListener('click', () => showSkillPicker(fighter));
         section.appendChild(skillBtn);
     }
@@ -278,7 +279,7 @@ function createAdvancementSection(fighter, changes, pendingAdvs) {
     if (checkFighterHasMagicRule(fighter)) {
         const spellBtn = document.createElement('button');
         spellBtn.className = 'w-full p-2 rounded-lg text-white font-semibold text-sm transition bg-indigo-600 hover:bg-indigo-700 mb-2';
-        spellBtn.innerHTML = '<i class="fas fa-hat-wizard mr-1"></i> Choose a Spell';
+        spellBtn.innerHTML = '<i class="fas fa-hat-wizard mr-1"></i> Elegir un Hechizo';
         spellBtn.addEventListener('click', () => showSpellPicker(fighter));
         section.appendChild(spellBtn);
     }
@@ -291,7 +292,7 @@ function createAdvancementSection(fighter, changes, pendingAdvs) {
         if (heroCount < 6 && !isWheeloInSnotlings) {
             const ladsBtn = document.createElement('button');
             ladsBtn.className = 'w-full p-2 rounded-lg text-white font-semibold text-sm transition bg-green-600 hover:bg-green-700';
-            ladsBtn.innerHTML = '<i class="fas fa-medal mr-1"></i> Lads Got Talent';
+            ladsBtn.innerHTML = '<i class="fas fa-medal mr-1"></i> Este Chico Vale';
             ladsBtn.addEventListener('click', () => showLadsGotTalentPicker(fighter));
             section.appendChild(ladsBtn);
         }
@@ -311,7 +312,7 @@ function createAdvancementSection(fighter, changes, pendingAdvs) {
 
         const dvrBtn = document.createElement('button');
         dvrBtn.className = `w-full p-2 rounded-lg text-white font-semibold text-sm transition mb-1 ${isBlocked ? 'bg-slate-600 opacity-50 cursor-not-allowed' : 'bg-red-700 hover:bg-red-800'}`;
-        dvrBtn.innerHTML = '<i class="fas fa-skull-crossbones mr-1"></i> Demi-Vampire Replacement';
+        dvrBtn.innerHTML = '<i class="fas fa-skull-crossbones mr-1"></i> Reemplazo por Semi-Vampiro';
         dvrBtn.disabled = isBlocked;
 
         if (!isBlocked) {
@@ -359,7 +360,7 @@ function createStagedChangesSection(fighter, changes) {
 
     const section = document.createElement('div');
     section.className = 'bg-slate-800 rounded-lg p-4 mb-4';
-    section.innerHTML = `<h4 class="text-sm font-semibold text-green-400 mb-2 uppercase tracking-wide"><i class="fas fa-pen mr-1"></i> Staged Changes</h4>`;
+    section.innerHTML = `<h4 class="text-sm font-semibold text-green-400 mb-2 uppercase tracking-wide"><i class="fas fa-pen mr-1"></i> Cambios Pendientes</h4>`;
 
     const list = document.createElement('div');
     list.className = 'space-y-1';
@@ -386,7 +387,7 @@ function createStagedChangesSection(fighter, changes) {
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center text-sm py-1 px-2 bg-slate-700 rounded';
         item.innerHTML = `
-            <span class="text-purple-300"><i class="fas fa-book mr-1"></i> ${skillName}</span>
+            <span class="text-purple-300"><i class="fas fa-book mr-1"></i> ${translateSkill(skillName)}</span>
             <button class="text-red-400 hover:text-red-300" data-remove-skill="${skillName}"><i class="fas fa-times"></i></button>
         `;
         item.querySelector(`[data-remove-skill="${skillName}"]`).addEventListener('click', () => {
@@ -401,7 +402,7 @@ function createStagedChangesSection(fighter, changes) {
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center text-sm py-1 px-2 bg-slate-700 rounded';
         item.innerHTML = `
-            <span class="text-indigo-300"><i class="fas fa-hat-wizard mr-1"></i> ${spellName}</span>
+            <span class="text-indigo-300"><i class="fas fa-hat-wizard mr-1"></i> ${translateSkill(spellName)}</span>
             <button class="text-red-400 hover:text-red-300" data-remove-spell="${spellName}"><i class="fas fa-times"></i></button>
         `;
         item.querySelector(`[data-remove-spell="${spellName}"]`).addEventListener('click', () => {
@@ -414,19 +415,19 @@ function createStagedChangesSection(fighter, changes) {
     // Lads Got Talent
     if (hasLads) {
         const lgt = changes.ladsGotTalent;
-        let ladsLabel = `Lads Got Talent (${lgt.selectedCategories.join(', ')})`;
+        let ladsLabel = `Este Chico Vale (${lgt.selectedCategories.map(c => translateSkillCategory(c)).join(', ')})`;
         if (lgt.heroAdvancement) {
             if (lgt.heroAdvancement.type === 'stat') {
-                ladsLabel += ` — Hero: +1 ${lgt.heroAdvancement.stat}`;
+                ladsLabel += ` — Héroe: +1 ${lgt.heroAdvancement.stat}`;
             } else if (lgt.heroAdvancement.type === 'skill') {
-                ladsLabel += ` — Hero: ${lgt.heroAdvancement.skillName}`;
+                ladsLabel += ` — Héroe: ${translateSkill(lgt.heroAdvancement.skillName)}`;
             }
         }
         if (lgt.skryreSpell) {
-            ladsLabel += ` — Spell: ${lgt.skryreSpell}`;
+            ladsLabel += ` — Hechizo: ${translateSkill(lgt.skryreSpell)}`;
         }
         if (lgt.harnessedSpell) {
-            ladsLabel += ` — Spell: ${lgt.harnessedSpell}`;
+            ladsLabel += ` — Hechizo: ${translateSkill(lgt.harnessedSpell)}`;
         }
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center text-sm py-1 px-2 bg-slate-700 rounded';
@@ -448,7 +449,7 @@ function createStagedChangesSection(fighter, changes) {
         item.className = 'flex justify-between items-center text-sm py-1 px-2 bg-slate-700 rounded';
         const statsStr = STATS_FIELDS.map(s => `${s}:${dvr.newStats[s]}`).join(' ');
         item.innerHTML = `
-            <span class="text-red-300"><i class="fas fa-skull-crossbones mr-1"></i> Demi-Vampire Replacement — Race: ${dvr.newRace}, Stats: ${statsStr}</span>
+            <span class="text-red-300"><i class="fas fa-skull-crossbones mr-1"></i> Reemplazo por Semi-Vampiro — Raza: ${translateRace(dvr.newRace) || dvr.newRace}, Atributos: ${statsStr}</span>
             <button class="text-red-400 hover:text-red-300" id="remove-dvr"><i class="fas fa-times"></i></button>
         `;
         item.querySelector('#remove-dvr').addEventListener('click', () => {
@@ -464,7 +465,7 @@ function createStagedChangesSection(fighter, changes) {
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center text-sm py-1 px-2 bg-slate-700 rounded';
         item.innerHTML = `
-            <span class="text-orange-300"><i class="fas fa-dna mr-1"></i> Twistkin Mutation: ${twistkin.equipmentName} (${twistkin.cost} GC)</span>
+            <span class="text-orange-300"><i class="fas fa-dna mr-1"></i> Mutación Twistkin: ${translateEquipment(twistkin.equipmentName)} (${twistkin.cost} CO)</span>
             <button class="text-red-400 hover:text-red-300" id="remove-twistkin-equip"><i class="fas fa-times"></i></button>
         `;
         item.querySelector('#remove-twistkin-equip').addEventListener('click', () => {
@@ -487,7 +488,7 @@ function createAdvancementsTakenSection(fighter) {
     const section = document.createElement('div');
     section.className = 'bg-slate-800 rounded-lg p-4 mb-4';
     section.innerHTML = `
-        <h4 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">Previous Advancements</h4>
+        <h4 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">Avances Anteriores</h4>
         <p class="text-sm text-slate-300 italic">${taken.join(', ')}</p>
     `;
     return section;
@@ -506,9 +507,9 @@ function showSkillPicker(fighter) {
     header.innerHTML = `
         <button id="skill-picker-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back</span>
+            <span class="text-sm">Volver</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Choose a Skill</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Elegir una Habilidad</h3>
     `;
     container.appendChild(header);
     header.querySelector('#skill-picker-back-btn').addEventListener('click', () => renderFighterView(fighter));
@@ -540,7 +541,7 @@ function showSkillPicker(fighter) {
         const catHeader = document.createElement('div');
         catHeader.className = 'flex items-center justify-between cursor-pointer text-lg font-semibold text-mordheim-gold mt-3 hover:text-yellow-400 transition p-2 bg-slate-800 rounded-lg';
         catHeader.innerHTML = `
-            <span>${category}</span>
+            <span>${translateSkillCategory(category)}</span>
             <i class="fas fa-chevron-right transition-transform" id="adv-chevron-${categoryId}"></i>
         `;
 
@@ -564,23 +565,23 @@ function showSkillPicker(fighter) {
 
             let warningHtml = '';
             if (alreadyHas) {
-                warningHtml = '<span class="text-xs text-red-400 ml-2"><i class="fas fa-exclamation-triangle"></i> Already selected</span>';
+                warningHtml = '<span class="text-xs text-red-400 ml-2"><i class="fas fa-exclamation-triangle"></i> Ya seleccionada</span>';
             }
 
             skillEl.innerHTML = `
                 <div class="flex items-center">
-                    <p class="font-semibold text-sm text-white">${skill.name}</p>
+                    <p class="font-semibold text-sm text-white">${translateSkill(skill.name)}</p>
                     ${warningHtml}
                 </div>
-                <p class="text-xs text-slate-400 mt-1">${skill.rules || ''}</p>
+                <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(skill.name)?.full || skill.rules || ''}</p>
             `;
 
             skillEl.addEventListener('click', () => {
                 if (alreadyHas) {
                     // Show confirmation for duplicate via modal
-                    showConfirmationModal(`${fighter.name} already has "${skill.name}". Are you sure you want to add it again?`, () => {
+                    showConfirmationModal(`${fighter.name} ya tiene "${translateSkill(skill.name)}". ¿Seguro que quieres añadirla de nuevo?`, () => {
                         if (skill.id === 313) {
-                            const animal = prompt('Enter the animal type for Animal Handling (e.g. Horse, Dog, Wolf):');
+                            const animal = prompt('Introduce el tipo de animal para Trato con Animales (ej. Caballo, Perro, Lobo):');
                             if (animal && animal.trim()) {
                                 stageSkillAdd(fighter.id, `Animal Handling (${animal.trim()})`);
                             }
@@ -594,7 +595,7 @@ function showSkillPicker(fighter) {
 
                 if (skill.id === 313) {
                     // Animal Handling - prompt for animal type
-                    const animal = prompt('Enter the animal type for Animal Handling (e.g. Horse, Dog, Wolf):');
+                    const animal = prompt('Introduce el tipo de animal para Trato con Animales (ej. Caballo, Perro, Lobo):');
                     if (animal && animal.trim()) {
                         stageSkillAdd(fighter.id, `Animal Handling (${animal.trim()})`);
                     } else {
@@ -660,9 +661,9 @@ function showManeaterBonusSkillPicker(fighter) {
     header.innerHTML = `
         <button id="maneater-bonus-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Cancel</span>
+            <span class="text-sm">Cancelar</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Choose a Bonus Skill (Maneater)</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Elegir Habilidad Adicional (Comehombres)</h3>
     `;
     container.appendChild(header);
     header.querySelector('#maneater-bonus-back-btn').addEventListener('click', () => {
@@ -677,8 +678,8 @@ function showManeaterBonusSkillPicker(fighter) {
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            The Maneater skill grants one free skill from the <span class="text-mordheim-gold font-semibold">Shooting</span> or 
-            <span class="text-mordheim-gold font-semibold">Academic</span> skill lists.
+            La habilidad Comehombres otorga una habilidad gratuita de las listas de <span class="text-mordheim-gold font-semibold">Disparo</span> o 
+            <span class="text-mordheim-gold font-semibold">Académicas</span>.
         </p>
     `;
     container.appendChild(info);
@@ -707,7 +708,7 @@ function showManeaterBonusSkillPicker(fighter) {
         const catHeader = document.createElement('div');
         catHeader.className = 'flex items-center justify-between cursor-pointer text-lg font-semibold text-mordheim-gold mt-3 hover:text-yellow-400 transition p-2 bg-slate-800 rounded-lg';
         catHeader.innerHTML = `
-            <span>${category}</span>
+            <span>${translateSkillCategory(category)}</span>
             <i class="fas fa-chevron-down transition-transform" id="adv-chevron-${categoryId}"></i>
         `;
 
@@ -726,8 +727,8 @@ function showManeaterBonusSkillPicker(fighter) {
             const skillEl = document.createElement('div');
             skillEl.className = 'p-3 rounded-lg cursor-pointer transition hover:bg-slate-700 bg-slate-800';
             skillEl.innerHTML = `
-                <p class="font-semibold text-sm text-white">${skill.name}</p>
-                <p class="text-xs text-slate-400 mt-1">${skill.rules || ''}</p>
+                <p class="font-semibold text-sm text-white">${translateSkill(skill.name)}</p>
+                <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(skill.name)?.full || skill.rules || ''}</p>
             `;
 
             skillEl.addEventListener('click', () => {
@@ -745,7 +746,7 @@ function showManeaterBonusSkillPicker(fighter) {
     }
 
     if (bonusSkills.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No Shooting or Academic skills available.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay habilidades de Disparo o Académicas disponibles.</p>';
     }
 
     container.appendChild(listContainer);
@@ -765,9 +766,9 @@ function showBigBullyStrengthPicker(fighter) {
     header.innerHTML = `
         <button id="big-bully-bonus-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Cancel</span>
+            <span class="text-sm">Cancelar</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Choose a Strength Skill (Big Bully)</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Elegir Habilidad de Fuerza (Matón)</h3>
     `;
     container.appendChild(header);
     header.querySelector('#big-bully-bonus-back-btn').addEventListener('click', () => {
@@ -782,7 +783,7 @@ function showBigBullyStrengthPicker(fighter) {
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            The Big Bully skill grants one free skill from the <span class="text-mordheim-gold font-semibold">Strength</span> skill list.
+            La habilidad Matón otorga una habilidad gratuita de la lista de <span class="text-mordheim-gold font-semibold">Fuerza</span>.
         </p>
     `;
     container.appendChild(info);
@@ -801,8 +802,8 @@ function showBigBullyStrengthPicker(fighter) {
         const skillEl = document.createElement('div');
         skillEl.className = 'p-3 rounded-lg cursor-pointer transition hover:bg-slate-700 bg-slate-800';
         skillEl.innerHTML = `
-            <p class="font-semibold text-sm text-white">${skill.name}</p>
-            <p class="text-xs text-slate-400 mt-1">${skill.rules || ''}</p>
+            <p class="font-semibold text-sm text-white">${translateSkill(skill.name)}</p>
+            <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(skill.name)?.full || skill.rules || ''}</p>
         `;
 
         skillEl.addEventListener('click', () => {
@@ -816,7 +817,7 @@ function showBigBullyStrengthPicker(fighter) {
     });
 
     if (bonusSkills.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No Strength skills available.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay habilidades de Fuerza disponibles.</p>';
     }
 
     container.appendChild(listContainer);
@@ -839,9 +840,9 @@ function showTwistkinMutationPicker(fighter) {
     header.innerHTML = `
         <button id="twistkin-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Cancel</span>
+            <span class="text-sm">Cancelar</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Choose a Mutation (Twistkin)</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Elegir una Mutación (Twistkin)</h3>
     `;
     container.appendChild(header);
     header.querySelector('#twistkin-back-btn').addEventListener('click', () => {
@@ -857,12 +858,12 @@ function showTwistkinMutationPicker(fighter) {
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            The Twistkin skill allows you to purchase one <span class="text-mordheim-gold font-semibold">Mutation</span> at 
-            <span class="text-mordheim-gold font-semibold">half cost</span>.
+            La habilidad Twistkin te permite adquirir una <span class="text-mordheim-gold font-semibold">Mutación</span> a 
+            <span class="text-mordheim-gold font-semibold">mitad de precio</span>.
         </p>
         <p class="text-sm text-slate-400 mt-1">
             <i class="fas fa-coins text-yellow-400 mr-1"></i>
-            Treasury: <span class="text-yellow-200 font-semibold">${currentGC} GC</span>
+            Tesorería: <span class="text-yellow-200 font-semibold">${currentGC} CO</span>
         </p>
     `;
     container.appendChild(info);
@@ -881,14 +882,14 @@ function showTwistkinMutationPicker(fighter) {
         mutationEl.className = `p-3 rounded-lg transition ${canAfford ? 'cursor-pointer hover:bg-slate-700 bg-slate-800' : 'bg-slate-800 opacity-50 cursor-not-allowed'}`;
         mutationEl.innerHTML = `
             <div class="flex justify-between items-center">
-                <p class="font-semibold text-sm ${canAfford ? 'text-white' : 'text-slate-500'}">${mutation.name}</p>
+                <p class="font-semibold text-sm ${canAfford ? 'text-white' : 'text-slate-500'}">${translateEquipment(mutation.name)}</p>
                 <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-500 line-through">${mutation.baseCost} GC</span>
-                    <span class="text-sm font-semibold ${canAfford ? 'text-mordheim-gold' : 'text-red-400'}">${halfCost} GC</span>
+                    <span class="text-xs text-slate-500 line-through">${mutation.baseCost} CO</span>
+                    <span class="text-sm font-semibold ${canAfford ? 'text-mordheim-gold' : 'text-red-400'}">${halfCost} CO</span>
                 </div>
             </div>
-            <p class="text-xs text-slate-400 mt-1">${mutation.rules || ''}</p>
-            ${!canAfford ? '<p class="text-xs text-red-400 mt-1"><i class="fas fa-exclamation-triangle mr-1"></i>Insufficient funds</p>' : ''}
+            <p class="text-xs text-slate-400 mt-1">${translateEquipmentRules(mutation.name, mutation.rules)}</p>
+            ${!canAfford ? '<p class="text-xs text-red-400 mt-1"><i class="fas fa-exclamation-triangle mr-1"></i>Fondos insuficientes</p>' : ''}
         `;
 
         if (canAfford) {
@@ -903,7 +904,7 @@ function showTwistkinMutationPicker(fighter) {
     });
 
     if (mutations.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No mutations available.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay mutaciones disponibles.</p>';
     }
 
     container.appendChild(listContainer);
@@ -923,9 +924,9 @@ function showPupilOfNagashSpellPicker(fighter) {
     header.innerHTML = `
         <button id="nagash-spell-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Cancel</span>
+            <span class="text-sm">Cancelar</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Dreaded Scrolls of Nagash</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Temidos Pergaminos de Nagash</h3>
     `;
     container.appendChild(header);
     header.querySelector('#nagash-spell-back-btn').addEventListener('click', () => {
@@ -940,9 +941,9 @@ function showPupilOfNagashSpellPicker(fighter) {
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            The <span class="text-mordheim-gold font-semibold">Pupil of Nagash</span> skill grants the 
-            <span class="text-mordheim-gold font-semibold">Dreaded Scrolls of Nagash</span> spell list and one free spell.
-            Select your first spell below.
+            La habilidad <span class="text-mordheim-gold font-semibold">Pupilo de Nagash</span> otorga la lista de hechizos 
+            <span class="text-mordheim-gold font-semibold">Temidos Pergaminos de Nagash</span> y un hechizo gratuito.
+            Selecciona tu primer hechizo a continuación.
         </p>
     `;
     container.appendChild(info);
@@ -957,10 +958,10 @@ function showPupilOfNagashSpellPicker(fighter) {
         const spellEl = document.createElement('div');
         spellEl.className = `p-3 rounded-lg transition border border-slate-600 ${isKnown ? 'opacity-50 cursor-not-allowed bg-slate-700' : 'hover:bg-slate-700 cursor-pointer bg-slate-800'}`;
         spellEl.innerHTML = `
-            <p class="font-semibold text-sm text-white">${spell.name}</p>
-            <p class="text-xs text-slate-400 mt-1">${spell.description || ''}</p>
-            <p class="text-xs text-indigo-400 mt-1">Difficulty: ${spell.difficulty}</p>
-            ${isKnown ? '<p class="text-xs text-red-400 mt-1">Already known</p>' : ''}
+            <p class="font-semibold text-sm text-white">${translateSkill(spell.name)}</p>
+            <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(spell.name)?.full || spell.description || ''}</p>
+            <p class="text-xs text-indigo-400 mt-1">Dificultad: ${spell.difficulty === 'Auto' ? 'Automática' : spell.difficulty}</p>
+            ${isKnown ? '<p class="text-xs text-red-400 mt-1">Ya conocido</p>' : ''}
         `;
 
         if (!isKnown) {
@@ -976,7 +977,7 @@ function showPupilOfNagashSpellPicker(fighter) {
     });
 
     if (spells.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No Dreaded Scrolls of Nagash spells available.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay hechizos de los Pergaminos Malditos de Nagash disponibles.</p>';
     }
 
     container.appendChild(listContainer);
@@ -996,9 +997,9 @@ function showDarkArtsSpellPicker(fighter) {
     header.innerHTML = `
         <button id="dark-arts-spell-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Cancel</span>
+            <span class="text-sm">Cancelar</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Dark Arts</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Artes Oscuras</h3>
     `;
     container.appendChild(header);
     header.querySelector('#dark-arts-spell-back-btn').addEventListener('click', () => {
@@ -1013,9 +1014,9 @@ function showDarkArtsSpellPicker(fighter) {
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            The <span class="text-mordheim-gold font-semibold">Dark Arts</span> skill grants the 
-            <span class="text-mordheim-gold font-semibold">Dark Arts</span> spell list and one free spell.
-            Select your first spell below.
+            La habilidad <span class="text-mordheim-gold font-semibold">Artes Oscuras</span> otorga la lista de hechizos 
+            <span class="text-mordheim-gold font-semibold">Artes Oscuras</span> y un hechizo gratuito.
+            Selecciona tu primer hechizo a continuación.
         </p>
     `;
     container.appendChild(info);
@@ -1030,10 +1031,10 @@ function showDarkArtsSpellPicker(fighter) {
         const spellEl = document.createElement('div');
         spellEl.className = `p-3 rounded-lg transition border border-slate-600 ${isKnown ? 'opacity-50 cursor-not-allowed bg-slate-700' : 'hover:bg-slate-700 cursor-pointer bg-slate-800'}`;
         spellEl.innerHTML = `
-            <p class="font-semibold text-sm text-white">${spell.name}</p>
-            <p class="text-xs text-slate-400 mt-1">${spell.description || ''}</p>
-            <p class="text-xs text-indigo-400 mt-1">Difficulty: ${spell.difficulty}</p>
-            ${isKnown ? '<p class="text-xs text-red-400 mt-1">Already known</p>' : ''}
+            <p class="font-semibold text-sm text-white">${translateSkill(spell.name)}</p>
+            <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(spell.name)?.full || spell.description || ''}</p>
+            <p class="text-xs text-indigo-400 mt-1">Dificultad: ${spell.difficulty === 'Auto' ? 'Automática' : spell.difficulty}</p>
+            ${isKnown ? '<p class="text-xs text-red-400 mt-1">Ya conocido</p>' : ''}
         `;
 
         if (!isKnown) {
@@ -1049,7 +1050,7 @@ function showDarkArtsSpellPicker(fighter) {
     });
 
     if (spells.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No Dark Arts spells available.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay hechizos de Artes Oscuras disponibles.</p>';
     }
 
     container.appendChild(listContainer);
@@ -1069,9 +1070,9 @@ function showNobleBloodSpellPicker(fighter) {
     header.innerHTML = `
         <button id="noble-blood-spell-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Cancel</span>
+            <span class="text-sm">Cancelar</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Nehekhara's Noble Blood</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Sangre Noble de Nehekhara</h3>
     `;
     container.appendChild(header);
     header.querySelector('#noble-blood-spell-back-btn').addEventListener('click', () => {
@@ -1086,8 +1087,8 @@ function showNobleBloodSpellPicker(fighter) {
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            <span class="text-mordheim-gold font-semibold">Nehekhara's Noble Blood</span> grants one free additional spell.
-            Select your spell below.
+            La habilidad <span class="text-mordheim-gold font-semibold">Sangre Noble de Nehekhara</span> otorga un hechizo adicional gratuito.
+            Selecciona tu hechizo a continuación.
         </p>
     `;
     container.appendChild(info);
@@ -1112,8 +1113,8 @@ function showNobleBloodSpellPicker(fighter) {
             const spellEl = document.createElement('div');
             spellEl.className = `p-3 rounded-lg transition border border-slate-600 ${isKnown ? 'opacity-50 cursor-not-allowed bg-slate-700' : 'hover:bg-slate-700 cursor-pointer bg-slate-800'}`;
             spellEl.innerHTML = `
-                <p class="font-semibold text-sm text-white">${spell}</p>
-                <p class="text-xs text-slate-400 mt-1">${isKnown ? 'Already known' : 'Click to learn'}</p>
+                <p class="font-semibold text-sm text-white">${translateSkill(spell)}</p>
+                <p class="text-xs text-slate-400 mt-1">${isKnown ? 'Ya conocido' : 'Haz clic para aprender'}</p>
             `;
 
             if (!isKnown) {
@@ -1132,7 +1133,7 @@ function showNobleBloodSpellPicker(fighter) {
     });
 
     if (groups.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No spells available for this fighter.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay hechizos disponibles para este guerrero.</p>';
     }
 
     container.appendChild(listContainer);
@@ -1151,9 +1152,9 @@ function showSpellPicker(fighter) {
     header.innerHTML = `
         <button id="spell-picker-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back</span>
+            <span class="text-sm">Volver</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Choose a Spell</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Elegir un Hechizo</h3>
     `;
     container.appendChild(header);
     header.querySelector('#spell-picker-back-btn').addEventListener('click', () => renderFighterView(fighter));
@@ -1169,7 +1170,7 @@ function showSpellPicker(fighter) {
 
         const groupTitle = document.createElement('h5');
         groupTitle.className = 'text-md font-semibold text-mordheim-gold mb-2';
-        groupTitle.textContent = group.name;
+        groupTitle.textContent = translateSkillCategory(group.name);
         groupSection.appendChild(groupTitle);
 
         group.spells.forEach(spell => {
@@ -1177,8 +1178,8 @@ function showSpellPicker(fighter) {
             const spellEl = document.createElement('div');
             spellEl.className = `p-2 rounded-lg transition ${isKnown ? 'opacity-50 cursor-not-allowed bg-slate-700' : 'hover:bg-slate-700 cursor-pointer'}`;
             spellEl.innerHTML = `
-                <p class="font-semibold text-sm">${spell}</p>
-                <p class="text-xs text-slate-400">${isKnown ? 'Already known' : 'Click to learn'}</p>
+                <p class="font-semibold text-sm">${translateSkill(spell)}</p>
+                <p class="text-xs text-slate-400">${isKnown ? 'Ya conocido' : 'Clic para aprender'}</p>
             `;
 
             if (!isKnown) {
@@ -1195,7 +1196,7 @@ function showSpellPicker(fighter) {
     });
 
     if (groups.length === 0) {
-        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No spells available for this fighter.</p>';
+        listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay hechizos disponibles para este guerrero.</p>';
     }
 
     container.appendChild(listContainer);
@@ -1214,9 +1215,9 @@ function showLadsGotTalentPicker(fighter) {
     header.innerHTML = `
         <button id="lads-picker-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back</span>
+            <span class="text-sm">Volver</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Lads Got Talent</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Este Chico Vale</h3>
     `;
     container.appendChild(header);
     header.querySelector('#lads-picker-back-btn').addEventListener('click', () => renderFighterView(fighter));
@@ -1224,7 +1225,7 @@ function showLadsGotTalentPicker(fighter) {
     // Description
     const desc = document.createElement('p');
     desc.className = 'text-slate-300 mb-4 text-sm';
-    desc.textContent = 'Select exactly two skill categories for the promoted hero. These will determine which skills they can learn.';
+    desc.textContent = 'Selecciona exactamente dos categorías de habilidad para el héroe ascendido. Determinarán qué habilidades podrá aprender.';
     container.appendChild(desc);
 
     // Get available categories
@@ -1251,7 +1252,7 @@ function showLadsGotTalentPicker(fighter) {
     categories.forEach(category => {
         const catEl = document.createElement('div');
         catEl.className = 'p-3 rounded-lg border-2 border-slate-600 hover:border-mordheim-gold cursor-pointer transition text-center';
-        catEl.innerHTML = `<p class="font-semibold text-mordheim-gold">${category}</p>`;
+        catEl.innerHTML = `<p class="font-semibold text-mordheim-gold">${translateSkillCategory(category)}</p>`;
         catEl.addEventListener('click', () => {
             if (catEl.classList.contains('selected')) {
                 catEl.classList.remove('selected', 'border-green-500', 'bg-green-900');
@@ -1273,7 +1274,7 @@ function showLadsGotTalentPicker(fighter) {
     // Confirm button
     const confirmBtn = document.createElement('button');
     confirmBtn.className = 'w-full py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition opacity-50';
-    confirmBtn.textContent = 'Confirm Selection';
+    confirmBtn.textContent = 'Confirmar Selección';
     confirmBtn.disabled = true;
     confirmBtn.addEventListener('click', () => {
         if (selectedCategories.length === 2) {
@@ -1307,9 +1308,9 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
     header.innerHTML = `
         <button id="lads-hero-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back</span>
+            <span class="text-sm">Volver</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Hero Advancement</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Avance de Héroe</h3>
     `;
     container.appendChild(header);
     header.querySelector('#lads-hero-back-btn').addEventListener('click', () => renderFighterView(fighter));
@@ -1317,13 +1318,13 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
     // Description
     const desc = document.createElement('p');
     desc.className = 'text-slate-300 mb-4 text-sm';
-    desc.textContent = 'The promoted hero may now make one Hero advancement. Choose a stat increase or a skill from the selected categories.';
+    desc.textContent = 'El héroe ascendido ahora puede realizar un avance de Héroe. Elige un incremento de atributo o una habilidad de las categorías seleccionadas.';
     container.appendChild(desc);
 
     // ── Stat Increase Section ──
     const statSection = document.createElement('div');
     statSection.className = 'bg-slate-800 rounded-lg p-4 mb-4';
-    statSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide">Stat Increase</h4>`;
+    statSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide">Incremento de Atributo</h4>`;
 
     const statsGrid = document.createElement('div');
     statsGrid.className = 'grid grid-cols-3 sm:grid-cols-5 gap-2';
@@ -1363,7 +1364,7 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
     // ── Skill Section ──
     const skillSection = document.createElement('div');
     skillSection.className = 'bg-slate-800 rounded-lg p-4 mb-4';
-    skillSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide">Choose a Skill</h4>`;
+    skillSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide">Elegir una Habilidad</h4>`;
 
     // Get skills filtered to the two selected categories
     const warbandName = currentWarband.type.split(':')[0].trim();
@@ -1389,7 +1390,7 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
     if (availableSkills.length === 0) {
         const noSkills = document.createElement('p');
         noSkills.className = 'text-slate-400 text-sm italic';
-        noSkills.textContent = 'No skills available for the selected categories.';
+        noSkills.textContent = 'No hay habilidades disponibles para las categorías seleccionadas.';
         skillSection.appendChild(noSkills);
     } else {
         // Group by category
@@ -1409,7 +1410,7 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
             const catHeader = document.createElement('div');
             catHeader.className = 'flex items-center justify-between cursor-pointer text-base font-semibold text-mordheim-gold mt-2 hover:text-yellow-400 transition p-2 bg-slate-700 rounded-lg';
             catHeader.innerHTML = `
-                <span>${category}</span>
+                <span>${translateSkillCategory(category)}</span>
                 <i class="fas fa-chevron-right transition-transform" id="chevron-${categoryId}"></i>
             `;
 
@@ -1432,15 +1433,15 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
 
                 let warningHtml = '';
                 if (alreadyHas) {
-                    warningHtml = '<span class="text-xs text-red-400 ml-2"><i class="fas fa-exclamation-triangle"></i> Already selected</span>';
+                    warningHtml = '<span class="text-xs text-red-400 ml-2"><i class="fas fa-exclamation-triangle"></i> Ya seleccionada</span>';
                 }
 
                 skillEl.innerHTML = `
                     <div class="flex items-center">
-                        <p class="font-semibold text-sm text-white">${skill.name}</p>
+                        <p class="font-semibold text-sm text-white">${translateSkill(skill.name)}</p>
                         ${warningHtml}
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">${skill.rules || ''}</p>
+                    <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(skill.name)?.full || skill.rules || ''}</p>
                 `;
 
                 skillEl.addEventListener('click', () => {
@@ -1463,7 +1464,7 @@ function showLadsHeroAdvancementPicker(fighter, selectedCategories) {
     // Skip button
     const skipBtn = document.createElement('button');
     skipBtn.className = 'w-full py-2 px-4 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-500 transition text-sm';
-    skipBtn.innerHTML = '<i class="fas fa-forward mr-1"></i> Skip Hero Advancement';
+    skipBtn.innerHTML = '<i class="fas fa-forward mr-1"></i> Omitir Avance de Héroe';
     skipBtn.addEventListener('click', () => renderFighterView(fighter));
     container.appendChild(skipBtn);
 }
@@ -1481,9 +1482,9 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     header.innerHTML = `
         <button id="harnessed-picker-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back</span>
+            <span class="text-sm">Volver</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Harnessed — Hero Advancement</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Avance de Héroe (Harnessed)</h3>
     `;
     container.appendChild(header);
     header.querySelector('#harnessed-picker-back-btn').addEventListener('click', () => renderFighterView(fighter));
@@ -1491,7 +1492,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     // Description
     const desc = document.createElement('p');
     desc.className = 'text-slate-300 mb-4 text-sm';
-    desc.textContent = 'Choose one: a spell from the available lores, a skill, or a characteristic advancement.';
+    desc.textContent = 'Elige una opción: un hechizo de los saberes disponibles, una habilidad o un incremento de atributo.';
     container.appendChild(desc);
 
     const scrollContainer = document.createElement('div');
@@ -1500,7 +1501,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     // ── Spell Section ──
     const spellSection = document.createElement('div');
     spellSection.className = 'bg-slate-800 rounded-lg p-4';
-    spellSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide"><i class="fas fa-hat-wizard mr-1"></i> Choose a Spell</h4>`;
+    spellSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide"><i class="fas fa-hat-wizard mr-1"></i> Elegir un Hechizo</h4>`;
 
     const harnessedLores = ['Lesser Magic', 'Elemental Lore of Water', 'Elemental Lore of Fire', 'Elemental Lore of Earth', 'Elemental Lore of Air'];
     const spellListContainer = document.createElement('div');
@@ -1515,7 +1516,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
         const loreHeader = document.createElement('div');
         loreHeader.className = 'flex items-center justify-between cursor-pointer text-base font-semibold text-mordheim-gold mt-1 hover:text-yellow-400 transition p-2 bg-slate-700 rounded-lg';
         loreHeader.innerHTML = `
-            <span>${loreName}</span>
+            <span>${translateSkillCategory(loreName)}</span>
             <i class="fas fa-chevron-right transition-transform" id="chevron-${loreId}"></i>
         `;
 
@@ -1534,9 +1535,9 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
             const spellEl = document.createElement('div');
             spellEl.className = 'p-3 rounded-lg cursor-pointer transition hover:bg-slate-600 bg-slate-800 border border-slate-600';
             spellEl.innerHTML = `
-                <p class="font-semibold text-sm text-white">${spell.name}</p>
-                <p class="text-xs text-slate-400 mt-1">${spell.description || ''}</p>
-                <p class="text-xs text-indigo-400 mt-1">Difficulty: ${spell.difficulty}</p>
+                <p class="font-semibold text-sm text-white">${translateSkill(spell.name)}</p>
+                <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(spell.name)?.full || spell.description || ''}</p>
+                <p class="text-xs text-indigo-400 mt-1">Dificultad: ${spell.difficulty === 'Auto' ? 'Automática' : spell.difficulty}</p>
             `;
             spellEl.addEventListener('click', () => {
                 stageLadsHarnessedSpell(fighter.id, spell.name);
@@ -1555,7 +1556,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     // ── Stat Increase Section ──
     const statSection = document.createElement('div');
     statSection.className = 'bg-slate-800 rounded-lg p-4';
-    statSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide"><i class="fas fa-arrow-up mr-1"></i> Stat Increase</h4>`;
+    statSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide"><i class="fas fa-arrow-up mr-1"></i> Incremento de Atributo</h4>`;
 
     const statsGrid = document.createElement('div');
     statsGrid.className = 'grid grid-cols-3 sm:grid-cols-5 gap-2';
@@ -1595,7 +1596,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     // ── Skill Section ──
     const skillSection = document.createElement('div');
     skillSection.className = 'bg-slate-800 rounded-lg p-4';
-    skillSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide"><i class="fas fa-book mr-1"></i> Choose a Skill</h4>`;
+    skillSection.innerHTML = `<h4 class="text-sm font-semibold text-mordheim-gold mb-3 uppercase tracking-wide"><i class="fas fa-book mr-1"></i> Elegir una Habilidad</h4>`;
 
     const warbandName = currentWarband.type.split(':')[0].trim();
 
@@ -1617,7 +1618,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     if (availableSkills.length === 0) {
         const noSkills = document.createElement('p');
         noSkills.className = 'text-slate-400 text-sm italic';
-        noSkills.textContent = 'No skills available for the selected categories.';
+        noSkills.textContent = 'No hay habilidades disponibles para las categorías seleccionadas.';
         skillSection.appendChild(noSkills);
     } else {
         const groupedSkills = availableSkills.reduce((acc, skill) => {
@@ -1636,7 +1637,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
             const catHeader = document.createElement('div');
             catHeader.className = 'flex items-center justify-between cursor-pointer text-base font-semibold text-mordheim-gold mt-2 hover:text-yellow-400 transition p-2 bg-slate-700 rounded-lg';
             catHeader.innerHTML = `
-                <span>${category}</span>
+                <span>${translateSkillCategory(category)}</span>
                 <i class="fas fa-chevron-right transition-transform" id="chevron-${categoryId}"></i>
             `;
 
@@ -1659,15 +1660,15 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
 
                 let warningHtml = '';
                 if (alreadyHas) {
-                    warningHtml = '<span class="text-xs text-red-400 ml-2"><i class="fas fa-exclamation-triangle"></i> Already selected</span>';
+                    warningHtml = '<span class="text-xs text-red-400 ml-2"><i class="fas fa-exclamation-triangle"></i> Ya seleccionada</span>';
                 }
 
                 skillEl.innerHTML = `
                     <div class="flex items-center">
-                        <p class="font-semibold text-sm text-white">${skill.name}</p>
+                        <p class="font-semibold text-sm text-white">${translateSkill(skill.name)}</p>
                         ${warningHtml}
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">${skill.rules || ''}</p>
+                    <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(skill.name)?.full || skill.rules || ''}</p>
                 `;
 
                 skillEl.addEventListener('click', () => {
@@ -1690,7 +1691,7 @@ function showHarnessedAdvancementPicker(fighter, selectedCategories) {
     // Skip button
     const skipBtn = document.createElement('button');
     skipBtn.className = 'w-full py-2 px-4 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-500 transition text-sm mt-2';
-    skipBtn.innerHTML = '<i class="fas fa-forward mr-1"></i> Skip Hero Advancement';
+    skipBtn.innerHTML = '<i class="fas fa-forward mr-1"></i> Omitir Avance de Héroe';
     skipBtn.addEventListener('click', () => renderFighterView(fighter));
     scrollContainer.appendChild(skipBtn);
 
@@ -1710,9 +1711,9 @@ function showSkryreSpellPicker(fighter) {
     header.innerHTML = `
         <button id="skryre-spell-back-btn" class="text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fas fa-arrow-left"></i>
-            <span class="text-sm">Back</span>
+            <span class="text-sm">Volver</span>
         </button>
-        <h3 class="text-xl font-bold text-mordheim-gold">Magic of the Horned Rat</h3>
+        <h3 class="text-xl font-bold text-mordheim-gold">Magia de la Rata Cornuda</h3>
     `;
     container.appendChild(header);
     header.querySelector('#skryre-spell-back-btn').addEventListener('click', () => renderFighterView(fighter));
@@ -1720,7 +1721,7 @@ function showSkryreSpellPicker(fighter) {
     // Description
     const desc = document.createElement('p');
     desc.className = 'text-slate-300 mb-4 text-sm';
-    desc.textContent = 'The promoted Initiate must select a spell from the Magic of the Horned Rat.';
+    desc.textContent = 'El Iniciado ascendido debe seleccionar un hechizo de la Magia de la Rata Cornuda.';
     container.appendChild(desc);
 
     // Spell list
@@ -1732,9 +1733,9 @@ function showSkryreSpellPicker(fighter) {
         const spellEl = document.createElement('div');
         spellEl.className = 'p-3 rounded-lg cursor-pointer transition hover:bg-slate-600 bg-slate-800 border border-slate-600';
         spellEl.innerHTML = `
-            <p class="font-semibold text-sm text-white">${spell.name}</p>
-            <p class="text-xs text-slate-400 mt-1">${spell.description || ''}</p>
-            <p class="text-xs text-indigo-400 mt-1">Difficulty: ${spell.difficulty}</p>
+            <p class="font-semibold text-sm text-white">${translateSkill(spell.name)}</p>
+            <p class="text-xs text-slate-400 mt-1">${getSpecialRuleSummary(spell.name)?.full || spell.description || ''}</p>
+            <p class="text-xs text-indigo-400 mt-1">Dificultad: ${spell.difficulty === 'Auto' ? 'Automática' : spell.difficulty}</p>
         `;
         spellEl.addEventListener('click', () => {
             stageLadsSkryreSpell(fighter.id, spell.name);

@@ -24,6 +24,7 @@ import { showLedgerModal } from './ledger-ui.js'; // Import ledger modal functio
 import { setupPreGameEventListeners } from './PreGame/pre-game.js'; // Import Pre-Game Build Phase event listeners
 import { showEquipmentReorderModal } from './equipment-reorder-modal.js'; // Equipment reorder modal
 import { openGearModal } from './fighter-gear-modal.js'; // Fighter Gear quick-manage modal
+import { translateSkill, translateSpecialRule, translateEquipment, translateEquipmentRules, getSpecialRuleSummary } from './i18n.js';
 
 export const setupEventListeners = () => {
     const initApp = async () => {
@@ -276,6 +277,23 @@ export const setupEventListeners = () => {
             console.error('Create New Warband button not found!');
         }
 
+        // Home Navigation handlers (always returns user to Inicio / Warbands List)
+        const handleGoToHome = (e) => {
+            if (e) e.preventDefault();
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                mobileMenuBtn?.classList.remove('active');
+                document.body.classList.remove('mobile-menu-open');
+            }
+            setCurrentWarband(showListView(getWarbands()));
+        };
+
+        document.getElementById('nav-home-btn')?.addEventListener('click', handleGoToHome);
+        document.getElementById('header-logo-btn')?.addEventListener('click', handleGoToHome);
+        document.getElementById('mobile-home-btn')?.addEventListener('click', handleGoToHome);
+
         // Import & Export Handlers
         const fileInput = document.getElementById('import-file-input');
         const triggerImport = () => {
@@ -482,22 +500,24 @@ export const setupEventListeners = () => {
                 }
 
                 if (skillData) {
-                    document.getElementById('rule-details-title').textContent = skillData.name;
+                    document.getElementById('rule-details-title').textContent = translateSkill(skillData.name);
                     
                     // Check if this is a spell (has difficulty property) and format accordingly
                     if (skillData.difficulty !== undefined) {
-                        const difficultyText = skillData.difficulty === "Auto" ? "Automatic" : `Difficulty ${skillData.difficulty}`;
+                        const difficultyText = skillData.difficulty === "Auto" ? "Automática" : `Dificultad ${skillData.difficulty}`;
+                        const desc = getSpecialRuleSummary(skillData.name)?.full || skillData.description;
                         document.getElementById('rule-details-content').innerHTML = `
                             <div class="mb-2">
-                                <strong>Difficulty:</strong> ${difficultyText}
+                                <strong>Dificultad:</strong> ${difficultyText}
                             </div>
                             <div>
-                                <strong>Description:</strong> ${skillData.description}
+                                <strong>Descripción:</strong> ${desc}
                             </div>
                         `;
                     } else {
                         // Regular skill
-                        document.getElementById('rule-details-content').innerHTML = skillData.rules;
+                        const rules = getSpecialRuleSummary(skillData.name)?.full || skillData.rules;
+                        document.getElementById('rule-details-content').innerHTML = rules;
                     }
                     
                     displayModal('rule-details-modal');
@@ -507,8 +527,9 @@ export const setupEventListeners = () => {
                 const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
 
                 if (ruleData) {
-                    document.getElementById('rule-details-title').textContent = ruleData.name;
-                    document.getElementById('rule-details-content').innerHTML = ruleData.rules;
+                    const spanishSummary = getSpecialRuleSummary(ruleData.name);
+                    document.getElementById('rule-details-title').textContent = translateSpecialRule(ruleData.name);
+                    document.getElementById('rule-details-content').innerHTML = spanishSummary?.full || ruleData.rules;
                     displayModal('rule-details-modal');
                 }
             } else if (equipmentSpan) {
@@ -517,25 +538,25 @@ export const setupEventListeners = () => {
                 const equipmentData = MASTER_EQUIPMENT_LIST.find(e => e.name === equipmentName);
 
                 if (equipmentData) {
-                    let title = equipmentData.name;
+                    let title = translateEquipment(equipmentData.name);
                     let content = equipmentData.turnOrderRules || equipmentData.rules;
                     if (ruleName && Array.isArray(content) && content.length > 0 && typeof content[0] === 'object') {
                         // Filter to show only the specific rule
                         const specificRule = content.find(ruleObj => ruleObj.name === ruleName);
                         if (specificRule) {
-                            title += ` - ${ruleName}`;
-                            document.getElementById('rule-details-content').innerHTML = `<p><strong>${specificRule.name}:</strong> ${specificRule.rule}</p>`;
+                            title += ` - ${translateSpecialRule(ruleName)}`;
+                            document.getElementById('rule-details-content').innerHTML = `<p><strong>${translateSpecialRule(specificRule.name)}:</strong> ${translateEquipmentRules(equipmentData.name, specificRule.rule)}</p>`;
                         } else {
                             // Fallback if rule not found
-                            document.getElementById('rule-details-content').innerHTML = content.map(ruleObj => `<p><strong>${ruleObj.name}:</strong> ${ruleObj.rule}</p>`).join('');
+                            document.getElementById('rule-details-content').innerHTML = content.map(ruleObj => `<p><strong>${translateSpecialRule(ruleObj.name)}:</strong> ${translateEquipmentRules(equipmentData.name, ruleObj.rule)}</p>`).join('');
                         }
                     } else if (Array.isArray(content) && content.length > 0 && typeof content[0] === 'object') {
                         // New format: array of objects with name and rule
-                        document.getElementById('rule-details-content').innerHTML = content.map(ruleObj => `<p><strong>${ruleObj.name}:</strong> ${ruleObj.rule}</p>`).join('');
+                        document.getElementById('rule-details-content').innerHTML = content.map(ruleObj => `<p><strong>${translateSpecialRule(ruleObj.name)}:</strong> ${translateEquipmentRules(equipmentData.name, ruleObj.rule)}</p>`).join('');
                     } else if (Array.isArray(content)) {
-                        document.getElementById('rule-details-content').innerHTML = content.map(rule => `<p>${rule}</p>`).join('');
+                        document.getElementById('rule-details-content').innerHTML = content.map(rule => `<p>${translateEquipmentRules(equipmentData.name, rule)}</p>`).join('');
                     } else {
-                        document.getElementById('rule-details-content').innerHTML = content.replace(/\n/g, '<br>');
+                        document.getElementById('rule-details-content').innerHTML = translateEquipmentRules(equipmentData.name, content).replace(/\n/g, '<br>');
                     }
                     document.getElementById('rule-details-title').textContent = title;
                     displayModal('rule-details-modal');
@@ -563,25 +584,25 @@ export const setupEventListeners = () => {
                 const equipmentData = MASTER_EQUIPMENT_LIST.find(e => e.name === equipmentName);
 
                 if (equipmentData) {
-                    let title = equipmentData.name;
+                    let title = translateEquipment(equipmentData.name);
                     let content = equipmentData.turnOrderRules || equipmentData.rules;
                     if (ruleName && Array.isArray(content) && content.length > 0 && typeof content[0] === 'object') {
                         // Filter to show only the specific rule
                         const specificRule = content.find(ruleObj => ruleObj.name === ruleName);
                         if (specificRule) {
-                            title += ` - ${ruleName}`;
+                            title += ` - ${translateSpecialRule(ruleName)}`;
                             document.getElementById('rule-details-title').textContent = title;
-                            document.getElementById('rule-details-content').innerHTML = `<p><strong>${specificRule.name}:</strong> ${specificRule.rule}</p>`;
+                            document.getElementById('rule-details-content').innerHTML = `<p><strong>${translateSpecialRule(specificRule.name)}:</strong> ${translateEquipmentRules(equipmentData.name, specificRule.rule)}</p>`;
                             displayModal('rule-details-modal');
                             return;
                         }
                     } else if (Array.isArray(content) && content.length > 0 && typeof content[0] === 'object') {
                         // New format: array of objects with name and rule
-                        document.getElementById('rule-details-content').innerHTML = content.map(ruleObj => `<p><strong>${ruleObj.name}:</strong> ${ruleObj.rule}</p>`).join('');
+                        document.getElementById('rule-details-content').innerHTML = content.map(ruleObj => `<p><strong>${translateSpecialRule(ruleObj.name)}:</strong> ${translateEquipmentRules(equipmentData.name, ruleObj.rule)}</p>`).join('');
                     } else if (Array.isArray(content)) {
-                        document.getElementById('rule-details-content').innerHTML = content.map(rule => `<p>${rule}</p>`).join('');
+                        document.getElementById('rule-details-content').innerHTML = content.map(rule => `<p>${translateEquipmentRules(equipmentData.name, rule)}</p>`).join('');
                     } else {
-                        document.getElementById('rule-details-content').innerHTML = content.replace(/\n/g, '<br>');
+                        document.getElementById('rule-details-content').innerHTML = translateEquipmentRules(equipmentData.name, content).replace(/\n/g, '<br>');
                     }
                     document.getElementById('rule-details-title').textContent = title;
                     displayModal('rule-details-modal');
@@ -597,7 +618,7 @@ export const setupEventListeners = () => {
         document.getElementById('add-treasure-btn').addEventListener('click', () => updateTreasure('add'));
         document.getElementById('spend-treasure-btn').addEventListener('click', () => {
             if (!currentWarband) {
-                showMessage('Please load a warband first.', 'error');
+                showMessage('Por favor, carga una banda primero.', 'error');
                 return;
             }
             openSellTreasureModal(currentWarband, currentWarband.treasure || 0);
@@ -853,7 +874,7 @@ export const setupEventListeners = () => {
                 // Update display text
                 const alignmentText = document.getElementById('alignment-text');
                 alignmentText.textContent = newAlignment.charAt(0).toUpperCase() + newAlignment.slice(1);
-                showMessage(`Warband alignment changed to ${newAlignment}.`, 'success');
+                showMessage(`Alineamiento de la banda cambiado a ${newAlignment}.`, 'success');
             }
         });
 
@@ -868,7 +889,7 @@ export const setupEventListeners = () => {
                 const alignmentSelect = document.getElementById('alignment-select');
                 alignmentText.textContent = newAlignment.charAt(0).toUpperCase() + newAlignment.slice(1);
                 alignmentSelect.value = newAlignment;
-                showMessage(`Warband alignment changed to ${newAlignment}.`, 'success');
+                showMessage(`Alineamiento de la banda cambiado a ${newAlignment}.`, 'success');
             }
         });
 
@@ -887,7 +908,7 @@ export const setupEventListeners = () => {
                 
                 await saveWarband();
                 document.getElementById('games-played-count').textContent = currentWarband.games_played;
-                showMessage('Games played increased to ' + currentWarband.games_played, 'success');
+                showMessage('Partidas jugadas aumentadas a ' + currentWarband.games_played, 'success');
             }
         });
 
@@ -896,7 +917,7 @@ export const setupEventListeners = () => {
                 currentWarband.games_played = currentWarband.games_played - 1;
                 await saveWarband();
                 document.getElementById('games-played-count').textContent = currentWarband.games_played;
-                showMessage('Games played decreased to ' + currentWarband.games_played, 'success');
+                showMessage('Partidas jugadas reducidas a ' + currentWarband.games_played, 'success');
             }
         });
 
@@ -1060,7 +1081,7 @@ export const setupEventListeners = () => {
             const email = document.getElementById('reset-email').value.trim();
 
             if (!email) {
-                document.getElementById('reset-error').textContent = 'Please enter your email address.';
+                document.getElementById('reset-error').textContent = 'Por favor, introduce tu dirección de correo electrónico.';
                 document.getElementById('reset-error').classList.remove('hidden');
                 document.getElementById('reset-success').classList.add('hidden');
                 return;
@@ -1068,11 +1089,11 @@ export const setupEventListeners = () => {
 
             try {
                 await resetPassword(email);
-                document.getElementById('reset-success').textContent = 'Password reset email sent! Check your inbox.';
+                document.getElementById('reset-success').textContent = '¡Correo de restablecimiento enviado! Revisa tu bandeja de entrada.';
                 document.getElementById('reset-success').classList.remove('hidden');
                 document.getElementById('reset-error').classList.add('hidden');
             } catch (error) {
-                document.getElementById('reset-error').textContent = error.message || 'Failed to send reset email.';
+                document.getElementById('reset-error').textContent = error.message || 'Error al enviar el correo de restablecimiento.';
                 document.getElementById('reset-error').classList.remove('hidden');
                 document.getElementById('reset-success').classList.add('hidden');
             }
@@ -1122,8 +1143,9 @@ export const setupEventListeners = () => {
                 const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
 
                 if (ruleData) {
-                    document.getElementById('rule-details-title').textContent = ruleData.name;
-                    document.getElementById('rule-details-content').innerHTML = ruleData.rules;
+                    const spanishSummary = getSpecialRuleSummary(ruleData.name);
+                    document.getElementById('rule-details-title').textContent = translateSpecialRule(ruleData.name);
+                    document.getElementById('rule-details-content').innerHTML = spanishSummary?.full || ruleData.rules;
                     displayModal('rule-details-modal');
                 }
                 return;
@@ -1150,7 +1172,7 @@ export const setupEventListeners = () => {
             } else if (action === 'edit-notes') {
                 const fighter = currentWarband.members.find(f => f.id === fighterId);
                 if (fighter) {
-                    document.getElementById('notes-modal-title').textContent = `Notes for ${fighter.name}`;
+                    document.getElementById('notes-modal-title').textContent = `Notas de ${fighter.name}`;
                     document.getElementById('notes-modal-fighter-id').value = fighterId;
                     document.getElementById('notes-modal-textarea').value = fighter.notes || '';
                     displayModal('fighter-notes-modal');
@@ -1198,22 +1220,24 @@ export const setupEventListeners = () => {
                 }
 
                 if (skillData) {
-                    document.getElementById('rule-details-title').textContent = skillData.name;
+                    document.getElementById('rule-details-title').textContent = translateSkill(skillData.name);
                     
                     // Check if this is a spell (has difficulty property) and format accordingly
                     if (skillData.difficulty !== undefined) {
-                        const difficultyText = skillData.difficulty === "Auto" ? "Automatic" : `Difficulty ${skillData.difficulty}`;
+                        const difficultyText = skillData.difficulty === "Auto" ? "Automática" : `Dificultad ${skillData.difficulty}`;
+                        const desc = getSpecialRuleSummary(skillData.name)?.full || skillData.description;
                         document.getElementById('rule-details-content').innerHTML = `
                             <div class="mb-2">
-                                <strong>Difficulty:</strong> ${difficultyText}
+                                <strong>Dificultad:</strong> ${difficultyText}
                             </div>
                             <div>
-                                <strong>Description:</strong> ${skillData.description}
+                                <strong>Descripción:</strong> ${desc}
                             </div>
                         `;
                     } else {
                         // Regular skill
-                        document.getElementById('rule-details-content').innerHTML = skillData.rules;
+                        const rules = getSpecialRuleSummary(skillData.name)?.full || skillData.rules;
+                        document.getElementById('rule-details-content').innerHTML = rules;
                     }
                     
                     displayModal('rule-details-modal');
@@ -1223,8 +1247,9 @@ export const setupEventListeners = () => {
                 const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
 
                 if (ruleData) {
-                    document.getElementById('rule-details-title').textContent = ruleData.name;
-                    document.getElementById('rule-details-content').innerHTML = ruleData.rules;
+                    const spanishSummary = getSpecialRuleSummary(ruleData.name);
+                    document.getElementById('rule-details-title').textContent = translateSpecialRule(ruleData.name);
+                    document.getElementById('rule-details-content').innerHTML = spanishSummary?.full || ruleData.rules;
                     displayModal('rule-details-modal');
                 }
             } else if (button && button.dataset.action === 'remove-skill') {

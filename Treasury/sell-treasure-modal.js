@@ -95,7 +95,7 @@ function initializeModal() {
 
     // Reset sell button to default behavior
     if (sellBtn) {
-        sellBtn.textContent = 'Sell Treasure';
+        sellBtn.textContent = 'Vender Tesoro';
         sellBtn.onclick = showSellConfirmation;
     }
 
@@ -126,8 +126,8 @@ function populateTreasureTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${shards}</td>
-            <td>${value} gold</td>
-            <td>${valuePerTreasure} gold/treasure</td>
+            <td>${value} CO</td>
+            <td>${valuePerTreasure} CO/tesoro</td>
         `;
         
         tableBody.appendChild(row);
@@ -154,9 +154,9 @@ function updateValuePerTreasure() {
         // For value per treasure, use 8 as divisor for any amount 8 or higher
         const divisor = treasureToSell >= 8 ? 8 : treasureToSell;
         const valuePerTreasure = (totalValue / divisor).toFixed(2);
-        valuePerTreasureDisplay.textContent = `${valuePerTreasure} gold per treasure`;
+        valuePerTreasureDisplay.textContent = `${valuePerTreasure} CO por tesoro`;
     } else {
-        valuePerTreasureDisplay.textContent = '0 gold per treasure';
+        valuePerTreasureDisplay.textContent = '0 CO por tesoro';
     }
 }
 
@@ -174,12 +174,12 @@ export function showSellConfirmation() {
     const warbandSizeValue = parseInt(warbandSizeSelect.value) || 1;
 
     if (treasureToSell < 0) {
-        showMessage('Please enter a valid number of treasure to sell.', 'error');
+        showMessage('Por favor, introduce un número válido de tesoro para vender.', 'error');
         return;
     }
 
     if (treasureToSell > currentTreasureCount) {
-        showMessage(`You only have ${currentTreasureCount} treasure shards available.`, 'error');
+        showMessage(`Solo tienes disponibles ${currentTreasureCount} fragmento(s) de piedra bruja.`, 'error');
         return;
     }
 
@@ -187,17 +187,17 @@ export function showSellConfirmation() {
     
     // Get the selected range text for display
     const selectedOption = warbandSizeSelect.options[warbandSizeSelect.selectedIndex];
-    const warbandSizeText = selectedOption ? selectedOption.text.split(' ')[0] : 'Unknown';
+    const warbandSizeText = selectedOption ? selectedOption.text.split(' ')[0] : 'Desconocido';
     
     // Update confirmation modal content
     const confirmationContent = document.getElementById('sell-confirmation-content');
     if (confirmationContent) {
         confirmationContent.innerHTML = `
             <div class="space-y-3">
-                <p><strong>Treasure to sell:</strong> ${treasureToSell} shards</p>
-                <p><strong>Warband size:</strong> ${warbandSizeText}</p>
-                <p><strong>Gold to receive:</strong> ${totalValue} gold</p>
-                <p class="text-sm text-slate-400">This will remove ${treasureToSell} treasure from your warband and add ${totalValue} gold.</p>
+                <p><strong>Tesoro a vender:</strong> ${treasureToSell} fragmentos</p>
+                <p><strong>Tamaño de la banda:</strong> ${warbandSizeText}</p>
+                <p><strong>Oro a recibir:</strong> ${totalValue} CO</p>
+                <p class="text-sm text-slate-400">Esto eliminará ${treasureToSell} de tesoro de tu banda y añadirá ${totalValue} CO.</p>
             </div>
         `;
     }
@@ -216,7 +216,7 @@ export function showSellConfirmation() {
  */
 async function executeSale(treasureSold, goldReceived) {
     if (!modalWarband) {
-        showMessage('No warband loaded.', 'error');
+        showMessage('No hay ninguna banda cargada.', 'error');
         return;
     }
 
@@ -232,7 +232,7 @@ async function executeSale(treasureSold, goldReceived) {
             setCurrentWarband(modalWarband);
             currentTreasureCount = modalWarband.treasure || 0;
 
-            showMessage('No treasure sold.', 'info');
+            showMessage('No se ha vendido tesoro.', 'info');
 
             // Close confirmation modal
             hideModal('sell-treasure-confirmation-modal');
@@ -267,7 +267,7 @@ async function executeSale(treasureSold, goldReceived) {
             TRANSACTION_TYPES.INCOME,
             TRANSACTION_CATEGORIES.TREASURE_SALE,
             goldReceived,
-            `Sold ${treasureSold} Wyrdstone Shard${treasureSold > 1 ? 's' : ''}`,
+            `Vendidos ${treasureSold} fragmento(s) de piedra bruja`,
             {
                 treasure_sold: treasureSold,
                 gold_received: goldReceived
@@ -283,7 +283,7 @@ async function executeSale(treasureSold, goldReceived) {
         setCurrentWarband(modalWarband);
         currentTreasureCount = modalWarband.treasure || 0;
 
-        showMessage(`Successfully sold ${treasureSold} treasure for ${goldReceived} gold!`, 'success');
+        showMessage(`¡Se han vendido con éxito ${treasureSold} de tesoro por ${goldReceived} CO!`, 'success');
 
         // Close confirmation modal
         hideModal('sell-treasure-confirmation-modal');
@@ -309,7 +309,7 @@ async function executeSale(treasureSold, goldReceived) {
                 
     } catch (error) {
         console.error('Error executing treasure sale:', error);
-        showMessage('Failed to complete treasure sale. Please try again.', 'error');
+        showMessage('Error al completar la venta de tesoro. Por favor, inténtalo de nuevo.', 'error');
     }
 }
 
@@ -338,11 +338,11 @@ export async function confirmReplenishmentOnly() {
     if (confirmationContent) {
         confirmationContent.innerHTML = `
             <div class="space-y-3">
-                <p><strong>Action:</strong> Update henchmen groups</p>
-                <p><strong>Total cost:</strong> ${replenishmentData.totalCost} gold</p>
-                <p><strong>Covered by treasury:</strong> ${replenishmentData.totalCost} gold</p>
-                <p><strong>Treasure to sell:</strong> 0 shards</p>
-                <p class="text-sm text-slate-400">This will deduct ${replenishmentData.totalCost} gold from your treasury and update your henchmen groups.</p>
+                <p><strong>Acción:</strong> Actualizar grupos de secuaces</p>
+                <p><strong>Coste total:</strong> ${replenishmentData.totalCost} CO</p>
+                <p><strong>Cubierto por la tesorería:</strong> ${replenishmentData.totalCost} CO</p>
+                <p><strong>Tesoro a vender:</strong> 0 fragmentos</p>
+                <p class="text-sm text-slate-400">Esto deducirá ${replenishmentData.totalCost} CO de tu tesorería y actualizará tus grupos de secuaces.</p>
             </div>
         `;
     }
@@ -456,7 +456,7 @@ export function updateSellTreasureWithReplenishment() {
         // Reset button text
         const sellBtn = document.getElementById('sell-treasure-btn');
         if (sellBtn) {
-            sellBtn.textContent = 'Sell Treasure';
+            sellBtn.textContent = 'Vender Tesoro';
         }
 
         return;
@@ -470,7 +470,7 @@ export function updateSellTreasureWithReplenishment() {
         // Update cost display
         const costDisplay = document.getElementById('replenishment-cost-display');
         if (costDisplay) {
-            costDisplay.textContent = `${replenishmentData.totalCost} GC`;
+            costDisplay.textContent = `${replenishmentData.totalCost} CO`;
         }
 
         // Calculate how much is covered by treasury
@@ -483,9 +483,9 @@ export function updateSellTreasureWithReplenishment() {
         const treasureNeededDisplay = document.getElementById('treasure-needed-display');
         if (treasureNeededDisplay) {
             if (remainingCost <= 0) {
-                treasureNeededDisplay.textContent = `0 shards (covered by treasury)`;
+                treasureNeededDisplay.textContent = `0 fragmentos (cubierto por la tesorería)`;
             } else {
-                treasureNeededDisplay.textContent = `${treasureNeeded}+ shards (${costCoveredByTreasury} GC covered by treasury)`;
+                treasureNeededDisplay.textContent = `${treasureNeeded}+ fragmentos (${costCoveredByTreasury} CO cubiertos por la tesorería)`;
             }
         }
     }
@@ -554,19 +554,19 @@ function updateSellButtonState() {
         const totalValue = getTreasureSellingValue(treasureToSell, warbandSizeValue);
 
         if (totalValue >= remainingCost) {
-            sellBtn.textContent = 'Sell Shards and update henchmen groups';
+            sellBtn.textContent = 'Vender fragmentos y actualizar grupos de secuaces';
             sellBtn.onclick = showSellConfirmation;
         } else {
-            sellBtn.textContent = 'Sell Treasure';
+            sellBtn.textContent = 'Vender Tesoro';
             sellBtn.onclick = showSellConfirmation;
         }
     } else {
         // If no treasure being sold, check if treasury covers full cost
         if (remainingCost <= 0) {
-            sellBtn.textContent = 'Update henchmen groups (treasury covers cost)';
+            sellBtn.textContent = 'Actualizar grupos de secuaces (la tesorería cubre el coste)';
             sellBtn.onclick = confirmReplenishmentOnly;
         } else {
-            sellBtn.textContent = 'Sell Treasure';
+            sellBtn.textContent = 'Vender Tesoro';
             sellBtn.onclick = showSellConfirmation;
         }
     }
@@ -584,7 +584,7 @@ async function applyReplenishmentChanges() {
     try {
         // Check if treasury has enough gold
         if (modalWarband.gc_treasury < replenishmentData.totalCost) {
-            showMessage(`Insufficient treasury. Need ${replenishmentData.totalCost} GC but only have ${modalWarband.gc_treasury} GC.`, 'error');
+            showMessage(`Tesorería insuficiente. Se necesitan ${replenishmentData.totalCost} CO pero solo tienes ${modalWarband.gc_treasury} CO.`, 'error');
             return;
         }
 
@@ -609,9 +609,9 @@ async function applyReplenishmentChanges() {
         // Record the replenishment transaction in the ledger
         let description;
         if (costCoveredByTreasureSale > 0) {
-            description = `Replenished henchmen groups (${costCoveredByTreasury} GC from treasury, ${costCoveredByTreasureSale} GC from treasure sale)`;
+            description = `Refuerzo de grupos de secuaces (${costCoveredByTreasury} CO de la tesorería, ${costCoveredByTreasureSale} CO de la venta de tesoro)`;
         } else {
-            description = `Replenished henchmen groups (${costCoveredByTreasury} GC from treasury)`;
+            description = `Refuerzo de grupos de secuaces (${costCoveredByTreasury} CO de la tesorería)`;
         }
 
         const transaction = createTransaction(
@@ -638,11 +638,11 @@ async function applyReplenishmentChanges() {
         // Refresh UI to show updated warband
         renderWarbandEditor(modalWarband, getWarbandDataLocal, STATS_FIELDS);
 
-        showMessage(`Successfully replenished henchmen groups for ${replenishmentData.totalCost} gold!`, 'success');
+        showMessage(`¡Se han reforzado con éxito los grupos de secuaces por ${replenishmentData.totalCost} CO!`, 'success');
 
     } catch (error) {
         console.error('Error applying replenishment changes:', error);
-        showMessage('Failed to apply replenishment changes. Please try again.', 'error');
+        showMessage('Error al aplicar los cambios de refuerzo. Por favor, inténtalo de nuevo.', 'error');
     }
 }
 

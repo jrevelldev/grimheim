@@ -17,6 +17,7 @@ import { removeEquipment, showEquipmentSelectionModal } from './equipment-manage
 import { showEquipmentReorderModal } from './equipment-reorder-modal.js';
 import { editFighter } from './edit-fighter-modal.js';
 import { saveFighter } from './fighter-management.js';
+import { translateEquipment } from './i18n.js';
 
 const MODAL_ID = 'fighter-gear-modal';
 let gearSaveWarband = null;
@@ -64,7 +65,7 @@ const renderGearList = () => {
     const warbandName = currentWarband ? currentWarband.type : null;
 
     if (equipment.length === 0) {
-        listEl.innerHTML = `<li class="text-slate-500 text-sm py-2 text-center">No equipment.</li>`;
+        listEl.innerHTML = `<li class="text-slate-500 text-sm py-2 text-center">Sin equipo.</li>`;
     } else {
         listEl.innerHTML = equipment.map((item, index) => {
             const masterItem = MASTER_EQUIPMENT_LIST.find(i => i.name === item.name);
@@ -72,16 +73,17 @@ const renderGearList = () => {
             // Blessings of Nurgle can only be gained on recruitment and cannot be removed (same as Edit)
             const canRemove = !(masterItem && masterItem.category === 'Blessings of Nurgle');
             const category = masterItem?.category ? `<span class="text-slate-500 text-xs ml-1">${escapeHtml(masterItem.category)}</span>` : '';
+            const translatedName = translateEquipment(item.name);
             return `
                 <li class="flex justify-between items-center gap-2 text-sm py-1 px-1 rounded hover:bg-slate-800 transition">
-                    <span class="text-yellow-200">${escapeHtml(item.name)}
-                        <span class="text-slate-400 text-xs">(${escapeHtml(displayCost)} GC)</span>${category}
+                    <span class="text-yellow-200">${escapeHtml(translatedName)}
+                        <span class="text-slate-400 text-xs">(${escapeHtml(displayCost)} CO)</span>${category}
                     </span>
                     ${canRemove ? `
                     <button type="button" data-gear-action="sell" data-item-index="${index}"
                         class="flex-shrink-0 py-0.5 px-2 text-xs font-semibold rounded bg-slate-700 text-red-300 hover:bg-red-700 hover:text-white transition"
-                        title="Sell or store ${escapeHtml(item.name)}">
-                        Sell
+                        title="Vender o almacenar ${escapeHtml(translatedName)}">
+                        Vender
                     </button>` : ''}
                 </li>`;
         }).join('');
@@ -89,7 +91,7 @@ const renderGearList = () => {
 
     const totalEl = document.getElementById('gear-equipment-total');
     if (totalEl) {
-        totalEl.textContent = `(${calculateEquipmentCost(equipment)} GC per fighter)`;
+        totalEl.textContent = `(${calculateEquipmentCost(equipment)} CO por guerrero)`;
     }
 
     const reorderBtn = document.getElementById('gear-reorder-btn');
@@ -98,7 +100,7 @@ const renderGearList = () => {
         reorderBtn.disabled = !canReorder;
         reorderBtn.classList.toggle('opacity-50', !canReorder);
         reorderBtn.classList.toggle('cursor-not-allowed', !canReorder);
-        reorderBtn.title = canReorder ? 'Change the order of this fighter\'s equipment' : 'Add at least 2 items to reorder';
+        reorderBtn.title = canReorder ? 'Cambiar el orden del equipo de este guerrero' : 'Añade al menos 2 objetos para reordenar';
     }
 
     renderPendingSummary();
@@ -125,9 +127,9 @@ const renderPendingSummary = () => {
     let changesHtml = '';
     if (hasChanges) {
         const rows = [
-            ...pendingPurchases.map(p => `<li class="text-green-300"><i class="fas fa-plus-circle mr-1"></i>Buy ${prefix}${escapeHtml(p.name)} <span class="text-red-400">-${Math.round((parseFloat(p.cost) || 0) * groupSize)} GC</span></li>`),
-            ...pendingSells.map(s => `<li class="text-yellow-300"><i class="fas fa-coins mr-1"></i>Sell ${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${escapeHtml(s.itemName)} <span class="text-green-400">+${s.sellPrice} GC</span></li>`),
-            ...pendingStores.map(s => `<li class="text-blue-300"><i class="fas fa-warehouse mr-1"></i>Store ${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${escapeHtml(s.name)}</li>`)
+            ...pendingPurchases.map(p => `<li class="text-green-300"><i class="fas fa-plus-circle mr-1"></i>Comprar ${prefix}${escapeHtml(translateEquipment(p.name))} <span class="text-red-400">-${Math.round((parseFloat(p.cost) || 0) * groupSize)} CO</span></li>`),
+            ...pendingSells.map(s => `<li class="text-yellow-300"><i class="fas fa-coins mr-1"></i>Vender ${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${escapeHtml(translateEquipment(s.itemName))} <span class="text-green-400">+${s.sellPrice} CO</span></li>`),
+            ...pendingStores.map(s => `<li class="text-blue-300"><i class="fas fa-warehouse mr-1"></i>Almacenar ${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${escapeHtml(translateEquipment(s.name))}</li>`)
         ];
         changesHtml = `<ul class="text-xs space-y-0.5 mb-2">${rows.join('')}</ul>`;
     }
@@ -138,12 +140,12 @@ const renderPendingSummary = () => {
     summaryEl.innerHTML = `
         ${changesHtml}
         <div class="flex justify-between items-center">
-            <span class="text-slate-300">Treasury</span>
+            <span class="text-slate-300">Tesorería</span>
             <span class="text-slate-200 font-semibold">
-                ${treasury} GC${hasChanges ? ` <span class="${netColor}">(${netSign}${net})</span> → <span class="text-mordheim-gold">${treasury + net} GC</span>` : ''}
+                ${treasury} CO${hasChanges ? ` <span class="${netColor}">(${netSign}${net})</span> → <span class="text-mordheim-gold">${treasury + net} CO</span>` : ''}
             </span>
         </div>
-        ${hasChanges ? '<p class="text-xs text-slate-400 mt-1">Changes are applied and recorded in the Ledger when you Save.</p>' : ''}
+        ${hasChanges ? '<p class="text-xs text-slate-400 mt-1">Los cambios se aplicarán y registrarán en el Libro Mayor al guardar.</p>' : ''}
     `;
 };
 
@@ -217,14 +219,15 @@ export const openGearModal = (fighterId, saveWarband) => {
     // Respect fighters that cannot carry equipment (starting_equipment: ["None"])
     const equipmentSection = document.getElementById('equipment-section');
     if (equipmentSection && equipmentSection.classList.contains('hidden')) {
-        showMessage(`${fighter.name} cannot carry equipment.`, 'info');
+        showMessage(`${fighter.name} no puede llevar equipo.`, 'info');
         return;
     }
 
     const groupSize = fighter.type === 'Henchman' ? (fighter.group_size || 1) : 1;
-    document.getElementById('gear-modal-title').textContent = `Gear – ${fighter.name}`;
+    document.getElementById('gear-modal-title').textContent = `Equipo – ${fighter.name}`;
+    const roleDisplay = fighter.warrior_choice || (fighter.type === 'Hero' ? 'Héroe' : 'Secuaz');
     document.getElementById('gear-modal-subtitle').textContent =
-        `${fighter.warrior_choice || fighter.type || ''}${groupSize > 1 ? ` x${groupSize} (costs apply to each model)` : ''}`;
+        `${roleDisplay}${groupSize > 1 ? ` x${groupSize} (los costes se aplican a cada miniatura)` : ''}`;
 
     const modal = document.getElementById(MODAL_ID);
     modal.dataset.active = 'true';

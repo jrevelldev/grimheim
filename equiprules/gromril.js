@@ -21,7 +21,7 @@ export const renderGromrilWeaponOption = (item, displayedCost, originalCostText,
                 <p class="font-semibold equip-name-toggle" data-rules-target="gromril-rules-${item.id}" style="cursor: pointer;">
                     <i class="fas fa-chevron-right text-xs text-slate-500 equip-chevron" style="transition: transform 0.2s; margin-right: 4px; font-size: 0.6rem;"></i>${displayName} <span class="text-${textColor} text-xs">(${displayedCost}${variableCostDisplay} CO${originalCostText})</span>${rarityDisplay}
                 </p>
-                <p id="gromril-rules-${item.id}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules)}</p>
+                <p id="gromril-rules-${item.id}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules, item.name)}</p>
             </div>
             <div class="expansion hidden ml-4 mt-2">
                 <label class="flex items-center text-sm">

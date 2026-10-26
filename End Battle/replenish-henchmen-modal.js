@@ -17,7 +17,7 @@ let totalReplenishmentCost = 0;
  */
 export function showReplenishHenchmenModal() {
     if (!currentWarband || !currentWarband.members) {
-        showMessage('No warband loaded.', 'error');
+        showMessage('No hay ninguna banda cargada.', 'error');
         return;
     }
 
@@ -80,7 +80,7 @@ function populateHenchmenGroups() {
     const henchmenGroups = currentWarband.members.filter(m => m.type === 'Henchman');
 
     if (henchmenGroups.length === 0) {
-        container.innerHTML = '<p class="text-slate-400">No henchmen groups in warband.</p>';
+        container.innerHTML = '<p class="text-slate-400">No hay grupos de secuaces en la banda.</p>';
         return;
     }
 
@@ -95,13 +95,13 @@ function populateHenchmenGroups() {
             <div class="flex justify-between items-start mb-3">
                 <div>
                     <h5 class="font-semibold text-mordheim-gold">${group.name}</h5>
-                    <p class="text-sm text-slate-400">Current size: ${currentSize} | XP: ${currentXP}</p>
+                    <p class="text-sm text-slate-400">Tamaño actual: ${currentSize} | PX: ${currentXP}</p>
                 </div>
             </div>
             
             <div class="space-y-3">
                 <div class="flex items-center space-x-4">
-                    <label class="text-slate-300">Fighters to add:</label>
+                    <label class="text-slate-300">Guerreros a añadir:</label>
                     <input type="number" inputmode="numeric"
                            id="replenish-count-${group.id}" 
                            value="0" 
@@ -113,24 +113,24 @@ function populateHenchmenGroups() {
                 
                 <div class="text-sm space-y-1">
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Base cost:</span>
-                        <span id="replenish-base-${group.id}" class="text-yellow-200">${group.cost || 0} GC</span>
+                        <span class="text-slate-400">Coste base:</span>
+                        <span id="replenish-base-${group.id}" class="text-yellow-200">${group.cost || 0} CO</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Equipment cost:</span>
-                        <span id="replenish-equip-${group.id}" class="text-yellow-200">0 GC</span>
+                        <span class="text-slate-400">Coste de equipo:</span>
+                        <span id="replenish-equip-${group.id}" class="text-yellow-200">0 CO</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">XP cost (${currentXP} XP):</span>
-                        <span id="replenish-xp-${group.id}" class="text-yellow-200">${currentXP * 2} GC</span>
+                        <span class="text-slate-400">Coste PX (${currentXP} PX):</span>
+                        <span id="replenish-xp-${group.id}" class="text-yellow-200">${currentXP * 2} CO</span>
                     </div>
                     <div class="flex justify-between font-bold border-t border-slate-600 pt-1 mt-1">
-                        <span class="text-slate-200">Cost per fighter:</span>
-                        <span id="replenish-per-${group.id}" class="text-mordheim-gold">0 GC</span>
+                        <span class="text-slate-200">Coste por guerrero:</span>
+                        <span id="replenish-per-${group.id}" class="text-mordheim-gold">0 CO</span>
                     </div>
                     <div class="flex justify-between font-bold">
-                        <span class="text-slate-200">Total for this group:</span>
-                        <span id="replenish-group-total-${group.id}" class="text-mordheim-gold">0 GC</span>
+                        <span class="text-slate-200">Total para este grupo:</span>
+                        <span id="replenish-group-total-${group.id}" class="text-mordheim-gold">0 CO</span>
                     </div>
                 </div>
             </div>
@@ -144,8 +144,8 @@ function populateHenchmenGroups() {
         const perFighterCost = (group.cost || 0) + equipmentCost + experienceCost;
 
         // Update cost displays
-        document.getElementById(`replenish-equip-${group.id}`).textContent = `${equipmentCost} GC`;
-        document.getElementById(`replenish-per-${group.id}`).textContent = `${perFighterCost} GC`;
+        document.getElementById(`replenish-equip-${group.id}`).textContent = `${equipmentCost} CO`;
+        document.getElementById(`replenish-per-${group.id}`).textContent = `${perFighterCost} CO`;
 
         // Add event listener for count input
         const countInput = groupDiv.querySelector(`#replenish-count-${group.id}`);
@@ -198,10 +198,10 @@ function updateReplenishmentDisplay() {
             totalReplenishmentCost += groupTotalCost;
 
             // Update group displays
-            document.getElementById(`replenish-group-total-${group.id}`).textContent = `${groupTotalCost} GC`;
+            document.getElementById(`replenish-group-total-${group.id}`).textContent = `${groupTotalCost} CO`;
         } else {
             // Reset display if no fighters to add
-            document.getElementById(`replenish-group-total-${group.id}`).textContent = '0 GC';
+            document.getElementById(`replenish-group-total-${group.id}`).textContent = '0 CO';
             replenishmentSelections.delete(group.id);
         }
     });
@@ -209,14 +209,14 @@ function updateReplenishmentDisplay() {
     // Update total display
     const totalCostDisplay = document.getElementById('replenish-total-cost');
     if (totalCostDisplay) {
-        totalCostDisplay.textContent = `${totalReplenishmentCost} GC`;
+        totalCostDisplay.textContent = `${totalReplenishmentCost} CO`;
     }
 
     // Update veteran pool remaining display
     const veteranRemainingDisplay = document.getElementById('veteran-pool-remaining');
     const setBtn = document.getElementById('set-replenish-btn');
     if (veteranRemainingDisplay) {
-        veteranRemainingDisplay.textContent = `${remainingVeteranPool} XP`;
+        veteranRemainingDisplay.textContent = `${remainingVeteranPool} PX`;
 
         // Turn red and disable set button if veteran pool is negative
         if (remainingVeteranPool < 0) {
@@ -247,7 +247,7 @@ function updateTreasureRequirement() {
     if (totalReplenishmentCost === 0) {
         const treasureReqDisplay = document.getElementById('treasure-requirement');
         if (treasureReqDisplay) {
-            treasureReqDisplay.textContent = '0 shards';
+            treasureReqDisplay.textContent = '0 fragmentos';
         }
         return;
     }
@@ -261,7 +261,7 @@ function updateTreasureRequirement() {
     if (treasureReqDisplay) {
         if (remainingCost <= 0) {
             // Treasury covers the full cost
-            treasureReqDisplay.textContent = `0 shards (covered by treasury)`;
+            treasureReqDisplay.textContent = `0 fragmentos (cubierto por la tesorería)`;
         } else {
             // Calculate minimum treasure needed for remaining cost
             const warbandSize = currentWarband.members.length;
@@ -279,7 +279,7 @@ function updateTreasureRequirement() {
                 }
             }
 
-            treasureReqDisplay.textContent = `${treasureNeeded}+ shards (${costCoveredByTreasury} GC covered by treasury)`;
+            treasureReqDisplay.textContent = `${treasureNeeded}+ fragmento(s) (${costCoveredByTreasury} CO cubierto(s) por la tesorería)`;
         }
     }
 }
@@ -311,7 +311,7 @@ export function setReplenishmentChanges() {
     });
 
     if (remainingPool < 0) {
-        showMessage('Cannot set changes: Veteran pool is negative. Reduce fighter additions or increase veteran pool.', 'error');
+        showMessage('No se pueden aplicar los cambios: La reserva de veteranos es negativa. Reduce los guerreros añadidos o aumenta la reserva.', 'error');
         return;
     }
 
@@ -330,7 +330,7 @@ export function setReplenishmentChanges() {
         window.updateSellTreasureWithReplenishment();
     }
 
-    showMessage('Replenishment changes set. Sell treasure to apply changes.', 'success');
+    showMessage('Cambios de refuerzo preparados. Vende tesoro para aplicarlos.', 'success');
 }
 
 /**

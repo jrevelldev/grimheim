@@ -5,14 +5,15 @@
 
 import { DEFAULT_LAYOUTS, AVAILABLE_BLOCKS } from './card-config.js';
 
-const STORAGE_KEY = 'rosterheim_fighter_card_layouts';
+const STORAGE_KEY = 'grimheim_fighter_card_layouts';
+const LEGACY_STORAGE_KEY = 'rosterheim_fighter_card_layouts';
 
 /**
  * Loads all saved layouts from localStorage
  */
 function getAllSavedLayouts() {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
         if (raw) {
             return JSON.parse(raw);
         }
@@ -20,6 +21,16 @@ function getAllSavedLayouts() {
         console.warn('Failed to parse card layouts from localStorage:', e);
     }
     return {};
+}
+
+function persistSavedLayouts(allSaved) {
+    try {
+        const str = JSON.stringify(allSaved);
+        localStorage.setItem(STORAGE_KEY, str);
+        localStorage.setItem(LEGACY_STORAGE_KEY, str);
+    } catch (e) {
+        console.error('Failed to save card layouts to localStorage:', e);
+    }
 }
 
 /**
@@ -85,7 +96,7 @@ export function saveLayout(fighterType, layoutConfig) {
     try {
         const allSaved = getAllSavedLayouts();
         allSaved[fighterType] = layoutConfig;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(allSaved));
+        persistSavedLayouts(allSaved);
     } catch (e) {
         console.error('Failed to save card layout to localStorage:', e);
     }
@@ -112,7 +123,7 @@ export function saveFighterLayout(fighterId, layoutConfig) {
     try {
         const allSaved = getAllSavedLayouts();
         allSaved['fighter_' + fighterId] = layoutConfig;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(allSaved));
+        persistSavedLayouts(allSaved);
     } catch (e) {
         console.error('Failed to save fighter card layout to localStorage:', e);
     }
@@ -127,7 +138,7 @@ export function unlockFighterLayout(fighterId) {
     try {
         const allSaved = getAllSavedLayouts();
         delete allSaved['fighter_' + fighterId];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(allSaved));
+        persistSavedLayouts(allSaved);
     } catch (e) {
         console.error('Failed to unlock fighter card layout in localStorage:', e);
     }
@@ -159,7 +170,7 @@ export function resetLayout(fighterType) {
     try {
         const allSaved = getAllSavedLayouts();
         delete allSaved[fighterType];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(allSaved));
+        persistSavedLayouts(allSaved);
     } catch (e) {
         console.error('Failed to reset card layout in localStorage:', e);
     }

@@ -2,6 +2,7 @@
 import { RULES } from './rules.js';
 
 // Global function to show rule modal
+if (typeof window !== 'undefined') {
 window.showRuleModal = function(ruleName) {
     const clean = (ruleName || '').toLowerCase().trim();
     const rule = RULES.find(r => 
@@ -70,6 +71,7 @@ window.closeRuleModal = function(modalId) {
         modal.remove();
     }
 };
+}
 
 // Note: Functions are already attached to window object as globals
 // No additional exports needed

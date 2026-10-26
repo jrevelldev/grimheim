@@ -38,9 +38,9 @@ export const getDwarfDiscountDisplayInfo = (item, isPreGame, hasGromril, baseCos
     if (dwarfDiscountedCost !== baseCost) {
         let originalCostText = '';
         if (item.name === 'Armour; Heavy - Gromril') {
-            originalCostText = ` from ${baseCost} GC`;
+            originalCostText = ` desde ${baseCost} CO`;
         } else if (item.category === "Gromril Weapons") {
-            originalCostText = ` from ${baseCost * 4} GC`;
+            originalCostText = ` desde ${baseCost * 4} CO`;
         }
         return {
             displayedCost: dwarfDiscountedCost,

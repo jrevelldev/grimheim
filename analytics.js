@@ -2,11 +2,11 @@
 import { useLocalStorage } from './state.js';
 
 const MEASUREMENT_ID = 'G-GPF9PBV8JP';
-const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const IS_DEV = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 // Dynamic script loader to eliminate script duplication in HTML files
 const initGoogleAnalytics = () => {
-  if (typeof window.gtag !== 'undefined') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof window.gtag !== 'undefined') return;
 
   // Insert main script tag
   const script = document.createElement('script');

@@ -56,7 +56,7 @@ const renderBlogPosts = () => {
     const posts = getPostsByCategory(currentCategory);
     
     if (posts.length === 0) {
-        postsContainer.innerHTML = '<p class="text-slate-400 italic">No posts found in this category.</p>';
+        postsContainer.innerHTML = '<p class="text-slate-400 italic">No se han encontrado publicaciones en esta categoría.</p>';
         return;
     }
 
@@ -204,7 +204,7 @@ const filterPosts = (searchTerm) => {
     if (!postsContainer) return;
 
     if (filteredPosts.length === 0) {
-        postsContainer.innerHTML = '<p class="text-slate-400 italic">No posts found matching your search.</p>';
+        postsContainer.innerHTML = '<p class="text-slate-400 italic">No se han encontrado publicaciones que coincidan con la búsqueda.</p>';
         return;
     }
 

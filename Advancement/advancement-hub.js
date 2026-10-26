@@ -2,6 +2,7 @@ import { displayModal, hideModal, showMessage, showConfirmationModal } from '../
 import { currentWarband } from '../state.js';
 import { formatXPDisplay } from '../slow-witted.js';
 import { STATS_FIELDS } from '../config.js';
+import { translateSkill, translateSkillCategory, translateWarriorRole, translateEquipment, translateRace } from '../i18n.js';
 import {
     advancementState,
     resetAdvancementState,
@@ -21,7 +22,7 @@ import { showFighterAdvancementView } from './advancement-steps.js';
 // ─── Show Hub ────────────────────────────────────────────────────────────────
 export function showAdvancementHub() {
     if (!currentWarband || !currentWarband.members) {
-        showMessage('Please load a warband first.', 'error');
+        showMessage('Por favor, carga una banda primero.', 'error');
         return;
     }
 
@@ -177,9 +178,9 @@ function showSummaryView() {
     const header = document.createElement('div');
     header.className = 'flex justify-between items-center mb-4 border-b border-slate-600 pb-2';
     header.innerHTML = `
-        <h3 class="text-2xl font-bold text-mordheim-gold">Review Changes</h3>
+        <h3 class="text-2xl font-bold text-mordheim-gold">Revisar Cambios</h3>
         <button id="summary-back-btn" class="text-slate-300 hover:text-white transition">
-            <i class="fas fa-arrow-left text-lg mr-2"></i> Back
+            <i class="fas fa-arrow-left text-lg mr-2"></i> Volver
         </button>
     `;
     container.appendChild(header);
@@ -198,61 +199,61 @@ function showSummaryView() {
 
         if (entry.xpChange !== 0) {
             const sign = entry.xpChange > 0 ? '+' : '';
-            changesHTML += `<div class="text-sm">XP: ${sign}${formatXPDisplay(entry.xpChange)}</div>`;
+            changesHTML += `<div class="text-sm">PX: ${sign}${formatXPDisplay(entry.xpChange)}</div>`;
         }
 
         if (Object.keys(entry.statChanges).length > 0) {
             const statsStr = Object.entries(entry.statChanges).map(([stat, amt]) => `+${amt} ${stat}`).join(', ');
-            changesHTML += `<div class="text-sm"><i class="fas fa-arrow-up text-blue-400 mr-1"></i> Stats: ${statsStr}</div>`;
+            changesHTML += `<div class="text-sm"><i class="fas fa-arrow-up text-blue-400 mr-1"></i> Atributos: ${statsStr}</div>`;
         }
 
         if (entry.skillsAdded.length > 0) {
-            changesHTML += `<div class="text-sm"><i class="fas fa-book text-purple-400 mr-1"></i> Skills: ${entry.skillsAdded.join(', ')}</div>`;
+            changesHTML += `<div class="text-sm"><i class="fas fa-book text-purple-400 mr-1"></i> Habilidades: ${entry.skillsAdded.map(s => translateSkill(s)).join(', ')}</div>`;
         }
 
         if (entry.spellsAdded.length > 0) {
-            changesHTML += `<div class="text-sm"><i class="fas fa-hat-wizard text-indigo-400 mr-1"></i> Spells: ${entry.spellsAdded.join(', ')}</div>`;
+            changesHTML += `<div class="text-sm"><i class="fas fa-hat-wizard text-indigo-400 mr-1"></i> Hechizos: ${entry.spellsAdded.map(s => translateSkill(s)).join(', ')}</div>`;
         }
 
         if (entry.ladsGotTalent) {
-            let ladsText = `Lads Got Talent (${entry.ladsGotTalent.selectedCategories.join(', ')})`;
+            let ladsText = `Este Chico Vale (${entry.ladsGotTalent.selectedCategories.map(c => translateSkillCategory(c)).join(', ')})`;
             changesHTML += `<div class="text-sm"><i class="fas fa-medal text-green-400 mr-1"></i> ${ladsText}</div>`;
             if (entry.ladsGotTalent.heroAdvancement) {
                 const ha = entry.ladsGotTalent.heroAdvancement;
                 if (ha.type === 'stat') {
-                    changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-arrow-up text-blue-400 mr-1"></i> Hero: +1 ${ha.stat}</div>`;
+                    changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-arrow-up text-blue-400 mr-1"></i> Héroe: +1 ${ha.stat}</div>`;
                 } else if (ha.type === 'skill') {
-                    changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-book text-purple-400 mr-1"></i> Hero: ${ha.skillName}</div>`;
+                    changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-book text-purple-400 mr-1"></i> Héroe: ${translateSkill(ha.skillName)}</div>`;
                 }
             }
             if (entry.ladsGotTalent.skryreSpell) {
-                changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-hat-wizard text-indigo-400 mr-1"></i> Spell: ${entry.ladsGotTalent.skryreSpell}</div>`;
+                changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-hat-wizard text-indigo-400 mr-1"></i> Hechizo: ${translateSkill(entry.ladsGotTalent.skryreSpell)}</div>`;
             }
             if (entry.ladsGotTalent.harnessedSpell) {
-                changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-hat-wizard text-indigo-400 mr-1"></i> Spell: ${entry.ladsGotTalent.harnessedSpell}</div>`;
+                changesHTML += `<div class="text-xs text-slate-400 ml-5"><i class="fas fa-hat-wizard text-indigo-400 mr-1"></i> Hechizo: ${translateSkill(entry.ladsGotTalent.harnessedSpell)}</div>`;
             }
         }
 
         if (entry.demiVampireReplacement) {
             const dvr = entry.demiVampireReplacement;
             const statsStr = STATS_FIELDS.map(s => `${s}:${dvr.newStats[s]}`).join(' ');
-            changesHTML += `<div class="text-sm"><i class="fas fa-skull-crossbones text-red-400 mr-1"></i> Demi-Vampire Replacement</div>`;
-            changesHTML += `<div class="text-xs text-slate-400 ml-5">Race: ${dvr.newRace} | Stats: ${statsStr}</div>`;
-            changesHTML += `<div class="text-xs text-slate-400 ml-5">Rules: ${dvr.newSpecialRules}</div>`;
+            changesHTML += `<div class="text-sm"><i class="fas fa-skull-crossbones text-red-400 mr-1"></i> Reemplazo por Semi-Vampiro</div>`;
+            changesHTML += `<div class="text-xs text-slate-400 ml-5">Raza: ${translateRace(dvr.newRace) || dvr.newRace} | Atributos: ${statsStr}</div>`;
+            changesHTML += `<div class="text-xs text-slate-400 ml-5">Reglas: ${dvr.newSpecialRules}</div>`;
         }
 
         if (entry.twistkinEquipment) {
             const tw = entry.twistkinEquipment;
-            changesHTML += `<div class="text-sm"><i class="fas fa-dna text-orange-400 mr-1"></i> Twistkin Mutation: ${tw.equipmentName} (${tw.cost} GC)</div>`;
+            changesHTML += `<div class="text-sm"><i class="fas fa-dna text-orange-400 mr-1"></i> Mutación Twistkin: ${translateEquipment(tw.equipmentName)} (${tw.cost} CO)</div>`;
         }
 
         card.innerHTML = `
             <div class="flex justify-between items-start mb-2">
                 <div>
                     <span class="font-semibold text-white">${entry.fighterName}</span>
-                    <span class="text-xs text-slate-400 ml-2">${entry.fighterType}</span>
+                    <span class="text-xs text-slate-400 ml-2">${translateWarriorRole(entry.fighterType)}</span>
                 </div>
-                <button class="text-red-400 hover:text-red-300 text-sm" data-remove-fighter="${entry.fighterId}" title="Remove all changes for this fighter">
+                <button class="text-red-400 hover:text-red-300 text-sm" data-remove-fighter="${entry.fighterId}" title="Eliminar todos los cambios para este guerrero">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -290,7 +291,7 @@ function showSummaryView() {
         warningHTML = `
             <div class="w-full mb-3 p-2 bg-red-900/30 border border-red-500/50 rounded-lg text-sm text-red-300">
                 <i class="fas fa-exclamation-triangle mr-1"></i>
-                Insufficient Gold Crowns for Twistkin mutation(s). Need ${totalTwistkinCost} GC but treasury has ${currentGC} GC.
+                Coronas de Oro insuficientes para la(s) mutación(es) Twistkin. Se necesitan ${totalTwistkinCost} CO pero la tesorería tiene ${currentGC} CO.
             </div>
         `;
     }
@@ -299,10 +300,10 @@ function showSummaryView() {
         ${warningHTML}
         <div class="flex justify-between items-center w-full">
             <button id="summary-back-btn-2" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition text-sm">
-                <i class="fas fa-arrow-left mr-1"></i> Back to List
+                <i class="fas fa-arrow-left mr-1"></i> Volver a la Lista
             </button>
             <button id="summary-apply-btn" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition text-sm ${insufficientFunds ? 'opacity-50 cursor-not-allowed' : ''}" ${insufficientFunds ? 'disabled' : ''}>
-                Apply All Changes
+                Aplicar Todos los Cambios
             </button>
         </div>
     `;
@@ -319,7 +320,7 @@ function showSummaryView() {
 // ─── Cancel Hub ─────────────────────────────────────────────────────────────
 export function cancelAdvancementHub() {
     if (hasAnyChanges()) {
-        showConfirmationModal('You have unsaved advancement changes. Are you sure you want to cancel?', () => {
+        showConfirmationModal('Tienes cambios de avances sin guardar. ¿Seguro que quieres cancelar?', () => {
             resetAdvancementState();
             hideModal('advancement-hub-modal');
         });

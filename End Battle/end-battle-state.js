@@ -5,6 +5,7 @@ import { STATS_FIELDS } from '../config.js';
 import { calculateWarbandRating, hideModal, showMessage, getWarbandData, showEditorView } from '../utility.js';
 import { renderWarbandEditor, resetBattleCasualties, checkForAdvancement } from '../ui.js';
 import { createTransaction, addTransaction, TRANSACTION_TYPES, TRANSACTION_CATEGORIES } from '../Treasury/ledger.js';
+import { translateSkill } from '../i18n.js';
 
 // ─── Central End Battle State ────────────────────────────────────────────────
 const endBattleState = {
@@ -248,7 +249,7 @@ export function canApplyAll() {
 // ─── Apply All Changes ──────────────────────────────────────────────────────
 export async function applyAllChanges() {
     if (!currentWarband || !currentWarband.members) {
-        showMessage('No warband loaded.', 'error');
+        showMessage('No hay ninguna banda cargada.', 'error');
         return;
     }
 
@@ -273,14 +274,14 @@ export async function applyAllChanges() {
         if (treasureFound > 0) {
             currentWarband.treasure = (currentWarband.treasure || 0) + treasureFound;
             const bonusNotes = [];
-            if (cutpurseBonus > 0) bonusNotes.push('+1 from Cutpurse');
-            if (wilyThiefBonus > 0) bonusNotes.push(`+${wilyThiefBonus} from Wily Thief`);
-            const bonusSuffix = bonusNotes.length > 0 ? ` (includes ${bonusNotes.join(', ')})` : '';
+            if (cutpurseBonus > 0) bonusNotes.push('+1 por Cortabolsas');
+            if (wilyThiefBonus > 0) bonusNotes.push(`+${wilyThiefBonus} por Ladrón Astuto`);
+            const bonusSuffix = bonusNotes.length > 0 ? ` (incluye ${bonusNotes.join(', ')})` : '';
             addTransaction(createTransaction(
                 TRANSACTION_TYPES.INCOME,
                 TRANSACTION_CATEGORIES.TREASURE_FOUND,
                 treasureFound,
-                `Found ${treasureFound} wyrdstone shard(s) during exploration${bonusSuffix}`
+                `Encontrado(s) ${treasureFound} fragmento(s) de piedra bruja durante la exploración${bonusSuffix}`
             ));
         }
 
@@ -294,7 +295,7 @@ export async function applyAllChanges() {
                 TRANSACTION_TYPES.INCOME,
                 TRANSACTION_CATEGORIES.TREASURE_SALE,
                 goldFromSale,
-                `Sold ${treasureToSell} wyrdstone shard(s) for ${goldFromSale} GC`
+                `Vendidos ${treasureToSell} fragmento(s) de piedra bruja por ${goldFromSale} CO`
             ));
         }
 
@@ -314,7 +315,7 @@ export async function applyAllChanges() {
         }
         hideModal('end-battle-hub-modal');
 
-        showMessage('All end-of-battle changes applied successfully!', 'success');
+        showMessage('¡Todos los cambios de fin de batalla se han aplicado con éxito!', 'success');
 
         // Return to warband editor
         showEditorView();
@@ -322,7 +323,7 @@ export async function applyAllChanges() {
 
     } catch (error) {
         console.error('Error applying end battle changes:', error);
-        showMessage('Error applying changes: ' + error.message, 'error');
+        showMessage('Error al aplicar los cambios: ' + error.message, 'error');
     }
 }
 
@@ -425,7 +426,7 @@ function applyHenchmenReplenishment() {
             TRANSACTION_TYPES.EXPENSE,
             TRANSACTION_CATEGORIES.RECRUITMENT,
             totalCost,
-            `Replenished henchmen groups for ${totalCost} GC`
+            `Refuerzo de grupos de secuaces por ${totalCost} CO`
         ));
     }
 }
@@ -444,7 +445,7 @@ function applySpecialResults() {
                 TRANSACTION_TYPES.INCOME,
                 TRANSACTION_CATEGORIES.BANDITRY,
                 result.goldEarned,
-                `${fighter.name} earned ${result.goldEarned} GC from ${result.skillName}`
+                `${fighter.name} obtuvo ${result.goldEarned} CO de ${translateSkill(result.skillName) || result.skillName}`
             ));
         } else if (!result.successful) {
             if (result.removed) {

@@ -1,8 +1,14 @@
 import { SPECIAL_RULES_DETAILS } from './data/special_rules.js';
 import { WARBANDS } from './data/warbands.js';
+import { translateSpecialRule, getSpecialRuleSummary } from './i18n.js';
 import { showListView } from './ui.js';
 import { trackScreenView } from './analytics.js';
 import { getWarbands, setCurrentWarband } from './state.js';
+
+const normalize = (str) => {
+    if (!str) return '';
+    return String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+};
 
 // Timing mapping constants
 const TIMING_MAP = {
@@ -405,10 +411,31 @@ class SpecialRulesModal {
 
         // Apply search filter
         if (searchTerm) {
-            filteredRules = filteredRules.filter(rule => 
-                rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (typeof rule.rules === 'string' ? rule.rules : '').toLowerCase().includes(searchTerm.toLowerCase())
-            );
+            const term = normalize(searchTerm);
+            const isImmuneQuery = term.includes('inmun') || term.includes('immun');
+            const isPainQuery = term.includes('dolor') || term.includes('pain');
+
+            filteredRules = filteredRules.filter(rule => {
+                const enName = normalize(rule.name);
+                const esName = normalize(translateSpecialRule(rule.name));
+                const bodyText = normalize(typeof rule.rules === 'string' ? rule.rules : '');
+                const summary = getSpecialRuleSummary(rule.name);
+                const shortEs = normalize(summary.short || '');
+                const fullEs = normalize(summary.full || '');
+
+                if (isImmuneQuery && (enName.includes('immun') || esName.includes('inmun') || bodyText.includes('immun') || bodyText.includes('inmun'))) {
+                    return true;
+                }
+                if (isPainQuery && (enName.includes('pain') || esName.includes('dolor') || bodyText.includes('pain') || bodyText.includes('dolor'))) {
+                    return true;
+                }
+
+                return enName.includes(term) ||
+                       esName.includes(term) ||
+                       bodyText.includes(term) ||
+                       shortEs.includes(term) ||
+                       fullEs.includes(term);
+            });
         }
         
         if (filteredRules.length === 0) {
@@ -434,14 +461,26 @@ class SpecialRulesModal {
                    </div>`
                 : '';
             
+            const esName = translateSpecialRule(rule.name);
+            const summary = getSpecialRuleSummary(rule.name);
+            const hasDiffEnglish = esName && esName.toLowerCase() !== rule.name.toLowerCase();
+            const titleHtml = hasDiffEnglish
+                ? `${esName} <span class="text-sm font-normal text-slate-400 ml-2">(${rule.name})</span>`
+                : rule.name;
+            
+            const ruleDescription = summary.full ? `
+                <div class="mb-2 text-slate-100 font-medium">${summary.full}</div>
+                ${rule.rules && rule.rules !== summary.full ? `<div class="text-xs text-slate-400 border-t border-slate-600/60 pt-2 mt-2 leading-relaxed">${typeof rule.rules === 'string' ? rule.rules : ''}</div>` : ''}
+            ` : (typeof rule.rules === 'string' ? rule.rules : rule.rules);
+            
             return `
                 <div class="bg-slate-700 p-6 rounded-lg shadow-md border border-slate-600">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-mordheim-gold">${rule.name}</h3>
+                        <h3 class="text-xl font-bold text-mordheim-gold">${titleHtml}</h3>
                         ${timingInfo}
                     </div>
                     <div class="text-slate-300">
-                        ${typeof rule.rules === 'string' ? rule.rules : rule.rules}
+                        ${ruleDescription}
                     </div>
                 </div>
             `;

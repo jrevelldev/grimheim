@@ -47,18 +47,18 @@ export const BanditryHandler = {
                     <div>
                         <h5 class="font-semibold text-mordheim-gold">${fighter.name}</h5>
                         <p class="text-xs text-slate-300 mt-1">
-                            Skill: <span class="underline cursor-pointer text-mordheim-gold hover:text-yellow-300 transition banditry-skill-link" data-fighter-id="${fighter.id}">Banditry</span>
+                            Habilidad: <span class="underline cursor-pointer text-mordheim-gold hover:text-yellow-300 transition banditry-skill-link" data-fighter-id="${fighter.id}">Bandolerismo</span>
                         </p>
                         <p class="text-sm text-slate-400">${fighter.type}</p>
                     </div>
                 </div>
                 <div class="space-y-3">
-                    <p class="text-slate-300 font-semibold">Was the Banditry successful?</p>
+                    <p class="text-slate-300 font-semibold">¿Tuvo éxito el Bandolerismo?</p>
                     <div class="flex space-x-3">
                         <button class="banditry-yes-btn px-4 py-2 rounded-lg font-bold transition
                             ${result?.successful === true ? 'bg-green-600 ring-2 ring-green-400 text-white' : 'bg-slate-700 text-slate-300 hover:bg-green-700 hover:text-white'}"
                             data-fighter-id="${fighter.id}">
-                            <i class="fas fa-check mr-1"></i>Yes
+                            <i class="fas fa-check mr-1"></i>Sí
                         </button>
                         <button class="banditry-no-btn px-4 py-2 rounded-lg font-bold transition
                             ${result?.successful === false ? 'bg-red-600 ring-2 ring-red-400 text-white' : 'bg-slate-700 text-slate-300 hover:bg-red-700 hover:text-white'}"
@@ -150,16 +150,16 @@ export const BanditryHandler = {
 
             if (result.successful) {
                 totalGold += result.goldEarned;
-                html += `<div class="text-green-400 text-sm">${fighter.name} — Banditry successful: +${result.goldEarned} GC</div>`;
+                html += `<div class="text-green-400 text-sm">${fighter.name} — Bandolerismo con éxito: +${result.goldEarned} CO</div>`;
             } else if (result.removed) {
-                html += `<div class="text-red-400 text-sm">${fighter.name} — Banditry failed: Removed from warband</div>`;
+                html += `<div class="text-red-400 text-sm">${fighter.name} — Bandolerismo fallido: Eliminado de la banda</div>`;
             } else if (result.injury) {
-                html += `<div class="text-yellow-300 text-sm">${fighter.name} — Banditry failed: ${result.injury}</div>`;
+                html += `<div class="text-yellow-300 text-sm">${fighter.name} — Bandolerismo fallido: ${result.injury}</div>`;
             }
         });
 
         if (totalGold > 0) {
-            html += `<div class="text-sm font-bold text-mordheim-gold mt-1">Total Banditry Gold: +${totalGold} GC</div>`;
+            html += `<div class="text-sm font-bold text-mordheim-gold mt-1">Total Coronas por Bandolerismo: +${totalGold} CO</div>`;
         }
 
         return html;
@@ -171,11 +171,11 @@ export const BanditryHandler = {
 function renderSuccessUI(fighter, result) {
     return `
         <div class="ml-2 mt-2 p-3 bg-slate-700 rounded-lg">
-            <label class="text-slate-300 text-sm block mb-2">Gold earned (D6+1):</label>
+            <label class="text-slate-300 text-sm block mb-2">Coronas obtenidas (1D6+1):</label>
             <input type="number" inputmode="numeric" class="banditry-gold-input w-24 p-2 rounded bg-slate-600 border border-slate-500 text-white text-center text-lg"
                 value="${result?.goldEarned || 2}" min="1"
                 data-fighter-id="${fighter.id}">
-            <span class="text-slate-400 ml-2">GC</span>
+            <span class="text-slate-400 ml-2">CO</span>
         </div>
     `;
 }
@@ -185,30 +185,30 @@ function renderFailureUI(fighter, result) {
         ? `<div class="ml-6 p-2 bg-slate-700 rounded mt-2">
                <span class="text-yellow-200">${result.injury}</span>
                <button class="banditry-change-injury ml-2 text-blue-400 hover:text-blue-300" data-fighter-id="${fighter.id}">
-                   <i class="fas fa-edit"></i> Change
+                   <i class="fas fa-edit"></i> Cambiar
                </button>
            </div>`
         : `<div class="ml-6 mt-2">
                <button class="banditry-select-injury px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition" data-fighter-id="${fighter.id}">
-                   Select Injury
+                   Seleccionar secuela
                </button>
            </div>`;
 
     return `
         <div class="mt-2 space-y-2">
-            <p class="text-slate-400 text-sm">Robbery gone wrong — roll on the Serious Injury table:</p>
+            <p class="text-slate-400 text-sm">El asalto salió mal — tira en la tabla de Heridas Graves:</p>
             <label class="flex items-center space-x-2">
                 <input type="radio" name="banditry-outcome-${fighter.id}" value="injury"
                     ${result?.injury || (!result?.removed) ? 'checked' : ''}
                     class="text-mordheim-gold focus:ring-mordheim-gold">
-                <span class="text-slate-300">Select injury</span>
+                <span class="text-slate-300">Seleccionar secuela</span>
             </label>
             ${result?.injury || (!result?.removed) ? injuryDisplay : ''}
             <label class="flex items-center space-x-2">
                 <input type="radio" name="banditry-outcome-${fighter.id}" value="remove"
                     ${result?.removed ? 'checked' : ''}
                     class="text-mordheim-gold focus:ring-mordheim-gold">
-                <span class="text-slate-300">Remove from warband</span>
+                <span class="text-slate-300">Eliminar de la banda</span>
             </label>
         </div>
     `;

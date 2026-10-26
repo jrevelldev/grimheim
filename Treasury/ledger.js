@@ -101,7 +101,7 @@ export function createTransaction(type, category, amount, description, details =
  */
 export function addTransaction(transaction) {
     if (!currentWarband) {
-        showMessage("Please load a warband first.", 'error');
+        showMessage("Por favor, carga una banda primero.", 'error');
         return false;
     }
 
@@ -160,7 +160,7 @@ export async function recordUpkeepCosts(previousGames, newGames) {
             TRANSACTION_TYPES.EXPENSE,
             TRANSACTION_CATEGORIES.UPKEEP,
             upkeepCosts,
-            `Upkeep costs for game ${newGames}`,
+            `Costes de mantenimiento de la partida ${newGames}`,
             {
                 previous_games: previousGames,
                 new_games: newGames,
@@ -174,7 +174,7 @@ export async function recordUpkeepCosts(previousGames, newGames) {
             // Update treasury
             currentWarband.gc_treasury = Math.max(0, currentWarband.gc_treasury - upkeepCosts);
             await saveWarband();
-            showMessage(`Upkeep costs of ${upkeepCosts} GC deducted for game ${newGames}`, 'info');
+            showMessage(`Costes de mantenimiento de ${upkeepCosts} CO deducidos para la partida ${newGames}`, 'info');
         }
     }
 }
@@ -335,7 +335,7 @@ export async function recordManualIncome(amount, description, category = TRANSAC
     
     if (addTransaction(transaction)) {
         await saveWarband();
-        showMessage(`Income of ${amount} GC recorded: ${description}`, 'success');
+        showMessage(`Ingreso de ${amount} CO registrado: ${description}`, 'success');
         return true;
     }
     return false;
@@ -354,7 +354,7 @@ export async function recordManualExpense(amount, description, category = TRANSA
     
     if (addTransaction(transaction)) {
         await saveWarband();
-        showMessage(`Expense of ${amount} GC recorded: ${description}`, 'info');
+        showMessage(`Gasto de ${amount} CO registrado: ${description}`, 'info');
         return true;
     }
     return false;
@@ -541,7 +541,7 @@ export function getUpkeepPaymentForPhase(gamesPlayed) {
  */
 export async function payUpkeepCosts(forcePayment = false) {
     if (!currentWarband) {
-        showMessage("Please load a warband first.", 'error');
+        showMessage("Por favor, carga una banda primero.", 'error');
         return false;
     }
 
@@ -552,7 +552,7 @@ export async function payUpkeepCosts(forcePayment = false) {
     const totalCost = totalUpkeepCosts.gc_total + totalUpkeepCosts.treasure_total;
     
     if (totalCost === 0) {
-        showMessage("No upkeep costs to pay.", 'info');
+        showMessage("No hay costes de mantenimiento que pagar.", 'info');
         return false;
     }
 
@@ -573,21 +573,21 @@ export async function payUpkeepCosts(forcePayment = false) {
         const totalNeeded = [];
         
         if (gcCosts > currentGC) {
-            insufficientFunds.push(`Gold Crowns: need ${gcCosts} GC but have ${currentGC} GC (short by ${gcCosts - currentGC} GC)`);
-            totalNeeded.push(`${gcCosts} GC`);
+            insufficientFunds.push(`Coronas de Oro: se necesitan ${gcCosts} CO pero tienes ${currentGC} CO (faltan ${gcCosts - currentGC} CO)`);
+            totalNeeded.push(`${gcCosts} CO`);
         }
         if (treasureCosts > currentTreasure) {
-            insufficientFunds.push(`Treasure: need ${treasureCosts} Treasure but have ${currentTreasure} Treasure (short by ${treasureCosts - currentTreasure} Treasure)`);
-            totalNeeded.push(`${treasureCosts} Treasure`);
+            insufficientFunds.push(`Tesoro: se necesitan ${treasureCosts} de Tesoro pero tienes ${currentTreasure} de Tesoro (faltan ${treasureCosts - currentTreasure} de Tesoro)`);
+            totalNeeded.push(`${treasureCosts} de Tesoro`);
         }
         
-        const totalCostMessage = totalNeeded.join(' and ');
+        const totalCostMessage = totalNeeded.join(' y ');
         const detailedMessage = insufficientFunds.join('. ');
         
-        showMessage(`⚠️ Insufficient funds for upkeep payment!`, 'error');
-        showMessage(`Total needed: ${totalCostMessage}`, 'error');
+        showMessage(`⚠️ ¡Fondos insuficientes para el pago de mantenimiento!`, 'error');
+        showMessage(`Total necesario: ${totalCostMessage}`, 'error');
         showMessage(`${detailedMessage}`, 'error');
-        showMessage(`Please add more funds to your treasury before paying upkeep.`, 'warning');
+        showMessage(`Por favor, añade más fondos a la tesorería antes de pagar el mantenimiento.`, 'warning');
         
         return false;
     }
@@ -595,11 +595,11 @@ export async function payUpkeepCosts(forcePayment = false) {
     // Process payment
     try {
         // Create transaction description
-        let description = `Upkeep costs paid`;
+        let description = `Costes de mantenimiento pagados`;
         if (currentGames === 0) {
-            description += ' (Pre-Game)';
+            description += ' (Antes de la Partida)';
         } else {
-            description += ` for Game ${currentGames}`;
+            description += ` de la Partida ${currentGames}`;
         }
 
         // Record transaction with proper currency handling
@@ -666,15 +666,15 @@ export async function payUpkeepCosts(forcePayment = false) {
             await saveWarband();
             
             const costBreakdown = [];
-            if (gcCosts > 0) costBreakdown.push(`${gcCosts} GC`);
-            if (treasureCosts > 0) costBreakdown.push(`${treasureCosts} Treasure`);
+            if (gcCosts > 0) costBreakdown.push(`${gcCosts} CO`);
+            if (treasureCosts > 0) costBreakdown.push(`${treasureCosts} de Tesoro`);
             
-            showMessage(`Upkeep costs paid: ${costBreakdown.join(' and ')}`, 'success');
+            showMessage(`Costes de mantenimiento pagados: ${costBreakdown.join(' y ')}`, 'success');
             return { success: true, costs: totalCost };
         }
     } catch (error) {
         console.error('Error paying upkeep costs:', error);
-        showMessage('Error processing upkeep payment.', 'error');
+        showMessage('Error al procesar el pago de mantenimiento.', 'error');
         return false;
     }
     
@@ -692,8 +692,8 @@ export function formatTransactionAmount(transaction) {
         const gcCosts = transaction.details.gc_costs || 0;
         const treasureCosts = transaction.details.treasure_costs || 0;
         const parts = [];
-        if (gcCosts > 0) parts.push(`${gcCosts} GC`);
-        if (treasureCosts > 0) parts.push(`${treasureCosts} Treasure`);
+        if (gcCosts > 0) parts.push(`${gcCosts} CO`);
+        if (treasureCosts > 0) parts.push(`${treasureCosts} de Tesoro`);
         return `${prefix}${parts.join(' + ')}`;
     }
     
@@ -701,11 +701,11 @@ export function formatTransactionAmount(transaction) {
     if (transaction.category === TRANSACTION_CATEGORIES.HIRE_FEE_TREASURE || 
         transaction.category === TRANSACTION_CATEGORIES.UPKEEP_TREASURE ||
         transaction.category === TRANSACTION_CATEGORIES.TREASURE_FOUND) {
-        return `${prefix}${transaction.amount} Treasure`;
+        return `${prefix}${transaction.amount} Tesoro`;
     }
     
     // Default to GC
-    return `${prefix}${transaction.amount} GC`;
+    return `${prefix}${transaction.amount} CO`;
 }
 
 /**
@@ -713,20 +713,20 @@ export function formatTransactionAmount(transaction) {
  */
 export function getCategoryDisplayName(category) {
     const names = {
-        [TRANSACTION_CATEGORIES.HIRE_FEE]: 'Hire Fee',
-        [TRANSACTION_CATEGORIES.HIRE_FEE_TREASURE]: 'Hire Fee (Treasure)',
-        [TRANSACTION_CATEGORIES.UPKEEP]: 'Upkeep',
-        [TRANSACTION_CATEGORIES.UPKEEP_TREASURE]: 'Upkeep (Treasure)',
-        [TRANSACTION_CATEGORIES.EQUIPMENT_PURCHASE]: 'Equipment Purchase',
-        [TRANSACTION_CATEGORIES.EQUIPMENT_SELL]: 'Equipment Sale',
-        [TRANSACTION_CATEGORIES.SCENARIO_REWARD]: 'Scenario Reward',
-        [TRANSACTION_CATEGORIES.STARTING_TREASURY]: 'Starting Treasury',
-        [TRANSACTION_CATEGORIES.TREASURE_SALE]: 'Treasure Sale',
-        [TRANSACTION_CATEGORIES.TREASURE_FOUND]: 'Treasure Found',
-        [TRANSACTION_CATEGORIES.RECRUITMENT]: 'Recruitment',
-        [TRANSACTION_CATEGORIES.OTHER_INCOME]: 'Other Income',
-        [TRANSACTION_CATEGORIES.OTHER_EXPENSE]: 'Other Expense',
-        [TRANSACTION_CATEGORIES.BANDITRY]: 'Banditry'
+        [TRANSACTION_CATEGORIES.HIRE_FEE]: 'Coste de Contratación',
+        [TRANSACTION_CATEGORIES.HIRE_FEE_TREASURE]: 'Coste de Contratación (Tesoro)',
+        [TRANSACTION_CATEGORIES.UPKEEP]: 'Mantenimiento',
+        [TRANSACTION_CATEGORIES.UPKEEP_TREASURE]: 'Mantenimiento (Tesoro)',
+        [TRANSACTION_CATEGORIES.EQUIPMENT_PURCHASE]: 'Compra de Equipo',
+        [TRANSACTION_CATEGORIES.EQUIPMENT_SELL]: 'Venta de Equipo',
+        [TRANSACTION_CATEGORIES.SCENARIO_REWARD]: 'Recompensa del Escenario',
+        [TRANSACTION_CATEGORIES.STARTING_TREASURY]: 'Tesorería Inicial',
+        [TRANSACTION_CATEGORIES.TREASURE_SALE]: 'Venta de Tesoro',
+        [TRANSACTION_CATEGORIES.TREASURE_FOUND]: 'Tesoro Encontrado',
+        [TRANSACTION_CATEGORIES.RECRUITMENT]: 'Reclutamiento',
+        [TRANSACTION_CATEGORIES.OTHER_INCOME]: 'Otros Ingresos',
+        [TRANSACTION_CATEGORIES.OTHER_EXPENSE]: 'Otros Gastos',
+        [TRANSACTION_CATEGORIES.BANDITRY]: 'Bandolerismo'
     };
     return names[category] || category;
 }

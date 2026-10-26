@@ -57,7 +57,7 @@ export const listenToWarbands = () => {
     warbandsUnsubscribe = firebaseListenToWarbands((updatedWarbands, error) => {
         if (error) {
             console.error("Error listening to warbands:", error);
-            showMessage("Failed to load warbands.", 'error');
+            showMessage("Error al cargar las bandas.", 'error');
             return;
         }
         setWarbands(updatedWarbands);
@@ -86,7 +86,7 @@ let recentlyCreatedWarbandIds = new Set();
 /** Creates a new warband document */
 export const createNewWarband = async (name, type, hideModalCallback, loadWarbandCallback, options = {}) => {
     if (!name || !type) {
-        showMessage("Warband name and type are required.", 'error');
+        showMessage("El nombre y el tipo de banda son obligatorios.", 'error');
         return;
     }
 
@@ -100,7 +100,7 @@ export const createNewWarband = async (name, type, hideModalCallback, loadWarban
         player_id: useLocalStorage ? 'local' : userId,
         members: [],
         stored_equipment: [],
-        notes: `Campaign started on ${new Date().toLocaleDateString()}`,
+        notes: `Campaña iniciada el ${new Date().toLocaleDateString()}`,
         pre_game: true,
         lucky_items_limited: false,
         ignore_racial_maximums: false,
@@ -142,7 +142,7 @@ export const createNewWarband = async (name, type, hideModalCallback, loadWarban
         newWarbandData._storageLocation = 'Browser Cache';
         warbands.push(newWarbandData);
         localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
-        showMessage(`Warband "${name}" created successfully!`);
+        showMessage(`¡Banda "${name}" creada con éxito!`);
         trackWarbandAction('created', name, type, true);
         hideModalCallback('new-warband-modal');
         loadWarbandCallback(id);
@@ -152,7 +152,7 @@ export const createNewWarband = async (name, type, hideModalCallback, loadWarban
     try {
         const warbandId = await firebaseCreateNewWarband(newWarbandData);
         console.log("Firebase V2 warband creation successful. Document ID:", warbandId);
-        showMessage(`Warband "${name}" created successfully!`);
+        showMessage(`¡Banda "${name}" creada con éxito!`);
 
         // Track warband creation with type information
         const isAnonymous = isCurrentUserAnonymous();
@@ -168,7 +168,7 @@ export const createNewWarband = async (name, type, hideModalCallback, loadWarban
     } catch (error) {
         console.error("Error creating warband:", error);
         console.error("Full error details:", error.stack);
-        showMessage("Failed to create warband.", 'error');
+        showMessage("Error al crear la banda.", 'error');
         // Check if we should fall back to local storage
         if (error.message.includes("Firebase") || error.message.includes("auth")) {
             console.warn("Firebase error detected, attempting local storage fallback...");
@@ -176,7 +176,7 @@ export const createNewWarband = async (name, type, hideModalCallback, loadWarban
             const fallbackId = generateUUID();
             warbands.push({...newWarbandData, id: fallbackId, _isV2: true, _storageLocation: 'Browser Cache'});
             localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
-            showMessage(`Warband "${name}" created in local storage as fallback.`, 'warning');
+            showMessage(`Banda "${name}" creada en la memoria local como alternativa.`, 'warning');
             trackWarbandAction('created', name, type, true);
             loadWarbandCallback(fallbackId);
         }
@@ -218,7 +218,7 @@ export const saveWarband = async function() {
         await firebaseSaveWarband(currentWarband);
     } catch (error) {
         console.error("Error saving warband:", error);
-        showMessage("Failed to save warband data.", 'error');
+        showMessage("Error al guardar los datos de la banda.", 'error');
     }
 }
 
@@ -321,7 +321,7 @@ export const loadWarband = (warbandId) => {
 
 /** Confirms and deletes a warband from the list view */
 export const confirmDeleteWarbandFromList = (warbandId, warbandName) => {
-    showConfirmationModal(`Are you sure you want to permanently delete the warband "${warbandName}"? This cannot be undone.`, async () => {
+    showConfirmationModal(`¿Estás seguro de que deseas eliminar permanentemente la banda "${warbandName}"? Esta acción no se puede deshacer.`, async () => {
         const warbandToDelete = warbands.find(w => w.id === warbandId);
         const type = warbandToDelete ? warbandToDelete.type : '';
 
@@ -329,7 +329,7 @@ export const confirmDeleteWarbandFromList = (warbandId, warbandName) => {
             trackWarbandAction('deleted', warbandName, type, true);
             setWarbands(warbands.filter(w => w.id !== warbandId));
             localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
-            showMessage(`Warband "${warbandName}" deleted successfully.`);
+            showMessage(`Banda "${warbandName}" eliminada con éxito.`);
             if (currentWarband && currentWarband.id === warbandId) {
                 setCurrentWarband(showListView(warbands));
             } else {
@@ -341,10 +341,10 @@ export const confirmDeleteWarbandFromList = (warbandId, warbandName) => {
         try {
             trackWarbandAction('deleted', warbandName, type, false);
             await firebaseDeleteWarband(warbandId);
-            showMessage(`Warband "${warbandName}" deleted successfully.`);
+            showMessage(`Banda "${warbandName}" eliminada con éxito.`);
         } catch (error) {
             console.error("Error deleting warband:", error);
-            showMessage(`Failed to delete warband: ${error.message}`, 'error');
+            showMessage(`Error al eliminar la banda: ${error.message}`, 'error');
         }
     });
 };
@@ -393,25 +393,25 @@ export const moveFighterDown = async (fighterId) => {
 
 /** Manages adding/subtracting gold crowns from the treasury */
 export const updateTreasury = async (action) => {
-    if (!currentWarband) return showMessage("Please load a warband first.", 'error');
+    if (!currentWarband) return showMessage("Por favor, carga una banda primero.", 'error');
     const input = document.getElementById('gc-input');
     const amount = parseInt(input.value) || 0;
 
-    if (amount <= 0) return showMessage("Please enter a positive Gold Crown amount.", 'error');
+    if (amount <= 0) return showMessage("Por favor, introduce una cantidad positiva de Coronas de Oro.", 'error');
 
     if (action === 'add') {
         currentWarband.gc_treasury += amount;
         // Record manual income transaction
-        await recordManualIncome(amount, 'Manual treasury addition');
-        showMessage(`Added ${amount} GC to treasury.`);
+        await recordManualIncome(amount, 'Ingreso manual en la tesorería');
+        showMessage(`Añadidas ${amount} CO a la tesorería.`);
     } else if (action === 'subtract') {
         if (currentWarband.gc_treasury < amount) {
-            return showMessage(`Insufficient Gold Crowns. Treasury only has ${currentWarband.gc_treasury} GC.`, 'error');
+            return showMessage(`Coronas de Oro insuficientes. La tesorería solo tiene ${currentWarband.gc_treasury} CO.`, 'error');
         }
         currentWarband.gc_treasury -= amount;
         // Record manual expense transaction
-        await recordManualExpense(amount, 'Manual treasury withdrawal');
-        showMessage(`Spent ${amount} GC from treasury.`);
+        await recordManualExpense(amount, 'Retirada manual de la tesorería');
+        showMessage(`Gastadas ${amount} CO de la tesorería.`);
     }
 
     input.value = ''; // Clear input
@@ -420,21 +420,21 @@ export const updateTreasury = async (action) => {
 
 /** Manages adding/subtracting treasure from the treasury */
 export const updateTreasure = async (action) => {
-    if (!currentWarband) return showMessage("Please load a warband first.", 'error');
+    if (!currentWarband) return showMessage("Por favor, carga una banda primero.", 'error');
     const input = document.getElementById('treasure-input');
     const amount = parseInt(input.value) || 0;
 
-    if (amount <= 0) return showMessage("Please enter a positive Treasure amount.", 'error');
+    if (amount <= 0) return showMessage("Por favor, introduce una cantidad positiva de Tesoro.", 'error');
 
     if (action === 'add') {
         currentWarband.treasure += amount;
-        showMessage(`Added ${amount} Treasure to treasury.`);
+        showMessage(`Añadido ${amount} de Tesoro a la tesorería.`);
     } else if (action === 'subtract') {
         if (currentWarband.treasure < amount) {
-            return showMessage(`Insufficient Treasure. Treasury only has ${currentWarband.treasure} Treasure.`, 'error');
+            return showMessage(`Tesoro insuficiente. La tesorería solo tiene ${currentWarband.treasure} de Tesoro.`, 'error');
         }
         currentWarband.treasure -= amount;
-        showMessage(`Spent ${amount} Treasure from treasury.`);
+        showMessage(`Gastado ${amount} de Tesoro de la tesorería.`);
     }
 
     input.value = ''; // Clear input
@@ -443,14 +443,14 @@ export const updateTreasure = async (action) => {
 
 /** Removes treasure from the treasury with ledger integration */
 export const removeTreasure = async () => {
-    if (!currentWarband) return showMessage("Please load a warband first.", 'error');
+    if (!currentWarband) return showMessage("Por favor, carga una banda primero.", 'error');
     const input = document.getElementById('treasure-input');
     const amount = parseInt(input.value) || 0;
 
-    if (amount <= 0) return showMessage("Please enter a positive Treasure amount.", 'error');
+    if (amount <= 0) return showMessage("Por favor, introduce una cantidad positiva de Tesoro.", 'error');
 
     if (currentWarband.treasure < amount) {
-        return showMessage(`Insufficient Treasure. Treasury only has ${currentWarband.treasure} Treasure.`, 'error');
+        return showMessage(`Tesoro insuficiente. La tesorería solo tiene ${currentWarband.treasure} de Tesoro.`, 'error');
     }
 
     currentWarband.treasure -= amount;
@@ -461,7 +461,7 @@ export const removeTreasure = async () => {
         TRANSACTION_TYPES.EXPENSE,
         TRANSACTION_CATEGORIES.OTHER_EXPENSE,
         amount,
-        `Removed ${amount} Wyrdstone Shard${amount > 1 ? 's' : ''}`,
+        `Retirado(s) ${amount} fragmento(s) de piedra bruja`,
         {
             treasure_removed: amount
         }
@@ -470,19 +470,19 @@ export const removeTreasure = async () => {
 
     input.value = ''; // Clear input
     await saveWarband(); // Save the updated treasury
-    showMessage(`Removed ${amount} Treasure from treasury.`, 'success');
+    showMessage(`Se ha(n) retirado ${amount} de Tesoro de la tesorería.`, 'success');
 };
 
 /** Renames an existing warband */
 export const renameWarband = async (warbandId, newName) => {
     if (!newName || newName.trim() === '') {
-        showMessage("Warband name cannot be empty.", 'error');
+        showMessage("El nombre de la banda no puede estar vacío.", 'error');
         return;
     }
 
     const warbandToRename = warbands.find(w => w.id === warbandId);
     if (!warbandToRename) {
-        showMessage("Warband not found.", 'error');
+        showMessage("Banda no encontrada.", 'error');
         return;
     }
 
@@ -491,7 +491,7 @@ export const renameWarband = async (warbandId, newName) => {
     // Check if another warband already has this name
     const existingWarband = warbands.find(w => w.id !== warbandId && w.name === trimmedName);
     if (existingWarband) {
-        showMessage("Another warband already has this name.", 'error');
+        showMessage("Ya existe otra banda con este nombre.", 'error');
         return;
     }
 
@@ -529,13 +529,13 @@ export const renameWarband = async (warbandId, newName) => {
         }
         
         renderWarbandList(warbands);
-        showMessage("Warband renamed successfully.", 'success');
+        showMessage("Banda renombrada con éxito.", 'success');
         
         // Track analytics
         trackWarbandAction('renamed', trimmedName, warbandToRename.type, isCurrentUserAnonymous());
     } catch (error) {
         console.error('Error renaming warband:', error);
-        showMessage("Failed to rename warband.", 'error');
+        showMessage("Error al renombrar la banda.", 'error');
     }
 };
 
@@ -543,7 +543,7 @@ export const renameWarband = async (warbandId, newName) => {
 export const copyWarband = async (warbandId) => {
     const originalWarband = warbands.find(w => w.id === warbandId);
     if (!originalWarband) {
-        showMessage("Warband not found.", 'error');
+        showMessage("Banda no encontrada.", 'error');
         return;
     }
 
@@ -553,7 +553,7 @@ export const copyWarband = async (warbandId) => {
         
         // Generate new ID and modify name
         copiedWarband.id = generateUUID();
-        copiedWarband.name = `${originalWarband.name} (Copy)`;
+        copiedWarband.name = `${originalWarband.name} (Copia)`;
         
         // Ensure V2 flag is set
         copiedWarband._isV2 = true;
@@ -563,7 +563,7 @@ export const copyWarband = async (warbandId) => {
         copiedWarband.player_id = currentUserId;
         
         // Reset campaign-specific fields
-        copiedWarband.notes = `Campaign started on ${new Date().toLocaleDateString()} (Copy of "${originalWarband.name}")`;
+        copiedWarband.notes = `Campaña iniciada el ${new Date().toLocaleDateString()} (Copia de "${originalWarband.name}")`;
         copiedWarband.pre_game = true;
         
         if (useLocalStorage) {
@@ -571,7 +571,7 @@ export const copyWarband = async (warbandId) => {
             copiedWarband._storageLocation = 'Browser Cache';
             warbands.push(copiedWarband);
             localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
-            showMessage(`Warband "${copiedWarband.name}" copied successfully!`);
+            showMessage(`¡Banda "${copiedWarband.name}" copiada con éxito!`);
             
             // Track warband copy for local storage
             trackWarbandAction('copied', copiedWarband.name, copiedWarband.type, true);
@@ -588,7 +588,7 @@ export const copyWarband = async (warbandId) => {
             console.log("Current auth.currentUser.uid:", auth.currentUser?.uid);
             console.log("Warband player_id:", copiedWarband.player_id);
             await firebaseCreateNewWarband(copiedWarband);
-            showMessage(`Warband "${copiedWarband.name}" copied successfully!`);
+            showMessage(`¡Banda "${copiedWarband.name}" copiada con éxito!`);
             
             // Track warband copy with type information
             const isAnonymous = isCurrentUserAnonymous();
@@ -604,7 +604,7 @@ export const copyWarband = async (warbandId) => {
         
     } catch (error) {
         console.error("Error copying warband:", error);
-        showMessage("Failed to copy warband.", 'error');
+        showMessage("Error al copiar la banda.", 'error');
     }
 };
 

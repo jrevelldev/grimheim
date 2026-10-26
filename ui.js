@@ -35,7 +35,17 @@ import {
     translateEquipment,
     translateInjury,
     translateBattleStatus,
-    translateSkillCategory
+    translateSkillCategory,
+    translateSpecialRule,
+    translateSkill,
+    translateEquipmentCategory,
+    translateEquipmentRules,
+    translateInjuryDescription,
+    getSpecialRuleSummary,
+    translateWarriorRole,
+    formatMovementStat,
+    getMovementTooltip,
+    getDistanceUnit
 } from './i18n.js';
 
 /** Renders the list of warbands in the list view */
@@ -43,40 +53,84 @@ export const renderWarbandList = (warbands) => {
     const container = document.getElementById('warbands-container');
 
     if (!warbands || warbands.length === 0) {
-        container.innerHTML = `<p class="text-slate-400 text-center py-8">No se ha encontrado ninguna banda. Pulsa 'Crear Nueva Banda' o 'Importar Banda' para empezar.</p>`;
+        container.innerHTML = `
+            <div class="text-center py-10 px-4 rounded-xl border border-dashed border-slate-700/60 bg-slate-800/20">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-slate-800/70 border border-slate-700 text-amber-200/70 mb-3 shadow-inner">
+                    <i class="fas fa-shield-alt text-xl"></i>
+                </div>
+                <h4 class="text-base font-bold text-slate-200 mb-1">No hay ninguna banda registrada</h4>
+                <p class="text-slate-400 text-xs sm:text-sm max-w-md mx-auto">Crea tu primera banda de Mordheim para gestionar tus guerreros, experiencia, equipo y campañas.</p>
+            </div>
+        `;
         return;
     }
 
-    const warbandsHTML = warbands.map(wb => `
-        <div class="bg-slate-700 p-4 rounded-lg shadow-md flex justify-between items-center transition hover:bg-slate-600">
-            <div>
-                <h3 class="text-xl font-bold text-mordheim-gold">${wb.name}</h3>
-                <p class="text-sm text-slate-300">Tipo: ${translateWarband(wb.type)}</p>
-                <p class="text-xs text-slate-400">Valoración: ${wb.rating} | Miembros: ${wb.members?.length || 0}</p>
-                <p class="text-xs text-slate-500">Guardado: ${wb._storageLocation === 'Browser Cache' ? 'Memoria Local (Navegador)' : (wb._storageLocation || 'Local')}</p>
+    const warbandsHTML = warbands.map(wb => {
+        const warriorCount = wb.members?.length || 0;
+        const warbandRating = wb.rating || 0;
+        const isDbStored = wb._storageLocation && wb._storageLocation !== 'Browser Cache';
+        const storageLabel = isDbStored ? 'Base de Datos' : 'Navegador';
+        const storageIcon = isDbStored ? 'fa-database text-slate-400' : 'fa-laptop text-slate-400';
+
+        return `
+        <div class="group relative bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-amber-600/30 rounded-xl p-4 sm:p-4.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-start sm:items-center gap-3.5">
+                <div class="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700/70 flex items-center justify-center flex-shrink-0 text-amber-200/80 shadow-inner group-hover:border-amber-600/30 transition-colors">
+                    <i class="fas fa-shield-alt text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-base sm:text-lg font-bold text-slate-100 group-hover:text-amber-200/95 transition-colors tracking-wide">${wb.name}</h3>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800/80 text-slate-300 border border-slate-700/60">
+                            ${translateWarband(wb.type)}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-400">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-800/60 border border-slate-700/50 text-slate-300 font-normal">
+                            <i class="fas fa-trophy text-amber-300/75 text-[10px]"></i>
+                            <span>Valoración: <strong class="text-amber-200/90 font-medium">${warbandRating}</strong></span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-800/60 border border-slate-700/50 text-slate-300 font-normal">
+                            <i class="fas fa-users text-slate-400 text-[10px]"></i>
+                            <span>Guerreros: <strong class="text-slate-200 font-medium">${warriorCount}</strong></span>
+                        </span>
+                        <span class="inline-flex items-center gap-1 text-[11px] text-slate-400 pl-1">
+                            <i class="fas ${storageIcon} text-[10px]"></i>
+                            <span>${storageLabel}</span>
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div class="flex space-x-3">
-                <button data-action="load-warband" data-warband-id="${wb.id}" class="py-2 px-4 text-white text-sm font-semibold rounded-lg hover:opacity-80 transition shadow-md" style="background-color: var(--sage-green);">
-                    <i class="fas fa-eye"></i> Ver Banda
+            
+            <div class="flex items-center gap-2 self-end md:self-center flex-shrink-0">
+                <button data-action="load-warband" data-warband-id="${wb.id}" 
+                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-700/80 hover:bg-slate-650 hover:bg-slate-600 text-amber-100/90 hover:text-white text-xs font-semibold rounded-lg border border-amber-600/30 hover:border-amber-500/50 transition shadow-sm"
+                    title="Abrir y gestionar esta banda">
+                    <i class="fas fa-eye text-xs"></i>
+                    <span>Ver Banda</span>
                 </button>
                 <div class="relative">
-                    <button data-action="toggle-warband-menu" data-warband-id="${wb.id}" class="py-2 px-3 bg-slate-600 text-white text-sm font-semibold rounded-lg hover:bg-slate-500 transition shadow-md">
-                        <i class="fas fa-bars"></i>
+                    <button data-action="toggle-warband-menu" data-warband-id="${wb.id}" 
+                        class="p-2 bg-slate-800/80 hover:bg-slate-750 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs rounded-lg border border-slate-700/60 transition shadow-sm"
+                        title="Opciones de la banda">
+                        <i class="fas fa-ellipsis-v"></i>
                     </button>
-                    <div id="warband-menu-${wb.id}" class="warband-dropdown-menu hidden absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-lg z-50 py-1">
-                        <button data-action="copy-warband" data-warband-id="${wb.id}" class="w-full text-left px-4 py-2 text-white hover:bg-slate-700 transition flex items-center space-x-2">
-                            <i class="fas fa-copy"></i>
-                            <span>Duplicar</span>
+                    <div id="warband-menu-${wb.id}" 
+                        class="warband-dropdown-menu hidden absolute right-0 mt-2 w-48 bg-slate-850 border border-slate-700/80 rounded-xl shadow-xl z-50 py-1 backdrop-blur-md">
+                        <button data-action="copy-warband" data-warband-id="${wb.id}" class="w-full text-left px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-750 transition flex items-center gap-2 text-xs">
+                            <i class="fas fa-copy text-slate-400"></i>
+                            <span>Duplicar Banda</span>
                         </button>
-                        <button data-action="rename-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-4 py-2 text-white hover:bg-slate-700 transition flex items-center space-x-2">
-                            <i class="fas fa-edit"></i>
+                        <button data-action="rename-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-750 transition flex items-center gap-2 text-xs">
+                            <i class="fas fa-edit text-slate-400"></i>
                             <span>Renombrar</span>
                         </button>
-                        <button data-action="export-warband" data-warband-id="${wb.id}" class="w-full text-left px-4 py-2 text-yellow-300 hover:bg-slate-700 transition flex items-center space-x-2">
+                        <button data-action="export-warband" data-warband-id="${wb.id}" class="w-full text-left px-3.5 py-2 text-amber-200/90 hover:text-amber-100 hover:bg-slate-750 transition flex items-center gap-2 text-xs">
                             <i class="fas fa-download"></i>
                             <span>Exportar (JSON)</span>
                         </button>
-                        <button data-action="delete-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-4 py-2 text-red-400 hover:bg-slate-700 transition flex items-center space-x-2">
+                        <div class="h-px bg-slate-750 my-1"></div>
+                        <button data-action="delete-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-3.5 py-2 text-rose-300 hover:text-rose-200 hover:bg-rose-950/30 transition flex items-center gap-2 text-xs">
                             <i class="fas fa-trash-alt"></i>
                             <span>Eliminar</span>
                         </button>
@@ -84,7 +138,8 @@ export const renderWarbandList = (warbands) => {
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     container.innerHTML = warbandsHTML;
 };
@@ -221,7 +276,8 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
         const groupSize = fighter.group_size || 1;
         const equipmentList = (fighter.equipment || []).map(e => {
             const normalized = normalizeEquipment(e);
-            return `<span class="bg-slate-600 px-2 py-1 rounded-full text-xs text-yellow-300 cursor-pointer hover:bg-slate-500" data-equipment-name="${normalized.name}" data-equipment-rules="${encodeURIComponent(JSON.stringify(normalized.rules))}" data-equipment-cost="${formatEquipmentCostDisplay(normalized)}">${normalized.name}</span>`;
+            const spanishName = translateEquipment(normalized.name);
+            return `<span class="inline-flex items-center bg-slate-900 hover:bg-slate-800 text-amber-200/90 hover:text-white border border-slate-750 hover:border-amber-500/30 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition shadow-xs" data-equipment-name="${normalized.name}" data-equipment-rules="${encodeURIComponent(JSON.stringify(normalized.rules))}" data-equipment-cost="${formatEquipmentCostDisplay(normalized)}" title="${normalized.name}">${spanishName}</span>`;
         }).join('');
 
         // Add style information for Pit Fighters
@@ -229,7 +285,7 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
         if (currentWarband.type === "Pit Fighters" && fighter.special_rules && fighter.special_rules.includes("Pit Fighter Style")) {
             const styleMatch = fighter.special_rules.match(/Pit Fighter Style: ([^;]+)/);
             if (styleMatch) {
-                styleInfo = `<span class="bg-blue-600 px-2 py-1 rounded-full text-xs text-white font-semibold">Style: ${styleMatch[1].trim()}</span>`;
+                styleInfo = `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-950/60 text-indigo-200 border border-indigo-700/40">Estilo: ${styleMatch[1].trim()}</span>`;
             }
         }
 
@@ -243,8 +299,8 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
             const statLineKeys = Object.keys(fighter.stats);
             statLineKeys.forEach(statLineKey => {
                 const statLineStats = fighter.stats[statLineKey];
-                statsHTML += `<div class="text-center font-bold text-slate-300 mb-1 uppercase text-sm">${statLineKey}</div>`;
-                statsHTML += `<div class="grid grid-cols-9 gap-1 mb-2 bg-slate-800 p-2 rounded-lg">`;
+                statsHTML += `<div class="text-left font-semibold text-xs tracking-wider uppercase text-slate-400 mb-1.5 mt-2 flex items-center gap-1.5"><i class="fas fa-layer-group text-[10px] text-amber-300/70"></i> ${statLineKey}</div>`;
+                statsHTML += `<div class="grid grid-cols-9 gap-1 mb-2 bg-slate-900/60 p-2 rounded-xl border border-slate-800/80 divide-x divide-slate-800/70 text-center">`;
                 statsHTML += STATS_FIELDS.map(stat => {
                     let statValue = statLineStats[stat] !== undefined ? statLineStats[stat] : '-';
                     let statColor = '';
@@ -304,10 +360,13 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
                     statValue = paviseResult.value;
                     if (paviseResult.color) statColor = paviseResult.color;
 
+                    const displayValue = stat === 'M' ? formatMovementStat(statValue) : statValue;
+                    const moveTooltip = stat === 'M' ? ` title="${getMovementTooltip(statValue)}"` : '';
+
                     return `
-                    <div class="flex flex-col">
-                        <span class="text-xs uppercase text-slate-400" title="${getStatTitle(stat)}">${getStatLabel(stat)}</span>
-                        <span class="font-bold text-lg ${statColor}">${statValue}</span>
+                    <div class="flex flex-col items-center justify-center py-1 px-0.5">
+                        <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400 mb-0.5" title="${getStatTitle(stat)}">${getStatLabel(stat)}</span>
+                        <span class="font-bold text-base sm:text-lg ${statColor || 'text-slate-100'}"${moveTooltip}>${displayValue}</span>
                     </div>
                     `;
                 }).join('');
@@ -369,27 +428,30 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
                 statValue = paviseResult.value;
                 if (paviseResult.color) statColor = paviseResult.color;
 
+                const displayValue = stat === 'M' ? formatMovementStat(statValue) : statValue;
+                const moveTooltip = stat === 'M' ? ` title="${getMovementTooltip(statValue)}"` : '';
+
                 return `
-                <div class="flex flex-col">
-                    <span class="text-xs uppercase text-slate-400" title="${getStatTitle(stat)}">${getStatLabel(stat)}</span>
-                    <span class="font-bold text-lg ${statColor}">${statValue}</span>
+                <div class="flex flex-col items-center justify-center py-1 px-0.5">
+                    <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400 mb-0.5" title="${getStatTitle(stat)}">${getStatLabel(stat)}</span>
+                    <span class="font-bold text-base sm:text-lg ${statColor || 'text-slate-100'}"${moveTooltip}>${displayValue}</span>
                 </div>
                 `;
             }).join('');
         }
 
-        const statsGridClass = isMultiStatLine ? 'text-center p-2 rounded-lg' : 'grid grid-cols-9 gap-1 text-center bg-slate-800 p-2 rounded-lg';
+        const statsGridClass = isMultiStatLine ? 'text-center p-0' : 'grid grid-cols-9 gap-1 text-center bg-slate-900/60 p-2 rounded-xl border border-slate-800/80 divide-x divide-slate-800/70';
 
         // Create move buttons (hide up for first item, down for last item, only show when ordering mode is active)
         const isFirst = index === 0;
         const isLast = index === currentWarband.members.length - 1;
         const isOrderingModeActive = getIsOrderingMode();
         const moveButtons = isOrderingModeActive ? `
-            <div class="flex space-x-1 ml-2">
-                ${!isFirst ? `<button data-action="move-fighter-up" data-fighter-id="${fighter.id}" class="py-1 px-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition shadow-md" title="Move Up">
+            <div class="flex items-center space-x-1 ml-2">
+                ${!isFirst ? `<button data-action="move-fighter-up" data-fighter-id="${fighter.id}" class="py-1 px-2 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs rounded-lg border border-slate-700 hover:border-slate-500 transition shadow-xs" title="Subir">
                     <i class="fas fa-chevron-up"></i>
                 </button>` : '<div class="w-8"></div>'}
-                ${!isLast ? `<button data-action="move-fighter-down" data-fighter-id="${fighter.id}" class="py-1 px-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition shadow-md" title="Move Down">
+                ${!isLast ? `<button data-action="move-fighter-down" data-fighter-id="${fighter.id}" class="py-1 px-2 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs rounded-lg border border-slate-700 hover:border-slate-500 transition shadow-xs" title="Bajar">
                     <i class="fas fa-chevron-down"></i>
                 </button>` : '<div class="w-8"></div>'}
             </div>
@@ -432,78 +494,102 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
         // Create clickable spell HTML
         const spellsHtml = fighterSpells.length > 0 
             ? fighterSpells.map(spell => 
-                `<span class="underline cursor-pointer" data-spell="${spell}">${spell}</span>`
+                `<span class="underline decoration-slate-600 hover:decoration-amber-400 text-slate-300 hover:text-amber-200 transition cursor-pointer" data-spell="${spell}">${spell}</span>`
               ).join(', ')
             : '';
 
         // Create clickable skills HTML
         const skillsHtml = skillsToShow.length > 0 
             ? skillsToShow.map(skill => 
-                `<span class="underline cursor-pointer" data-skill="${skill}" data-fighter-id="${fighter.id}">${skill}</span>`
+                `<span class="underline decoration-slate-600 hover:decoration-amber-400 text-slate-300 hover:text-amber-200 transition cursor-pointer" data-skill="${skill}" data-fighter-id="${fighter.id}">${translateSkill(skill)}</span>`
               ).join(', ')
-            : 'None';
+            : '<span class="text-slate-500 italic">Ninguna</span>';
 
         // Create clickable special rules HTML
-        let specialRulesHtml = 'None';
-        if (fighter.special_rules) {
-            const rulesArray = fighter.special_rules.split(';').map(r => r.trim());
-            specialRulesHtml = rulesArray.map(ruleName => {
-                const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
-                if (ruleData) {
-                    return `<span class="underline cursor-pointer" data-rule="${ruleName}">${ruleName}</span>`;
-                } else {
-                    return `<span>${ruleName}</span>`;
-                }
-            }).join(', ');
+        let specialRulesHtml = '<span class="text-slate-500 italic">Ninguna</span>';
+        if (fighter.special_rules && fighter.special_rules.trim() && fighter.special_rules.trim() !== 'None' && fighter.special_rules.trim() !== '(None)') {
+            const rulesArray = fighter.special_rules.split(';').map(r => r.trim()).filter(r => r && r !== 'None' && r !== '(None)');
+            if (rulesArray.length > 0) {
+                specialRulesHtml = rulesArray.map(ruleName => {
+                    const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name.toLowerCase() === ruleName.toLowerCase());
+                    const spanishRule = translateSpecialRule(ruleName);
+                    if (ruleData) {
+                        return `<span class="underline decoration-slate-600 hover:decoration-amber-400 text-slate-300 hover:text-amber-200 transition cursor-pointer" data-rule="${ruleName}">${spanishRule}</span>`;
+                    } else {
+                        return `<span class="text-slate-300">${spanishRule}</span>`;
+                    }
+                }).join(', ');
+            }
         }
 
         // Create clickable injuries HTML
         const injuriesHtml = (fighter.injuries && fighter.injuries.length > 0)
             ? fighter.injuries.map(injuryName => {
-                const injuryData = MASTER_INJURY_LIST.find(i => i.name === injuryName);
+                const injuryData = MASTER_INJURY_LIST.find(i => i.name.toLowerCase() === injuryName.toLowerCase());
+                const spanishInjury = translateInjury(injuryName);
                 if (injuryData) {
-                    return `<span class="underline cursor-pointer" data-injury="${injuryName}">${injuryName}</span>`;
+                    return `<span class="underline decoration-rose-800 hover:decoration-rose-400 text-rose-300 hover:text-rose-200 transition cursor-pointer font-medium" data-injury="${injuryName}">${spanishInjury}</span>`;
                 }
-                return `<span>${injuryName}</span>`;
+                return `<span class="text-rose-300/90 font-medium">${spanishInjury}</span>`;
             }).join(', ')
-            : 'None';
+            : '<span class="text-slate-500 italic">Ninguna</span>';
 
         return `
-        <div class="bg-slate-700 p-4 rounded-xl shadow-lg border-l-4 ${isHenchman ? 'border-yellow-500' : 'border-red-500'} transition hover:shadow-2xl">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex-1">
-                    <h4 class="text-xl font-bold">${fighter.name}</h4>
-                    <p class="text-sm text-slate-400">${getFighterTypeSubtitle(fighter)} ${isHenchman ? `x${groupSize}` : ''}</p>
-                    <p class="text-xs text-slate-500 mt-1">PX: ${formatXPDisplay(fighter.xp)}</p>
+        <div class="group relative bg-slate-850/60 hover:bg-slate-850/90 border border-slate-750/70 hover:border-slate-650/80 rounded-2xl p-4 sm:p-5 transition-all duration-200 shadow-md hover:shadow-lg overflow-hidden">
+            <!-- Subtle accent bar on left edge -->
+            <div class="absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${isHenchman ? 'bg-amber-400/80' : 'bg-rose-400/80'}"></div>
+            
+            <div class="flex flex-wrap justify-between items-start gap-2 mb-3.5 pl-1.5">
+                <div class="flex-1 min-w-[200px]">
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-lg sm:text-xl font-bold text-slate-100 group-hover:text-amber-100 transition-colors">${fighter.name}</h4>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${isHenchman ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'}">
+                            <i class="fas ${isHenchman ? 'fa-users' : 'fa-crown'} text-[9px] mr-1"></i>
+                            ${isHenchman ? `Secuaz ${groupSize > 1 ? `x${groupSize}` : ''}` : 'Héroe'}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-400 mt-1">
+                        <span>${getFighterTypeSubtitle(fighter)}</span>
+                        <span>•</span>
+                        <span class="font-mono">PX: <span class="font-semibold text-amber-200/90">${formatXPDisplay(fighter.xp)}</span></span>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1.5 shrink-0">
                     ${moveButtons}
-                    <button data-action="edit-notes" data-fighter-id="${fighter.id}" class="py-1 px-2.5 bg-slate-600 text-white hover:bg-slate-500 text-sm rounded-lg transition shadow-md" title="Notas del Guerrero">
-                        <i class="fas fa-sticky-note ${fighter.notes ? 'text-mordheim-gold' : 'text-slate-400'}"></i>
-                    </button>
-                    <button data-action="gear-fighter" data-fighter-id="${fighter.id}" class="py-1 px-3 bg-slate-600 text-white text-sm rounded-lg hover:bg-slate-500 transition shadow-md" title="Comprar y gestionar equipo">
-                        Equipo
-                    </button>
-                    <button data-action="edit-fighter" data-fighter-id="${fighter.id}" class="py-1 px-3 bg-slate-600 text-white text-sm rounded-lg hover:bg-slate-500 transition shadow-md">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
+                    <div class="inline-flex items-center rounded-lg bg-slate-900 border border-slate-750 p-0.5 shadow-xs">
+                        <button data-action="edit-notes" data-fighter-id="${fighter.id}" class="p-1 px-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition text-xs" title="Notas del Guerrero">
+                            <i class="fas fa-sticky-note ${fighter.notes ? 'text-amber-300' : 'text-slate-500'}"></i>
+                        </button>
+                        <div class="h-3 w-px bg-slate-750"></div>
+                        <button data-action="gear-fighter" data-fighter-id="${fighter.id}" class="py-1 px-2.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition text-xs font-medium flex items-center gap-1.5" title="Comprar y gestionar equipo">
+                            <i class="fas fa-shield-alt text-[10px] text-amber-300/80"></i> <span>Equipo</span>
+                        </button>
+                        <div class="h-3 w-px bg-slate-750"></div>
+                        <button data-action="edit-fighter" data-fighter-id="${fighter.id}" class="py-1 px-2.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition text-xs font-medium flex items-center gap-1.5">
+                            <i class="fas fa-edit text-[10px] text-slate-400"></i> <span>Editar</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2 mb-2">
-                ${styleInfo}
-            </div>
+
+            ${styleInfo ? `<div class="flex flex-wrap gap-2 mb-2.5 pl-1.5">${styleInfo}</div>` : ''}
+
             <div class="${statsGridClass}">
                 ${statsHTML}
             </div>
-            <div class="mt-3 text-sm">
-                <p class="font-semibold text-slate-300 mb-1">Equipo:</p>
-                <div class="flex flex-wrap gap-2">${equipmentList || '<span class="text-slate-500 text-xs">Ninguno</span>'}</div>
+
+            <div class="mt-3.5 pl-1">
+                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                    <i class="fas fa-shield-alt text-[10px] text-amber-300/70"></i> <span>Equipo:</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">${equipmentList || '<span class="text-slate-500 text-xs italic">Ninguno</span>'}</div>
             </div>
-            <div class="mt-3 border-t border-slate-600 pt-2 text-xs text-slate-400">
-                <p>Habilidades: ${skillsHtml}</p>
-                ${spellsHtml ? `<p>Magia: ${spellsHtml}</p>` : ''}
-                <p>Reglas Especiales: ${specialRulesHtml}</p>
-                <p>Heridas Graves: ${injuriesHtml}</p>
+
+            <div class="mt-3.5 pt-3 border-t border-slate-800/80 text-xs text-slate-400 space-y-1.5 pl-1">
+                <p><span class="font-medium text-slate-400">Habilidades:</span> ${skillsHtml}</p>
+                ${spellsHtml ? `<p><span class="font-medium text-slate-400">Magia:</span> ${spellsHtml}</p>` : ''}
+                <p><span class="font-medium text-slate-400">Reglas Especiales:</span> ${specialRulesHtml}</p>
+                <p><span class="font-medium text-slate-400">Heridas Graves:</span> ${injuriesHtml}</p>
             </div>
         </div>
         `;
@@ -515,7 +601,7 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
     storedList.innerHTML = '';
     
     if (currentWarband.stored_equipment.length === 0) {
-        storedList.innerHTML = `<li class="text-slate-500 py-3 text-center">La Armería de la Banda está vacía.</li>`;
+        storedList.innerHTML = `<li class="text-slate-500 py-3 text-center text-xs">La Armería de la Banda está vacía.</li>`;
     } else {
         const groupedItems = currentWarband.stored_equipment.reduce((acc, item, index) => {
             // Normalize equipment to ensure name is available
@@ -528,19 +614,22 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
             return acc;
         }, {});
 
-        const storedItemsHTML = Object.values(groupedItems).map(group => `
-            <li class="flex justify-between items-center p-2 bg-slate-800 rounded-md">
-                <span class="text-white cursor-help" title="${group.item.rules}">${group.item.name} <span class="text-yellow-400 font-bold">x${group.count}</span></span>
-                <div class="flex space-x-2">
-                    <button data-action="sell-from-storage" data-item-name="${group.item.name}" data-item-cost="${typeof group.item.variableCost === 'number' ? group.item.variableCost : group.item.cost}" data-item-quantity="${group.count}" class="py-0.5 px-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
-                        Sell
+        const storedItemsHTML = Object.values(groupedItems).map(group => {
+            const spanishName = translateEquipment(group.item.name);
+            return `
+            <li class="flex justify-between items-center p-2.5 bg-slate-900/60 border border-slate-800 rounded-xl">
+                <span class="text-slate-200 text-xs font-medium cursor-help" title="${group.item.rules}">${spanishName} <span class="text-amber-200 font-bold">x${group.count}</span></span>
+                <div class="flex items-center gap-1.5">
+                    <button data-action="sell-from-storage" data-item-name="${group.item.name}" data-item-cost="${typeof group.item.variableCost === 'number' ? group.item.variableCost : group.item.cost}" data-item-quantity="${group.count}" class="py-1 px-2.5 bg-slate-800 hover:bg-slate-750 text-emerald-300 hover:text-emerald-200 border border-emerald-700/40 rounded-lg text-xs font-medium transition shadow-xs">
+                        Vender
                     </button>
-                    <button data-action="take-from-storage" data-item-index="${group.firstIndex}" class="py-0.5 px-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition">
-                        Retrieve
+                    <button data-action="take-from-storage" data-item-index="${group.firstIndex}" class="py-1 px-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-xs font-medium transition shadow-xs">
+                        Recuperar
                     </button>
                 </div>
             </li>
-        `).join('');
+        `;
+        }).join('');
         storedList.innerHTML = storedItemsHTML;
     }
 };
@@ -863,6 +952,7 @@ export const renderRacialMaximums = () => {
 
     const maxHtml = STATS_FIELDS.map(stat => {
         const maxVal = maximums[stat] !== undefined ? maximums[stat] : '-';
+        const maxDisplay = (stat === 'M' && typeof maxVal === 'number') ? formatMovementStat(maxVal) : maxVal;
         // Check if the current input value exceeds the maximum for visual warning
         const inputElement = document.getElementById(`stat-${stat}`);
         let isOverMax = false;
@@ -874,7 +964,7 @@ export const renderRacialMaximums = () => {
 
         return `
             <span class="${isOverMax ? 'text-red-400 font-bold' : 'text-slate-300'}">
-                ${getStatLabel(stat)}: ${maxVal}
+                ${getStatLabel(stat)}: ${maxDisplay}
             </span>
         `;
     }).join(' | ');
@@ -1115,7 +1205,7 @@ export const showOstermarkSkillSetModal = () => {
                 const skills = hero[set.prop] || [];
                 return `<tr>
                     <td class="py-1.5 px-2 text-slate-300 font-medium border-b border-slate-600">${hero.name}</td>
-                    <td class="py-1.5 px-2 text-slate-400 border-b border-slate-600">${skills.join(', ') || 'None'}</td>
+                    <td class="py-1.5 px-2 text-slate-400 border-b border-slate-600">${skills.map(s => translateSkillCategory(s)).join(', ') || 'Ninguna'}</td>
                 </tr>`;
             }).join('');
 
@@ -1130,8 +1220,8 @@ export const showOstermarkSkillSetModal = () => {
                     <table class="w-full text-sm">
                         <thead>
                             <tr>
-                                <th class="text-left py-1 px-2 text-mordheim-gold border-b border-slate-500 w-1/3">Fighter</th>
-                                <th class="text-left py-1 px-2 text-mordheim-gold border-b border-slate-500">Skill Categories</th>
+                                <th class="text-left py-1 px-2 text-mordheim-gold border-b border-slate-500 w-1/3">Guerrero</th>
+                                <th class="text-left py-1 px-2 text-mordheim-gold border-b border-slate-500">Categorías de habilidades</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -1192,7 +1282,7 @@ export const populateWarriorChoices = (role = null) => {
     const warbandData = getWarbandData(warbandType);
 
     if (!warbandData) {
-        warriorSelect.innerHTML = '<option value="">-- No data for this warband --</option>';
+        warriorSelect.innerHTML = '<option value="">-- Sin datos para esta banda --</option>';
         return;
     }
 
@@ -1237,17 +1327,17 @@ export const populateStyleChoices = () => {
 
     // Only show style selection for Pit Fighters
     if (warbandType !== "Pit Fighters" || !warbandData || !warbandData.uses_styles) {
-        styleSelect.innerHTML = '<option value="">-- No styles available --</option>';
+        styleSelect.innerHTML = '<option value="">-- No hay estilos disponibles --</option>';
         return;
     }
 
-    styleSelect.innerHTML = '<option value="">-- Select a Style --</option>';
+    styleSelect.innerHTML = '<option value="">-- Seleccionar un estilo --</option>';
     warbandData.available_styles.forEach(styleId => {
         const styleData = PIT_FIGHTER_STYLES.find(s => s.id === styleId);
         if (styleData) {
             const option = document.createElement('option');
             option.value = styleData.id;
-            option.textContent = `${styleData.name} (${styleData.cost} GC)`;
+            option.textContent = `${styleData.name} (${styleData.cost} CO)`;
             styleSelect.appendChild(option);
         }
     });
@@ -1260,11 +1350,11 @@ export const populateTrapperSkillChoices = () => {
 
     const trapperSkills = getTrapperSkillOptions();
 
-    trapperSkillSelect.innerHTML = '<option value="">-- Select a Starting Skill --</option>';
+    trapperSkillSelect.innerHTML = '<option value="">-- Seleccionar una habilidad inicial --</option>';
     trapperSkills.forEach(skill => {
         const option = document.createElement('option');
         option.value = skill.id;
-        option.textContent = skill.name;
+        option.textContent = translateSkill(skill.name);
         trapperSkillSelect.appendChild(option);
     });
 
@@ -1320,11 +1410,11 @@ export const populatePackmasterBeastHandlingChoices = () => {
 
     const beastHandlingOptions = getPackmasterBeastHandlingOptions();
 
-    packmasterBeastHandlingSelect.innerHTML = '<option value="">-- Select a Beast Handling Skill --</option>';
+    packmasterBeastHandlingSelect.innerHTML = '<option value="">-- Seleccionar una habilidad de Manejo de Bestias --</option>';
     beastHandlingOptions.forEach(skill => {
         const option = document.createElement('option');
         option.value = skill.id;
-        option.textContent = skill.name;
+        option.textContent = translateSkill(skill.name);
         packmasterBeastHandlingSelect.appendChild(option);
     });
 
@@ -1367,10 +1457,10 @@ export const handlePackmasterBeastHandlingSelection = () => {
 
     // Update display
     if (currentSkills.length > 0) {
-        const skillsHtml = currentSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+        const skillsHtml = currentSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
         skillsDisplay.innerHTML = skillsHtml;
     } else {
-        skillsDisplay.textContent = 'None';
+        skillsDisplay.textContent = 'Ninguna';
     }
 };
 
@@ -1504,21 +1594,21 @@ export const updateFighterDataFromSelection = () => {
 
         const skillsDisplay = document.getElementById('f-skills');
         if (initialSkills.length > 0) {
-            const skillsHtml = initialSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+            const skillsHtml = initialSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
         
         const rulesDisplay = document.getElementById('warrior-rules-display');
         if (selectedWarrior.rules) {
             const rulesHtml = selectedWarrior.rules.split(';').map(rule => {
                 const ruleName = rule.trim().split('(')[0].trim();
-                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${rule.trim()}</span>`;
+                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${translateSpecialRule(rule.trim())}</span>`;
             }).join('<br>');
             rulesDisplay.innerHTML = `${rulesHtml}`;
         } else {
-            rulesDisplay.textContent = 'None';
+            rulesDisplay.textContent = 'Ninguna';
         }
         
         const skillTablesDisplay = document.getElementById('skill-tables-display');
@@ -1526,7 +1616,7 @@ export const updateFighterDataFromSelection = () => {
         const resolvedSkills = getWarriorSkills(selectedWarrior, currentWarband);
         if (selectedWarrior.type === 'hero' && resolvedSkills.length > 0) {
             setBaseSkillCategories([...resolvedSkills]);
-            skillTablesList.textContent = resolvedSkills.join(', ');
+            skillTablesList.textContent = resolvedSkills.map(s => translateSkillCategory(s)).join(', ');
             skillTablesDisplay.classList.remove('hidden');
         } else {
             setBaseSkillCategories([]);
@@ -1894,9 +1984,9 @@ export const updateFighterDataFromSelection = () => {
                 wrapper.id = 'trapper-skill-selection-wrapper';
                 wrapper.className = 'mb-4';
                 wrapper.innerHTML = `
-                    <label for="f-trapper-skill-choice" class="block text-sm font-semibold text-slate-300 mb-2">Choose Starting Skill:</label>
+                    <label for="f-trapper-skill-choice" class="block text-sm font-semibold text-slate-300 mb-2">Elegir habilidad inicial:</label>
                     <select id="f-trapper-skill-choice" class="w-full p-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-mordheim-gold">
-                        <option value="">-- Select a Starting Skill --</option>
+                        <option value="">-- Seleccionar una habilidad inicial --</option>
                     </select>
                 `;
                 // Insert after the warrior choice wrapper
@@ -1927,9 +2017,9 @@ export const updateFighterDataFromSelection = () => {
                 wrapper.id = 'packmaster-beast-handling-selection-wrapper';
                 wrapper.className = 'mb-4';
                 wrapper.innerHTML = `
-                    <label for="f-packmaster-beast-handling-choice" class="block text-sm font-semibold text-slate-300 mb-2">Choose Beast Handling Skill:</label>
+                    <label for="f-packmaster-beast-handling-choice" class="block text-sm font-semibold text-slate-300 mb-2">Elegir habilidad de Manejo de Bestias:</label>
                     <select id="f-packmaster-beast-handling-choice" class="w-full p-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-mordheim-gold">
-                        <option value="">-- Select a Beast Handling Skill --</option>
+                        <option value="">-- Seleccionar una habilidad de Manejo de Bestias --</option>
                     </select>
                 `;
                 // Insert after the warrior choice wrapper
@@ -1958,7 +2048,7 @@ export const updateFighterDataFromSelection = () => {
         document.getElementById('f-upkeep-cost').textContent = '0';
     } else {
         const rulesDisplay = document.getElementById('warrior-rules-display');
-        rulesDisplay.textContent = 'None';
+        rulesDisplay.textContent = 'Ninguna';
         document.getElementById('skill-tables-display').classList.add('hidden');
         setAvailableEquipmentFilterIds(null); // Clear filter if no warrior is selected
         renderEquipmentOptions(); // Re-render to show all options
@@ -1982,7 +2072,7 @@ export const populateDramatisPersonaeChoices = () => {
     trackCharacterMenuAccess('dramatis_personae');
     
     const dramatisPersonaeSelect = document.getElementById('f-dramatis-personae-choice');
-    dramatisPersonaeSelect.innerHTML = '<option value="">-- Select a Dramatis Personae --</option>';
+    dramatisPersonaeSelect.innerHTML = '<option value="">-- Seleccionar Personaje Ilustre --</option>';
     
     // Get current warband data for validation
     const staticWarbandData = getWarbandData(currentWarband.type);
@@ -2022,7 +2112,7 @@ export const populateDramatisPersonaeChoices = () => {
                 // Add disabled option with tooltip explaining why it's not available
                 const option = document.createElement('option');
                 option.value = character.name;
-                option.textContent = `${character.name} (Not Available)`;
+                option.textContent = `${character.name} (No disponible)`;
                 option.disabled = true;
                 option.title = reason; // Show reason as tooltip
                 option.style.color = '#999';
@@ -2040,8 +2130,8 @@ export const populateDramatisPersonaeChoices = () => {
     // Update the select label to show availability summary
     const selectLabel = document.querySelector('label[for="f-dramatis-personae-choice"]');
     if (selectLabel) {
-        const originalText = selectLabel.textContent.replace(/ \(\d+\/\d+ available\)/, '');
-        selectLabel.textContent = `${originalText} (${availableCount}/${totalCount} available)`;
+        const originalText = selectLabel.textContent.replace(/ \(\d+\/\d+ (available|disponibles)\)/, '');
+        selectLabel.textContent = `${originalText} (${availableCount}/${totalCount} disponibles)`;
     }
     
     console.log(`Dramatis Personae: ${availableCount}/${totalCount} available`);
@@ -2114,10 +2204,10 @@ export const updateFighterDataFromDramatisPersonaeSelection = () => {
 
         const skillsDisplay = document.getElementById('f-skills');
         if (skills.length > 0) {
-            const skillsHtml = skills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+            const skillsHtml = skills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
         document.getElementById('f-injuries-json').value = '[]';
         
@@ -2125,11 +2215,11 @@ export const updateFighterDataFromDramatisPersonaeSelection = () => {
         if (character.data.special_rules) {
             const rulesHtml = character.data.special_rules.split(';').map(rule => {
                 const ruleName = rule.trim().split('(')[0].trim();
-                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${rule.trim()}</span>`;
+                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${translateSpecialRule(rule.trim())}</span>`;
             }).join('<br>');
             rulesDisplay.innerHTML = rulesHtml;
         } else {
-            rulesDisplay.textContent = 'None';
+            rulesDisplay.textContent = 'Ninguna';
         }
 
         // Toggle experience visibility based on special rules
@@ -2171,7 +2261,7 @@ export const populateHiredSwordChoices = () => {
     trackCharacterMenuAccess('hired_sword');
     
     const hiredSwordSelect = document.getElementById('f-hired-sword-choice');
-    hiredSwordSelect.innerHTML = '<option value="">-- Select a Hired Sword --</option>';
+    hiredSwordSelect.innerHTML = '<option value="">-- Seleccionar Espada de Alquiler --</option>';
     
     // Get current warband data for validation
     const staticWarbandData = getWarbandData(currentWarband.type);
@@ -2211,7 +2301,7 @@ export const populateHiredSwordChoices = () => {
                 // Add disabled option with tooltip explaining why it's not available
                 const option = document.createElement('option');
                 option.value = character.name;
-                option.textContent = `${character.name} (Not Available)`;
+                option.textContent = `${character.name} (No disponible)`;
                 option.disabled = true;
                 option.title = reason; // Show reason as tooltip
                 option.style.color = '#999';
@@ -2229,8 +2319,8 @@ export const populateHiredSwordChoices = () => {
     // Update the select label to show availability summary
     const selectLabel = document.querySelector('label[for="f-hired-sword-choice"]');
     if (selectLabel) {
-        const originalText = selectLabel.textContent.replace(/ \(\d+\/\d+ available\)/, '');
-        selectLabel.textContent = `${originalText} (${availableCount}/${totalCount} available)`;
+        const originalText = selectLabel.textContent.replace(/ \(\d+\/\d+ (available|disponibles)\)/, '');
+        selectLabel.textContent = `${originalText} (${availableCount}/${totalCount} disponibles)`;
     }
     
     console.log(`Hired Swords: ${availableCount}/${totalCount} available`);
@@ -2241,7 +2331,7 @@ export const populateHiredSwordEquipmentChoices = (equipmentOptions) => {
     const equipmentChoiceSelect = document.getElementById('f-hired-sword-equipment-choice');
     if (!equipmentChoiceSelect) return;
 
-    equipmentChoiceSelect.innerHTML = '<option value="">-- Select Equipment --</option>';
+    equipmentChoiceSelect.innerHTML = '<option value="">-- Seleccionar Equipo --</option>';
     
     equipmentOptions.forEach((option, index) => {
         const optionElement = document.createElement('option');
@@ -2350,7 +2440,7 @@ export const updateFighterDataFromHiredSwordSelection = () => {
                 const diceDescription = parsedCost.multiplier > 1 ?
                     `${parsedCost.diceCount}D6 × ${parsedCost.multiplier}` :
                     `${parsedCost.diceCount}D6`;
-                document.getElementById('dice-roll-base-cost').textContent = `Base: ${parsedCost.base} GC + (result of ${diceDescription})`;
+                document.getElementById('dice-roll-base-cost').textContent = `Base: ${parsedCost.base} CO + (resultado de ${diceDescription})`;
                 document.getElementById('dice-roll-value').value = ''; // Clear previous value
                 displayModal('dice-roll-modal');
                 return;
@@ -2367,9 +2457,9 @@ export const updateFighterDataFromHiredSwordSelection = () => {
         const upkeepLabel = document.getElementById('f-upkeep-label');
         
         if (costDisplayType === 'Treasure') {
-            costLabel.textContent = 'Cost (Treasure, per fighter)';
+            costLabel.textContent = 'Coste (Tesoro, por guerrero)';
         } else {
-            costLabel.textContent = 'Cost (GC, per fighter)';
+            costLabel.textContent = 'Coste (CO, por guerrero)';
         }
         
         // Display upkeep cost
@@ -2382,10 +2472,10 @@ export const updateFighterDataFromHiredSwordSelection = () => {
         
         if (specialUpkeepTreasure > 0) {
             upkeepCostElement.textContent = specialUpkeepTreasure;
-            upkeepLabel.textContent = 'Upkeep Cost (Treasure per battle)';
+            upkeepLabel.textContent = 'Coste de mantenimiento (Tesoro por partida)';
         } else {
             upkeepCostElement.textContent = upkeepCost;
-            upkeepLabel.textContent = 'Upkeep Cost (GC per battle)';
+            upkeepLabel.textContent = 'Coste de mantenimiento (CO por partida)';
         }
 
         // Set initial equipment and check for mounts
@@ -2450,10 +2540,10 @@ export const updateFighterDataFromHiredSwordSelection = () => {
 
         const skillsDisplay = document.getElementById('f-skills');
         if (initialSkills.length > 0) {
-            const skillsHtml = initialSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+            const skillsHtml = initialSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
 
         // Display skill categories in the skill tables section (like Heroes)
@@ -2461,7 +2551,7 @@ export const updateFighterDataFromHiredSwordSelection = () => {
         const skillTablesList = document.getElementById('skill-tables-list');
         if (skills.length > 0) {
             setBaseSkillCategories([...skills]);
-            skillTablesList.textContent = skills.join(', ');
+            skillTablesList.textContent = skills.map(s => translateSkillCategory(s)).join(', ');
             skillTablesDisplay.classList.remove('hidden');
         } else {
             setBaseSkillCategories([]);
@@ -2487,11 +2577,11 @@ export const updateFighterDataFromHiredSwordSelection = () => {
         if (hiredSword.data.rules) {
             const rulesHtml = hiredSword.data.rules.split(';').map(rule => {
                 const ruleName = rule.trim().split('(')[0].trim();
-                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${rule.trim()}</span>`;
+                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${translateSpecialRule(rule.trim())}</span>`;
             }).join('<br>');
             rulesDisplay.innerHTML = rulesHtml;
         } else {
-            rulesDisplay.textContent = 'None';
+            rulesDisplay.textContent = 'Ninguna';
         }
 
         // Disable fields
@@ -2530,7 +2620,7 @@ export const finalizeHiredSwordCost = () => {
 
     const userInputValue = parseInt(document.getElementById('dice-roll-value').value);
     if (isNaN(userInputValue) || userInputValue < 0) {
-        showMessage("Please enter a valid value (0 or higher).", 'error');
+        showMessage("Por favor, introduce un valor válido (0 o superior).", 'error');
         return;
     }
 
@@ -2610,10 +2700,10 @@ export const finalizeHiredSwordCost = () => {
 
     const skillsDisplay = document.getElementById('f-skills');
     if (initialSkills.length > 0) {
-        const skillsHtml = initialSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+        const skillsHtml = initialSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
         skillsDisplay.innerHTML = skillsHtml;
     } else {
-        skillsDisplay.textContent = 'None';
+        skillsDisplay.textContent = 'Ninguna';
     }
 
     // Display skill categories in the skill tables section (like Heroes)
@@ -2621,7 +2711,7 @@ export const finalizeHiredSwordCost = () => {
     const skillTablesList = document.getElementById('skill-tables-list');
     if (skills.length > 0) {
         setBaseSkillCategories([...skills]);
-        skillTablesList.textContent = skills.join(', ');
+        skillTablesList.textContent = skills.map(s => translateSkillCategory(s)).join(', ');
         skillTablesDisplay.classList.remove('hidden');
     } else {
         setBaseSkillCategories([]);
@@ -2646,11 +2736,11 @@ export const finalizeHiredSwordCost = () => {
     if (hiredSword.data.rules) {
         const rulesHtml = hiredSword.data.rules.split(';').map(rule => {
             const ruleName = rule.trim().split('(')[0].trim();
-            return `<span class="underline cursor-pointer" data-rule="${ruleName}">${rule.trim()}</span>`;
+            return `<span class="underline cursor-pointer" data-rule="${ruleName}">${translateSpecialRule(rule.trim())}</span>`;
         }).join('<br>');
         rulesDisplay.innerHTML = rulesHtml;
     } else {
-        rulesDisplay.textContent = 'None';
+        rulesDisplay.textContent = 'Ninguna';
     }
 
     // Disable fields
@@ -2674,7 +2764,7 @@ export const finalizeHiredSwordCost = () => {
 export const populateVehicleChoices = () => {
     const vehicleSelect = document.getElementById('f-vehicle-choice');
     const currentWarbandType = currentWarband.type;
-    vehicleSelect.innerHTML = '<option value="">-- Select a Vehicle --</option>';
+    vehicleSelect.innerHTML = '<option value="">-- Seleccionar un Vehículo --</option>';
     VEHICLES.forEach(grade => {
         const optgroup = document.createElement('optgroup');
         optgroup.label = grade.grade;
@@ -2741,10 +2831,10 @@ export const updateFighterDataFromVehicleSelection = () => {
 
         const skillsDisplay = document.getElementById('f-skills');
         if (skills.length > 0) {
-            const skillsHtml = skills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+            const skillsHtml = skills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
 
         // Store special rules for turn order tracker
@@ -2761,11 +2851,11 @@ export const updateFighterDataFromVehicleSelection = () => {
         if (vehicle.data.special_rules) {
             const rulesHtml = vehicle.data.special_rules.split(';').map(rule => {
                 const ruleName = rule.trim().split('(')[0].trim();
-                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${rule.trim()}</span>`;
+                return `<span class="underline cursor-pointer" data-rule="${ruleName}">${translateSpecialRule(rule.trim())}</span>`;
             }).join('<br>');
             rulesDisplay.innerHTML = rulesHtml;
         } else {
-            rulesDisplay.textContent = 'None';
+            rulesDisplay.textContent = 'Ninguna';
         }
 
         // Ensure horizontal section is visible after setting rules
@@ -2837,7 +2927,7 @@ export const renderSelectedInjuries = () => {
     listContainer.innerHTML = '';
 
     if (selectedInjuries.length === 0) {
-         listContainer.innerHTML = `<li class="text-slate-500 text-sm">No injuries selected.</li>`;
+         listContainer.innerHTML = `<li class="text-slate-500 text-sm">Ninguna secuela seleccionada.</li>`;
     }
 
     selectedInjuries.forEach((injuryName, index) => {
@@ -2845,7 +2935,7 @@ export const renderSelectedInjuries = () => {
         listItem.className = 'flex justify-between items-center text-yellow-200 text-sm';
 
         listItem.innerHTML = `
-            <span class="injury-name underline cursor-pointer" data-injury-name="${injuryName}">${injuryName}</span>
+            <span class="injury-name underline cursor-pointer" data-injury-name="${injuryName}">${translateInjury(injuryName)}</span>
             <button class="text-red-400 hover:text-red-300" data-action="remove-injury" data-injury-index="${index}">
                 <i class="fas fa-minus-circle"></i>
             </button>
@@ -2866,7 +2956,7 @@ export const addInjury = (injuryName) => {
 
     // Check if injury is already selected
     if (selectedInjuries.includes(injuryName)) {
-        showMessage("This injury is already selected.", 'error');
+        showMessage("Esta secuela ya está seleccionada.", 'error');
         return;
     }
 
@@ -2910,7 +3000,7 @@ export const addSkill = (skillName) => {
 
     // Check if skill is already selected
     if (currentSkills.includes(skillName)) {
-        showMessage("This skill is already selected.", 'error');
+        showMessage("Esta habilidad ya está seleccionada.", 'error');
         return;
     }
 
@@ -2922,7 +3012,7 @@ export const addSkill = (skillName) => {
         const skillsHtml = currentSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
         skillsDisplay.innerHTML = skillsHtml;
     } else {
-        skillsDisplay.textContent = 'None';
+        skillsDisplay.textContent = 'Ninguna';
     }
 
     // Add the skill to the SPECIAL_RULES_DETAILS array if it's not already there
@@ -2979,27 +3069,33 @@ export const updateWarriorRulesDisplay = () => {
     if (specialRules) {
         const specialRulesHtml = specialRules.split(';').map(rule => {
             const ruleName = rule.trim().split('(')[0].trim();
-            return `<span class="underline cursor-pointer" data-rule="${ruleName}">${rule.trim()}</span>`;
+            return `<span class="underline cursor-pointer" data-rule="${ruleName}">${translateSpecialRule(rule.trim())}</span>`;
         }).join('<br>');
         rulesDisplay.innerHTML = specialRulesHtml;
     } else {
-        rulesDisplay.textContent = 'None';
+        rulesDisplay.textContent = 'Ninguna';
     }
 };
 
 /** Shows the equipment details modal */
 export const showEquipmentDetailsModal = (equipmentName, equipmentRules, equipmentCost) => {
-    document.getElementById('equipment-details-title').textContent = equipmentName;
-    document.getElementById('equipment-name').textContent = equipmentName;
+    const spanishName = translateEquipment(equipmentName);
+    const hasDiff = spanishName && spanishName.toLowerCase() !== equipmentName.toLowerCase();
+    const titleText = hasDiff ? `${spanishName} (${equipmentName})` : (spanishName || equipmentName);
+
+    document.getElementById('equipment-details-title').textContent = titleText;
+    document.getElementById('equipment-name').textContent = titleText;
 
     let costDisplay = equipmentCost;
     if (!costDisplay || costDisplay === 'undefined') {
         const masterItem = MASTER_EQUIPMENT_LIST.find(e => e.name === equipmentName);
         costDisplay = masterItem ? formatEquipmentCostDisplay(masterItem) : '0';
     }
-    document.getElementById('equipment-cost').textContent = costDisplay;
+    const cleanCost = String(costDisplay).replace(/\s*(CO|gc|gold crowns?)\s*/gi, '').trim();
+    document.getElementById('equipment-cost').textContent = cleanCost;
 
-    document.getElementById('equipment-rules').innerHTML = formatEquipmentRules(equipmentRules);
+    const translatedRules = translateEquipmentRules(equipmentName, equipmentRules);
+    document.getElementById('equipment-rules').innerHTML = translatedRules;
     displayModal('equipment-details-modal');
 };
 
@@ -3106,14 +3202,14 @@ export const showSkillOverrideModal = () => {
 
     const filterSelect = document.createElement('select');
     filterSelect.className = 'w-full p-2 rounded-lg bg-slate-800 border border-slate-600 text-white text-sm';
-    filterSelect.innerHTML = '<option value="">All Skills</option>';
+    filterSelect.innerHTML = '<option value="">Todas las Habilidades</option>';
 
     // Collect all warband names
     const allWarbandNames = WARBANDS.flatMap(g => g.warbands.map(w => w.name)).sort();
     allWarbandNames.forEach(name => {
         const option = document.createElement('option');
         option.value = name;
-        option.textContent = name;
+        option.textContent = translateWarband(name);
         filterSelect.appendChild(option);
     });
 
@@ -3162,7 +3258,7 @@ export const showStatsOverrideModal = () => {
             const statLineStats = currentFighterMultiStats[statLineKey];
             return `
                 <div class="bg-slate-800 p-4 rounded-lg border border-slate-600 mb-4">
-                    <div class="text-center font-bold text-mordheim-gold mb-2 uppercase text-sm">${statLineKey}</div>
+                    <div class="text-center font-bold text-mordheim-gold mb-2 uppercase text-sm">${translateWarriorRole(statLineKey)}</div>
                     <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
                         ${STATS_FIELDS.map(stat => `
                             <div class="flex flex-col items-center bg-slate-900 p-2 rounded border border-slate-700">
@@ -3204,7 +3300,7 @@ export const showStatsOverrideModal = () => {
     }
 
     // Build history entries
-    let historyHtml = '<p class="text-sm text-slate-500 italic">No past overrides.</p>';
+    let historyHtml = '<p class="text-sm text-slate-500 italic">Sin modificaciones anteriores.</p>';
     if (fighter && Array.isArray(fighter.stats_override_history) && fighter.stats_override_history.length > 0) {
         historyHtml = fighter.stats_override_history.map(entry => `
             <div class="bg-slate-900 p-2.5 rounded border border-slate-700 text-xs space-y-1 text-left">
@@ -3213,7 +3309,7 @@ export const showStatsOverrideModal = () => {
                     <span class="text-slate-300 font-bold">${entry.change}</span>
                 </div>
                 <div class="text-slate-305">
-                    <span class="text-slate-500 font-semibold">Reason:</span> ${entry.reason || 'No reason provided'}
+                    <span class="text-slate-500 font-semibold">Motivo:</span> ${entry.reason || 'Sin motivo especificado'}
                 </div>
             </div>
         `).join('');
@@ -3222,19 +3318,19 @@ export const showStatsOverrideModal = () => {
     const extraFieldsHtml = `
         <!-- Override Reason -->
         <div class="mt-4 p-4 bg-slate-800 rounded-lg border border-slate-600 text-left">
-            <label for="override-reason" class="block text-sm font-semibold text-slate-300 mb-1">Reason for Override (Optional - Max 50 chars)</label>
+            <label for="override-reason" class="block text-sm font-semibold text-slate-300 mb-1">Motivo de la modificación (Opcional - Máx 50 car.)</label>
             <input
                 type="text"
                 id="override-reason"
                 maxlength="50"
-                placeholder="e.g., Glitch fix for advances"
+                placeholder="p. ej., Corrección por fallo en avances"
                 class="w-full p-2 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:ring-1 focus:ring-mordheim-gold"
             >
         </div>
 
         <!-- Override History -->
         <div class="mt-4 p-4 bg-slate-800 rounded-lg border border-slate-600 text-left">
-            <h4 class="text-sm font-bold text-mordheim-gold mb-2"><i class="fas fa-history mr-1"></i>Override History</h4>
+            <h4 class="text-sm font-bold text-mordheim-gold mb-2"><i class="fas fa-history mr-1"></i>Historial de modificaciones</h4>
             <div id="override-history-list" class="space-y-2 max-h-40 overflow-y-auto custom-scroll">
                 ${historyHtml}
             </div>
@@ -3302,12 +3398,12 @@ export const showStatsOverrideModal = () => {
             
             breakdownHtml = `
                 <div class="mt-4 p-4 bg-slate-800 rounded-lg border border-slate-600">
-                    <h4 class="text-sm font-bold text-mordheim-gold mb-3"><i class="fas fa-chart-bar mr-1"></i>Characteristic Modifiers</h4>
+                    <h4 class="text-sm font-bold text-mordheim-gold mb-3"><i class="fas fa-chart-bar mr-1"></i>Modificadores de Atributos</h4>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-center">
                             <thead>
                                 <tr class="text-slate-400 uppercase">
-                                    <th class="text-left p-1">Source</th>
+                                    <th class="text-left p-1">Origen</th>
                                     ${STATS_FIELDS.map(stat => `<th class="p-1">${stat}</th>`).join('')}
                                 </tr>
                             </thead>
@@ -3318,25 +3414,26 @@ export const showStatsOverrideModal = () => {
                                 </tr>
                                 ${STATS_FIELDS.some(stat => (eqMods[stat] || 0) !== 0) ? `
                                 <tr class="text-green-400 border-t border-slate-700">
-                                    <td class="text-left p-1 font-semibold">Equipment</td>
+                                    <td class="text-left p-1 font-semibold">Equipo</td>
                                     ${STATS_FIELDS.map(stat => `<td class="p-1">${formatMod(eqMods[stat] || 0)}</td>`).join('')}
                                 </tr>` : ''}
                                 ${STATS_FIELDS.some(stat => (skMods[stat] || 0) !== 0) ? `
                                 <tr class="text-blue-400 border-t border-slate-700">
-                                    <td class="text-left p-1 font-semibold">Skills</td>
+                                    <td class="text-left p-1 font-semibold">Habilidades</td>
                                     ${STATS_FIELDS.map(stat => `<td class="p-1">${formatMod(skMods[stat] || 0)}</td>`).join('')}
                                 </tr>` : ''}
                                 ${STATS_FIELDS.some(stat => (injMods[stat] || 0) !== 0) ? `
                                 <tr class="text-red-400 border-t border-slate-700">
-                                    <td class="text-left p-1 font-semibold">Injuries</td>
+                                    <td class="text-left p-1 font-semibold">Secuelas</td>
                                     ${STATS_FIELDS.map(stat => `<td class="p-1">${formatMod(injMods[stat] || 0)}</td>`).join('')}
                                 </tr>` : ''}
                                 <tr class="text-mordheim-gold font-bold border-t-2 border-mordheim-gold">
-                                    <td class="text-left p-1">Displayed</td>
+                                    <td class="text-left p-1">Mostrado</td>
                                     ${STATS_FIELDS.map(stat => {
                                         const base = breakdownBaseStats[stat] !== undefined ? breakdownBaseStats[stat] : 0;
                                         const total = base + (eqMods[stat] || 0) + (skMods[stat] || 0) + (injMods[stat] || 0);
-                                        return `<td class="p-1">${total}</td>`;
+                                        const totalDisplay = stat === 'M' ? formatMovementStat(total) : total;
+                                        return `<td class="p-1">${totalDisplay}</td>`;
                                     }).join('')}
                                 </tr>
                             </tbody>
@@ -3452,7 +3549,7 @@ export const submitStatsOverride = () => {
     renderRacialMaximums();
 
     hideModal('stats-override-modal');
-    showMessage("Characteristics successfully overridden!", 'success');
+    showMessage("¡Atributos modificados con éxito!", 'success');
 };
 
 // ─── Skill Access Override ──────────────────────────────────────────────────
@@ -3493,9 +3590,9 @@ export const showSkillAccessOverrideModal = () => {
         row.innerHTML = `
             <input type="checkbox" class="w-5 h-5 text-mordheim-gold bg-slate-800 border-slate-600 rounded focus:ring-mordheim-gold focus:ring-2"
                 data-category="${category}" ${isChecked ? 'checked' : ''}>
-            <span class="text-slate-200 font-semibold">${category}</span>
-            ${isFromEquipment ? '<span class="text-green-400 text-xs">(from equipment)</span>' : ''}
-            ${isRestricted ? '<span class="text-red-400 text-xs">(restricted by equipment)</span>' : ''}
+            <span class="text-slate-200 font-semibold">${translateSkillCategory(category)}</span>
+            ${isFromEquipment ? '<span class="text-green-400 text-xs">(por equipo)</span>' : ''}
+            ${isRestricted ? '<span class="text-red-400 text-xs">(restringido por equipo)</span>' : ''}
         `;
         optionsContainer.appendChild(row);
     });
@@ -3529,7 +3626,7 @@ export const submitSkillAccessOverride = () => {
     refreshSkillTablesDisplay();
 
     hideModal('skill-access-override-modal');
-    showMessage('Skill access override applied!', 'success');
+    showMessage('¡Acceso a tablas de habilidades modificado!', 'success');
 };
 
 /** Resets the skill access override, reverting to default warband/fighter data */
@@ -3574,7 +3671,7 @@ export const resetSkillAccessOverride = () => {
     refreshSkillTablesDisplay();
 
     hideModal('skill-access-override-modal');
-    showMessage('Skill access override removed — reverted to defaults.', 'success');
+    showMessage('¡Modificación eliminada — restablecido por defecto!', 'success');
 };
 
 /** Refreshes the Available Skill Tables display using current state */
@@ -3609,27 +3706,28 @@ const refreshSkillTablesDisplay = () => {
     if (skillTablesDisplay && skillTablesList) {
         if (effective.length > 0 || restrictedCats.length > 0) {
             const categoriesHtml = effective.map(category => {
+                const catName = translateSkillCategory(category);
                 const isFromEquipment = grantedCats.includes(category) && !baseCats.includes(category);
                 if (isFromEquipment) {
-                    return `<span class="text-slate-300">${category}</span> <span class="text-green-400 text-xs">(from equipment)</span>`;
+                    return `<span class="text-slate-300">${catName}</span> <span class="text-green-400 text-xs">(por equipo)</span>`;
                 }
                 const isFromSkill = category === 'Strength' && hasSkillGrant && !baseCats.includes(category);
                 if (isFromSkill) {
-                    return `<span class="text-slate-300">${category}</span> <span class="text-green-400 text-xs">(from skill)</span>`;
+                    return `<span class="text-slate-300">${catName}</span> <span class="text-green-400 text-xs">(por habilidad)</span>`;
                 }
-                return `<span class="text-slate-300">${category}</span>`;
+                return `<span class="text-slate-300">${catName}</span>`;
             }).join(', ');
 
             // Show restricted categories with strikethrough
             const restrictedHtml = restrictedCats.length > 0
                 ? (effective.length > 0 ? ', ' : '') + restrictedCats.map(cat =>
-                    `<span class="text-red-400 line-through">${cat}</span> <span class="text-red-400 text-xs">(restricted by equipment)</span>`
+                    `<span class="text-red-400 line-through">${translateSkillCategory(cat)}</span> <span class="text-red-400 text-xs">(restringido por equipo)</span>`
                 ).join(', ')
                 : '';
 
             let overrideIndicator = '';
             if (hasOverride) {
-                overrideIndicator = ' <span class="text-orange-400 text-xs font-semibold ml-2">(overridden)</span>';
+                overrideIndicator = ' <span class="text-orange-400 text-xs font-semibold ml-2">(modificado)</span>';
             }
 
             skillTablesList.innerHTML = categoriesHtml + restrictedHtml + overrideIndicator;
@@ -3649,10 +3747,10 @@ export const showInjurySelectionModal = () => {
         const injuryElement = document.createElement('div');
         injuryElement.className = 'p-2 rounded-lg hover:bg-slate-600 cursor-pointer';
         injuryElement.innerHTML = `
-            <p class="font-semibold">${injury.name}</p>
-            <p class="text-xs text-slate-400">${injury.description}</p>
+            <p class="font-semibold">${translateInjury(injury.name)}</p>
+            <p class="text-xs text-slate-400">${translateInjuryDescription(injury.name, injury.description)}</p>
             ${injury.characteristicModifiers && Object.keys(injury.characteristicModifiers).length > 0 ?
-                `<p class="text-xs text-yellow-300">Modifiers: ${Object.entries(injury.characteristicModifiers).map(([stat, mod]) => `${stat} ${mod > 0 ? '+' : ''}${mod}`).join(', ')}</p>` :
+                `<p class="text-xs text-yellow-300">Modificadores: ${Object.entries(injury.characteristicModifiers).map(([stat, mod]) => `${getStatLabel(stat)} ${mod > 0 ? '+' : ''}${mod}`).join(', ')}</p>` :
                 ''
             }
         `;
@@ -3693,7 +3791,7 @@ export const renderTurnOrderTracker = (warband) => {
 
     if (!warband || !warband.members || warband.members.length === 0) {
         for (const key in timingSections) {
-            document.getElementById(timingSections[key]).innerHTML = '<li class="text-slate-500 italic">No skills for this phase.</li>';
+            document.getElementById(timingSections[key]).innerHTML = '<li class="text-slate-500 italic">No hay habilidades para esta fase.</li>';
         }
         return;
     }
@@ -3835,7 +3933,7 @@ export const renderTurnOrderTracker = (warband) => {
         const sectionDiv = ulElement.parentElement; // Get the parent div of the ul
 
         if (skillsByTiming[timingId].length === 0) {
-            ulElement.innerHTML = '<li class="text-slate-500 italic">No skills for this phase.</li>';
+            ulElement.innerHTML = '<li class="text-slate-500 italic">No hay habilidades para esta fase.</li>';
             sectionDiv.style.display = 'none'; // Hide section with no data
         } else {
             // Sort by name
@@ -3870,10 +3968,10 @@ export const renderTurnOrderTracker = (warband) => {
                 const escapedEquipmentName = group.type === 'equipment' ? escapeHtml(group.item.data.equipmentName) : '';
                 
                 const fighterIdAttr = group.type === 'skill' && group.fighterId ? ` data-fighter-id="${group.fighterId}"` : '';
-                const dataAttr = group.type === 'skill' ? `data-skill-name="${escapedName}"${fighterIdAttr}` : (group.type === 'rule' ? `data-rule="${escapedName}"` : (group.type === 'equipment' ? `data-equipment-name="${escapedEquipmentName}" data-equipment-rule-name="${escapedName}"` : `data-injury-name="${escapedName}"`));
+                const displayGroupName = group.type === 'skill' ? translateSkill(group.name) : (group.type === 'rule' ? translateSpecialRule(group.name) : (group.type === 'injury' ? translateInjury(group.name) : translateEquipment(group.name)));
                 return `
                     <li class="flex items-center justify-between p-2 bg-slate-700 rounded-md hover:bg-slate-600 transition">
-                        <span class="font-semibold text-yellow-200 underline cursor-pointer" ${dataAttr}>${group.name}</span>
+                        <span class="font-semibold text-yellow-200 underline cursor-pointer" ${dataAttr}>${displayGroupName}</span>
                         <span class="text-xs text-slate-400 ml-2">(${combinedFighterNames})</span>
                     </li>
                 `;
@@ -3891,19 +3989,19 @@ export const renderGrantedSkillCategories = () => {
     if (!displayContainer) return;
     
     if (grantedCategories.length === 0) {
-        displayContainer.innerHTML = '<p class="text-slate-500 text-sm italic">No skill categories granted by equipment.</p>';
+        displayContainer.innerHTML = '<p class="text-slate-500 text-sm italic">No hay categorías de habilidad otorgadas por el equipo.</p>';
         return;
     }
     
     const categoriesHtml = grantedCategories.map(category => `
         <span class="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold mr-2 mb-1">
-            ${category}
+            ${translateSkillCategory(category)}
         </span>
     `).join('');
     
     displayContainer.innerHTML = `
         <div class="mb-2">
-            <p class="text-sm font-semibold text-slate-300 mb-1">Skill Categories Granted by Equipment:</p>
+            <p class="text-sm font-semibold text-slate-300 mb-1">Categorías de Habilidad Otorgadas por el Equipo:</p>
             <div class="flex flex-wrap">
                 ${categoriesHtml}
             </div>
@@ -3913,19 +4011,19 @@ export const renderGrantedSkillCategories = () => {
 
 // Battle View Implementation
 const PHASES = [
-    { id: 1, name: "Pre Game", description: "Setup and pre-game skills" },
-    { id: 2, name: "Recovery", description: "Recovery phase skills" },
-    { id: 3, name: "Movement", description: "General movement skills" },
-    { id: 4, name: "My Movement", description: "Your movement phase" },
-    { id: 5, name: "Opponent Movement", description: "Opponent movement phase" },
-    { id: 6, name: "Shooting", description: "General shooting skills" },
-    { id: 7, name: "My Shooting", description: "Your shooting phase" },
-    { id: 8, name: "Opponent Shooting", description: "Opponent shooting phase" },
-    { id: 9, name: "Melee", description: "General melee skills" },
-    { id: 10, name: "My Melee", description: "Your melee phase" },
-    { id: 11, name: "Opponent Melee", description: "Opponent melee phase" },
-    { id: 12, name: "Misc", description: "Miscellaneous phase" },
-    { id: 13, name: "Post Game", description: "Post game skills" }
+    { id: 1, name: "Antes de la Partida", description: "Despliegue y habilidades previas a la batalla" },
+    { id: 2, name: "Fase de Recuperación", description: "Habilidades de la fase de recuperación" },
+    { id: 3, name: "Fase de Movimiento", description: "Habilidades generales de movimiento" },
+    { id: 4, name: "Mi Movimiento", description: "Tu fase de movimiento" },
+    { id: 5, name: "Movimiento del Rival", description: "Fase de movimiento del adversario" },
+    { id: 6, name: "Fase de Disparo", description: "Habilidades generales de disparo" },
+    { id: 7, name: "Mi Disparo", description: "Tu fase de disparo" },
+    { id: 8, name: "Disparo del Rival", description: "Fase de disparo del adversario" },
+    { id: 9, name: "Combate Cuerpo a Cuerpo", description: "Habilidades generales de combate cuerpo a cuerpo" },
+    { id: 10, name: "Mi Combate", description: "Tu fase de combate cuerpo a cuerpo" },
+    { id: 11, name: "Combate del Rival", description: "Fase de combate cuerpo a cuerpo del adversario" },
+    { id: 12, name: "Varios", description: "Habilidades de momento variado o continuo" },
+    { id: 13, name: "Después de la Partida", description: "Habilidades posteriores a la batalla" }
 ];
 
 let currentPhase = 1;
@@ -4063,7 +4161,7 @@ const populatePhaseDropdown = (warband) => {
     
     if (sortedPhases.length === 0) {
         // If no phases have data, add a default option
-        phaseSelect.innerHTML = '<option value="1">Phase 1: Pre Game (No abilities)</option>';
+        phaseSelect.innerHTML = '<option value="1">Fase 1: Antes de la Partida (Sin habilidades)</option>';
         currentPhase = 1;
     } else {
         // Add phases with data
@@ -4071,7 +4169,7 @@ const populatePhaseDropdown = (warband) => {
             const phase = PHASES[phaseId - 1];
             const option = document.createElement('option');
             option.value = phaseId;
-            option.textContent = `Phase ${phaseId}: ${phase.name}`;
+            option.textContent = `Fase ${phaseId}: ${phase.name}`;
             phaseSelect.appendChild(option);
         });
         
@@ -4097,7 +4195,7 @@ const renderPhaseAbilities = (phaseId) => {
     const abilitiesList = document.getElementById('phase-abilities-list');
     
     if (!currentWarband || !currentWarband.members) {
-        abilitiesList.innerHTML = '<p class="text-slate-500 italic">No abilities for this phase.</p>';
+        abilitiesList.innerHTML = '<p class="text-slate-500 italic">No hay habilidades para esta fase.</p>';
         return;
     }
     
@@ -4201,7 +4299,7 @@ const renderPhaseAbilities = (phaseId) => {
     });
     
     if (phaseAbilities.length === 0) {
-        abilitiesList.innerHTML = '<p class="text-slate-500 italic">No abilities for this phase.</p>';
+        abilitiesList.innerHTML = '<p class="text-slate-500 italic">No hay habilidades para esta fase.</p>';
     } else {
         // Group abilities by type and name
         const groupedAbilities = phaseAbilities.reduce((acc, ability) => {
@@ -4250,12 +4348,12 @@ const renderPhaseAbilities = (phaseId) => {
                                 <div class="flex items-center">
                                     <span class="font-semibold text-yellow-200 underline cursor-pointer" 
                                           ${dataAttributes}
-                                          title="Click for details">
-                                        ${group.name}
+                                          title="Haz clic para ver detalles">
+                                        ${group.type === 'skill' ? translateSkill(group.name) : (group.type === 'rule' ? translateSpecialRule(group.name) : (group.type === 'injury' ? translateInjury(group.name) : translateEquipment(group.name)))}
                                     </span>
                                     <button class="text-slate-400 hover:text-slate-200 ml-2 p-1 transition-colors duration-200" 
                                             onclick="toggleAbilityDetails('${uniqueId}')" 
-                                            title="Toggle details">
+                                            title="Mostrar/ocultar detalles">
                                         <i class="fas fa-chevron-down text-sm" id="${uniqueId}-icon"></i>
                                     </button>
                                 </div>
@@ -4263,7 +4361,7 @@ const renderPhaseAbilities = (phaseId) => {
                             <span class="text-sm text-slate-400 block mt-1">(${combinedFighterNames})</span>
                         </div>
                         <span class="text-xs px-2 py-1 rounded ${group.type === 'skill' ? 'bg-blue-600' : group.type === 'rule' ? 'bg-purple-600' : 'bg-green-600'} text-white">
-                            ${group.type}
+                            ${group.type === 'skill' ? 'Habilidad' : (group.type === 'rule' ? 'Regla Especial' : (group.type === 'injury' ? 'Secuela' : 'Equipo'))}
                         </span>
                     </div>
                     <div id="${uniqueId}" class="mt-3 text-sm text-slate-300 hidden transition-all duration-200">
@@ -4282,7 +4380,7 @@ export const renderBattleFighters = (warband) => {
     const fightersGrid = document.getElementById('battle-fighters-grid');
     
     if (!warband.members || warband.members.length === 0) {
-        fightersGrid.innerHTML = '<p class="text-slate-500 italic">No fighters in warband.</p>';
+        fightersGrid.innerHTML = '<p class="text-slate-500 italic">No hay guerreros en la banda.</p>';
         return;
     }
     
@@ -4486,23 +4584,24 @@ export const renderBattleFighters = (warband) => {
             const meleeSave = armorSaveResult.melee.finalSaveValue;
             const rangedSave = armorSaveResult.ranged.finalSaveValue;
             if (meleeSave === 7 && rangedSave === 7) {
-                armorSaveDisplay = '<span class="text-slate-500">None</span>';
+                armorSaveDisplay = '<span class="text-slate-500">Ninguna</span>';
             } else if (meleeSave === rangedSave) {
-                armorSaveDisplay = `<span class="text-cyan-400 font-bold" title="Melee/Ranged: ${meleeSave}+">${meleeSave}+</span>`;
+                armorSaveDisplay = `<span class="text-cyan-400 font-bold" title="CaC/Proyectiles: ${meleeSave}+">${meleeSave}+</span>`;
             } else {
-                armorSaveDisplay = `<span class="text-cyan-400 font-bold" title="Melee: ${meleeSave}+, Ranged: ${rangedSave}+">M:${meleeSave}+ R:${rangedSave}+</span>`;
+                armorSaveDisplay = `<span class="text-cyan-400 font-bold" title="CaC: ${meleeSave}+, Proyectiles: ${rangedSave}+">CaC:${meleeSave}+ Proy:${rangedSave}+</span>`;
             }
         } else {
             // Single save value
             const saveValue = armorSaveResult.basic.finalSaveValue;
-            armorSaveDisplay = saveValue === 7 ? '<span class="text-slate-500">None</span>' : `<span class="text-cyan-400 font-bold" title="Armor Save: ${saveValue}+">${saveValue}+</span>`;
+            armorSaveDisplay = saveValue === 7 ? '<span class="text-slate-500">Ninguna</span>' : `<span class="text-cyan-400 font-bold" title="Salvación por Armadura: ${saveValue}+">${saveValue}+</span>`;
         }
 
-        const equipmentHTML = essentialEquipment.map(e =>
-            `<span class="show-equipment-btn bg-slate-600 px-1 py-0.5 rounded text-xs text-yellow-300 underline cursor-pointer hover:bg-slate-500"
+        const equipmentHTML = essentialEquipment.map(e => {
+            const spanishEquip = translateEquipment(e.name);
+            return `<span class="show-equipment-btn bg-slate-600 px-1 py-0.5 rounded text-xs text-yellow-300 underline cursor-pointer hover:bg-slate-500"
                    data-equipment="${e.name}"
-                   title="Click for details">${e.name}</span>`
-        ).join('');
+                   title="${spanishEquip}">${spanishEquip}</span>`;
+        }).join('');
         
         // Separate skills and spells for display
         const groupName = getMagicGroupForFighter(fighter);
@@ -4540,21 +4639,23 @@ export const renderBattleFighters = (warband) => {
 
         // Create clickable skill HTML
         const skillsHtml = skillsToShow.length > 0 
-            ? skillsToShow.map(skill => 
-                `<span class="show-skills-btn text-blue-400 underline cursor-pointer hover:text-blue-300" 
+            ? skillsToShow.map(skill => {
+                const spSkill = translateSkill(skill);
+                return `<span class="show-skills-btn text-blue-400 underline cursor-pointer hover:text-blue-300" 
                        data-skills="${skill}" 
                        data-fighter-id="${fighter.id}"
-                       title="Click for details">${skill}</span>`
-              ).join(', ')
-            : 'None';
+                       title="${spSkill}">${spSkill}</span>`;
+              }).join(', ')
+            : 'Ninguna';
 
         // Create clickable spell HTML
         const spellsHtml = fighterSpells.length > 0 
-            ? fighterSpells.map(spell => 
-                `<span class="show-spells-btn text-mordheim-gold underline cursor-pointer hover:text-yellow-300" 
+            ? fighterSpells.map(spell => {
+                const spSpell = translateSkill(spell);
+                return `<span class="show-spells-btn text-mordheim-gold underline cursor-pointer hover:text-yellow-300" 
                        data-spell="${spell}" 
-                       title="Click for details">${spell}</span>`
-              ).join(', ')
+                       title="${spSpell}">${spSpell}</span>`;
+              }).join(', ')
             : '';
 
         // Parse special rules (string or array)
@@ -4570,26 +4671,28 @@ export const renderBattleFighters = (warband) => {
         const specialRulesHtml = rulesArray.length > 0
             ? rulesArray.map(name => {
                 const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === name);
+                const spRule = translateSpecialRule(name);
                 if (ruleData) {
                     return `<span class="show-rules-btn text-purple-400 underline cursor-pointer hover:text-purple-300" 
                                data-rule="${name}" 
-                               title="Click for details">${name}</span>`;
+                               title="${spRule}">${spRule}</span>`;
                 }
-                return `<span class="text-slate-300">${name}</span>`;
+                return `<span class="text-slate-300">${spRule}</span>`;
               }).join(', ')
-            : 'None';
+            : 'Ninguna';
 
         const injuriesHtml = (fighter.injuries && fighter.injuries.length > 0)
             ? fighter.injuries.map(injuryName => {
                 const injuryData = MASTER_INJURY_LIST.find(i => i.name === injuryName);
+                const spInjury = translateInjury(injuryName);
                 if (injuryData) {
                     return `<span class="show-injuries-btn text-red-400 underline cursor-pointer hover:text-red-300" 
                                data-injury="${injuryName}" 
-                               title="Click for details">${injuryName}</span>`;
+                               title="${spInjury}">${spInjury}</span>`;
                 }
-                return `<span class="text-slate-300">${injuryName}</span>`;
+                return `<span class="text-slate-300">${spInjury}</span>`;
               }).join(', ')
-            : 'None';
+            : 'Ninguna';
         
         // Determine card styling based on casualty state
         const isHenchmanDead = isHenchman && effectiveGroupSize === 0;
@@ -4599,36 +4702,37 @@ export const renderBattleFighters = (warband) => {
         const cardPadding = (hasCasualties && !isHenchman) || isHenchmanDead ? 'py-2 px-3' : 'p-3';
         const headerMargin = (hasCasualties && !isHenchman) || isHenchmanDead ? 'mb-1' : 'mb-2';
         
-        const fighterTypeLabel = fighter.warrior_choice || fighter.originalName || fighter.type;
+        const rawRole = fighter.warrior_choice || fighter.originalName || fighter.type;
+        const fighterTypeLabel = translateWarriorRole(rawRole) || rawRole;
         
         return `
             <div class="bg-slate-700 ${cardPadding} rounded-lg border-l-4 ${cardBorder} ${cardOpacity}" id="fighter-card-${fighter.id}" style="position: relative;">
                 <div class="flex justify-between items-start ${headerMargin}">
                     <div>
                         <h4 class="fighter-card-toggle font-bold text-sm cursor-pointer hover:text-mordheim-gold transition" data-fighter-id="${fighter.id}">${fighter.name}</h4>
-                        <p class="text-xs text-slate-400">${fighterTypeLabel} ${isHenchman ? `x${effectiveGroupSize}${hasCasualties ? ` (${fighter.group_size || 1} - ${casualtyCount} casualties)` : ''}` : ''}</p>
-                        <p class="text-xs text-cyan-400">Armor: ${armorSaveDisplay}</p>
+                        <p class="text-xs text-slate-400">${fighterTypeLabel} ${isHenchman ? `x${effectiveGroupSize}${hasCasualties ? ` (${fighter.group_size || 1} - ${casualtyCount} bajas)` : ''}` : ''}</p>
+                        <p class="text-xs text-cyan-400">Armadura: ${armorSaveDisplay}</p>
                     </div>
                     <div class="flex items-center space-x-2">
                         <div class="text-center">
-                            <div class="text-xs text-slate-400">Casualty</div>
-                            <button class="casualty-btn p-1 ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'bg-gray-600 opacity-50 cursor-not-allowed' : 'bg-orange-600'} text-white rounded ${(hasCasualties && !isHenchman) || isHenchmanDead ? '' : 'hover:bg-orange-700'} transition relative" title="${(hasCasualties && !isHenchman) || isHenchmanDead ? (isHenchmanDead ? 'Group eliminated' : 'Unit has taken casualties') : 'Mark Casualty'}" data-fighter-id="${fighter.id}" data-fighter-name="${fighter.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')}" ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'disabled' : ''}>
+                            <div class="text-xs text-slate-400">Baja</div>
+                            <button class="casualty-btn p-1 ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'bg-gray-600 opacity-50 cursor-not-allowed' : 'bg-orange-600'} text-white rounded ${(hasCasualties && !isHenchman) || isHenchmanDead ? '' : 'hover:bg-orange-700'} transition relative" title="${(hasCasualties && !isHenchman) || isHenchmanDead ? (isHenchmanDead ? 'Grupo eliminado' : 'La unidad ha sufrido bajas') : 'Marcar Baja'}" data-fighter-id="${fighter.id}" data-fighter-name="${fighter.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')}" ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'disabled' : ''}>
                                 <i class="fas fa-heart-broken text-xs"></i>
                                 ${casualtyCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">${casualtyCount}</span>` : ''}
                             </button>
                             ${canUndoCasualty ? `
-                                <button class="undo-casualty-btn p-1 bg-slate-600 hover:bg-slate-500 text-white rounded transition ml-1" title="Undo last casualty" data-fighter-id="${fighter.id}">
+                                <button class="undo-casualty-btn p-1 bg-slate-600 hover:bg-slate-500 text-white rounded transition ml-1" title="Deshacer última baja" data-fighter-id="${fighter.id}">
                                     <i class="fas fa-undo text-xs"></i>
                                 </button>
                             ` : (isSickCasualty ? `
-                                <span class="ml-1 text-xs text-slate-400" title="Sickness casualty - cannot be undone"><i class="fas fa-procedures"></i></span>
+                                <span class="ml-1 text-xs text-slate-400" title="Baja por enfermedad - no se puede deshacer"><i class="fas fa-procedures"></i></span>
                             ` : '')}
                         </div>
                         ${hasRabbitsFoot ? `
                             <div class="text-center">
-                                <div class="text-xs text-slate-400">Rabbit's Foot</div>
+                                <div class="text-xs text-slate-400">Pata de Conejo</div>
                                 <button class="rabbit-foot-btn p-1 ${rabbitFootUsed ? 'bg-gray-600 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition relative" 
-                                        title="${rabbitFootUsed ? "Click to cancel Rabbit's Foot usage" : "Use Rabbit's Foot to reroll one dice"}" 
+                                        title="${rabbitFootUsed ? "Haz clic para cancelar el uso de la Pata de Conejo" : "Usa la Pata de Conejo para repetir una tirada de dado"}" 
                                         data-fighter-id="${fighter.id}" 
                                         data-fighter-name="${fighter.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')}">
                                     <i class="fas fa-paw text-xs"></i>
@@ -4638,16 +4742,16 @@ export const renderBattleFighters = (warband) => {
                         ` : ''}
                         ${canTrackKills ? `
                             <div class="text-right">
-                                <div class="text-xs text-slate-400">Kills</div>
+                                <div class="text-xs text-slate-400">Bajas causadas</div>
                                 <div class="flex items-center space-x-1">
                                     <button class="track-kill-btn p-1 ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'bg-gray-600 opacity-50 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white rounded transition"
                                             data-fighter-id="${fighter.id}" 
-                                            ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'disabled title="Cannot track kills - unit has taken casualties"' : 'title="Track Kill"'}>
+                                            ${(hasCasualties && !isHenchman) || isHenchmanDead ? 'disabled title="No se pueden registrar bajas - unidad eliminada"' : 'title="Anotar Baja causada"'}>
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                     <button class="remove-kill-btn p-1 ${currentKills === 0 || (hasCasualties && !isHenchman) || isHenchmanDead ? 'bg-gray-600 opacity-50 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700'} text-white rounded transition"
                                             data-fighter-id="${fighter.id}" 
-                                            ${currentKills === 0 || (hasCasualties && !isHenchman) || isHenchmanDead ? 'disabled title="No kills to remove"' : 'title="Remove Kill"'}>
+                                            ${currentKills === 0 || (hasCasualties && !isHenchman) || isHenchmanDead ? 'disabled title="No hay bajas que restar"' : 'title="Restar Baja causada"'}>
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <span class="font-bold text-mordheim-gold">${currentKills}</span>
@@ -4664,17 +4768,17 @@ export const renderBattleFighters = (warband) => {
                     
                     <div class="text-xs">
                         <div class="flex flex-wrap gap-1 mb-1">
-                            ${equipmentHTML || '<span class="text-slate-500">No essential equipment</span>'}
+                            ${equipmentHTML || '<span class="text-slate-500">Sin equipo esencial</span>'}
                         </div>
                         <div class="text-slate-400 mb-1">
-                            Skills: ${skillsHtml}
+                            Habilidades: ${skillsHtml}
                         </div>
-                        ${spellsHtml ? `<div class="text-slate-400 mb-1">Magic: ${spellsHtml}</div>` : ''}
+                        ${spellsHtml ? `<div class="text-slate-400 mb-1">Magia: ${spellsHtml}</div>` : ''}
                         <div class="text-slate-400 mb-1">
-                            Special Rules: ${specialRulesHtml}
+                            Reglas Especiales: ${specialRulesHtml}
                         </div>
                         <div class="text-slate-400">
-                            Injuries: ${injuriesHtml}
+                            Heridas Graves: ${injuriesHtml}
                         </div>
                     </div>
                 </div>
@@ -4702,8 +4806,14 @@ export const showBattleSkillDetails = (skillName, fighterId) => {
         return;
     }
     
-    document.getElementById('rule-details-title').textContent = skillData.name;
-    document.getElementById('rule-details-content').innerHTML = skillData.rules;
+    const spanishSkill = translateSkill(skillData.name);
+    const titleText = (spanishSkill && spanishSkill.toLowerCase() !== skillData.name.toLowerCase())
+        ? `${spanishSkill} (${skillData.name})`
+        : (spanishSkill || skillData.name);
+
+    document.getElementById('rule-details-title').textContent = titleText;
+    const summary = getSpecialRuleSummary(skillData.name);
+    document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : skillData.rules;
     displayModal('rule-details-modal');
 };
 
@@ -4722,16 +4832,21 @@ export const showBattleSpellDetails = (spellName) => {
     
     if (!spellData) return;
     
-    document.getElementById('rule-details-title').textContent = spellData.name;
+    const spanishSpell = translateSkill(spellData.name);
+    const titleText = (spanishSpell && spanishSpell.toLowerCase() !== spellData.name.toLowerCase())
+        ? `${spanishSpell} (${spellData.name})`
+        : (spanishSpell || spellData.name);
+
+    document.getElementById('rule-details-title').textContent = titleText;
     
     // Format spell details with difficulty
-    const difficultyText = spellData.difficulty === "Auto" ? "Automatic" : `Difficulty ${spellData.difficulty}`;
+    const difficultyText = spellData.difficulty === "Auto" ? "Automática" : `Dificultad ${spellData.difficulty}`;
     document.getElementById('rule-details-content').innerHTML = `
         <div class="mb-2">
-            <strong>Difficulty:</strong> ${difficultyText}
+            <strong>Dificultad:</strong> ${difficultyText}
         </div>
         <div>
-            <strong>Description:</strong> ${spellData.description}
+            <strong>Descripción:</strong> ${spellData.description}
         </div>
     `;
     
@@ -4743,21 +4858,29 @@ export const showBattleEquipmentDetails = (equipmentName) => {
     const equipData = MASTER_EQUIPMENT_LIST.find(e => e.name === equipmentName);
     if (!equipData) return;
     
-    document.getElementById('rule-details-title').textContent = equipData.name;
+    const spanishEquip = translateEquipment(equipData.name);
+    const titleText = (spanishEquip && spanishEquip.toLowerCase() !== equipData.name.toLowerCase())
+        ? `${spanishEquip} (${equipData.name})`
+        : (spanishEquip || equipData.name);
+
+    document.getElementById('rule-details-title').textContent = titleText;
     
+    const categoryTranslated = translateEquipmentCategory(equipData.category) || equipData.category || 'Desconocida';
+    const costClean = formatEquipmentCostDisplay(equipData).replace(/\s*(CO|gc|gold crowns?)\s*/gi, '').trim();
+
     let detailsHTML = `
         <div class="mb-2">
-            <strong>Category:</strong> ${equipData.category || 'Unknown'}
+            <strong>Categoría:</strong> ${categoryTranslated}
         </div>
         <div class="mb-2">
-            <strong>Cost:</strong> ${formatEquipmentCostDisplay(equipData)} GC
+            <strong>Coste:</strong> ${costClean} CO
         </div>
     `;
     
     if (equipData.rules) {
         detailsHTML += `
             <div class="mb-2">
-                <strong>Rules:</strong><br>${formatEquipmentRules(equipData.rules)}
+                <strong>Reglas:</strong><br>${translateEquipmentRules(equipData.name, equipData.rules)}
             </div>
         `;
     }
@@ -4765,11 +4888,12 @@ export const showBattleEquipmentDetails = (equipmentName) => {
     if (equipData.characteristicModifiers && Object.keys(equipData.characteristicModifiers).length > 0) {
         detailsHTML += `
             <div class="mb-2">
-                <strong>Stat Modifiers:</strong>
+                <strong>Modificadores de Atributo:</strong>
                 <ul class="ml-4 mt-1">
-                    ${Object.entries(equipData.characteristicModifiers).map(([stat, mod]) => 
-                        `<li>${stat}: ${mod > 0 ? '+' : ''}${mod}</li>`
-                    ).join('')}
+                    ${Object.entries(equipData.characteristicModifiers).map(([stat, mod]) => {
+                        const statLabel = STATS_LABELS[stat] || stat;
+                        return `<li>${statLabel}: ${mod > 0 ? '+' : ''}${mod}</li>`;
+                    }).join('')}
                 </ul>
             </div>
         `;
@@ -4784,22 +4908,30 @@ export const showBattleAbilityDetails = (type, name, fighterId) => {
     if (type === 'skill') {
         showBattleSkillDetails(name, fighterId);
     } else if (type === 'rule') {
-        // For special rules, we can use the existing equipment details modal
         const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === name);
         if (ruleData) {
-            document.getElementById('rule-details-title').textContent = ruleData.name;
-            document.getElementById('rule-details-content').innerHTML = ruleData.rules || ruleData.description;
+            const spanishRule = translateSpecialRule(ruleData.name);
+            const titleText = (spanishRule && spanishRule.toLowerCase() !== ruleData.name.toLowerCase())
+                ? `${spanishRule} (${ruleData.name})`
+                : (spanishRule || ruleData.name);
+            document.getElementById('rule-details-title').textContent = titleText;
+            const summary = getSpecialRuleSummary(ruleData.name);
+            const content = (summary && summary.full) ? summary.full : (ruleData.rules || ruleData.description);
+            document.getElementById('rule-details-content').innerHTML = content;
             displayModal('rule-details-modal');
         }
     } else if (type === 'injury') {
         const injuryData = MASTER_INJURY_LIST.find(i => i.name === name);
         if (injuryData) {
-            document.getElementById('rule-details-title').textContent = injuryData.name;
-            document.getElementById('rule-details-content').innerHTML = injuryData.description;
+            const spanishInjury = translateInjury(injuryData.name);
+            const titleText = (spanishInjury && spanishInjury.toLowerCase() !== injuryData.name.toLowerCase())
+                ? `${spanishInjury} (${injuryData.name})`
+                : (spanishInjury || injuryData.name);
+            document.getElementById('rule-details-title').textContent = titleText;
+            document.getElementById('rule-details-content').innerHTML = translateInjuryDescription(injuryData.name, injuryData.description);
             displayModal('rule-details-modal');
         }
     } else if (type === 'equipment') {
-        // For equipment rules, use the same logic as turn order tracker
         const equipmentSpan = document.querySelector(`[data-equipment-name="${name}"]`);
         if (equipmentSpan) {
             const equipmentName = equipmentSpan.dataset.equipmentName;
@@ -4807,21 +4939,23 @@ export const showBattleAbilityDetails = (type, name, fighterId) => {
             const equipmentData = MASTER_EQUIPMENT_LIST.find(e => e.name === equipmentName);
 
             if (equipmentData) {
-                let title = equipmentData.name;
+                const spanishEquip = translateEquipment(equipmentData.name);
+                let title = (spanishEquip && spanishEquip.toLowerCase() !== equipmentData.name.toLowerCase())
+                    ? `${spanishEquip} (${equipmentData.name})`
+                    : (spanishEquip || equipmentData.name);
                 let content = equipmentData.turnOrderRules || equipmentData.rules;
                 if (ruleName && Array.isArray(content) && content.length > 0 && typeof content[0] === 'object') {
-                    // Filter to show only the specific rule
                     const specificRule = content.find(ruleObj => ruleObj.name === ruleName);
                     if (specificRule) {
-                        title += ` - ${ruleName}`;
+                        const spanishRuleName = translateSpecialRule(ruleName) || ruleName;
+                        title += ` - ${spanishRuleName}`;
                         document.getElementById('rule-details-title').textContent = title;
-                        document.getElementById('rule-details-content').innerHTML = `<p><strong>${specificRule.name}:</strong> ${specificRule.rule}</p>`;
+                        document.getElementById('rule-details-content').innerHTML = `<p><strong>${spanishRuleName}:</strong> ${translateEquipmentRules(equipmentData.name, specificRule.rule)}</p>`;
                         displayModal('rule-details-modal');
                         return;
                     }
                 }
                 
-                // Fallback to showing full equipment details
                 showBattleEquipmentDetails(equipmentData.name);
             }
         }
@@ -4982,16 +5116,16 @@ export const showCasualtyModal = (fighterId, fighterName) => {
     
     modalContent.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgb(71, 85, 105); padding-bottom: 8px;">
-            <h3 style="color: rgb(251, 191, 36); margin: 0; font-size: 20px; font-weight: bold;">Casualty Taken</h3>
+            <h3 style="color: rgb(251, 191, 36); margin: 0; font-size: 20px; font-weight: bold;">Baja Sufrida</h3>
             <button id="close-casualty-modal-btn" style="background: none; border: none; color: rgb(203, 213, 225); cursor: pointer; font-size: 18px; padding: 4px;">×</button>
         </div>
         <div style="margin-bottom: 24px;">
-            <p style="color: rgb(203, 213, 225); margin: 0 0 8px 0; font-size: 18px;">Did this unit take a casualty?</p>
+            <p style="color: rgb(203, 213, 225); margin: 0 0 8px 0; font-size: 18px;">¿Esta unidad ha sufrido una baja?</p>
             <p id="casualty-unit-name" style="color: rgb(251, 191, 36); margin: 0; font-weight: bold;">${fighterName}</p>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 12px;">
             <button id="casualty-no-btn" style="background: rgb(71, 85, 105); color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">No</button>
-            <button id="casualty-yes-btn" style="background: rgb(220, 38, 38); color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">Yes</button>
+            <button id="casualty-yes-btn" style="background: rgb(220, 38, 38); color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">Sí</button>
         </div>
     `;
     
@@ -5059,7 +5193,7 @@ export const undoCasualty = (fighterId) => {
     
     if (currentCasualties <= minCasualties) {
         if (minCasualties > 0) {
-            showMessage(`${fighter.name} is out due to Sickness - this cannot be undone.`, 'info');
+            showMessage(`${fighter.name} es baja por enfermedad - no se puede deshacer.`, 'info');
         }
         return;
     }
@@ -5071,7 +5205,7 @@ export const undoCasualty = (fighterId) => {
         battleCasualties.set(fighterId, newCasualtyCount);
     }
     
-    showMessage(`Casualty removed from ${fighter.name}.`, 'info');
+    showMessage(`Baja eliminada de ${fighter.name}.`, 'info');
     
     // Re-render restores card state (expanded, kill buttons, group size)
     renderBattleFighters(currentWarband);
@@ -5158,9 +5292,9 @@ export const useRabbitsFoot = (fighterId, fighterName) => {
     
     // Show appropriate message
     if (newState) {
-        showMessage(`${fighterName} used Rabbit's Foot to reroll one dice!`, 'success');
+        showMessage(`¡${fighterName} usó la Pata de Conejo para repetir un dado!`, 'success');
     } else {
-        showMessage(`${fighterName}'s Rabbit's Foot usage has been cancelled.`, 'info');
+        showMessage(`El uso de la Pata de Conejo de ${fighterName} ha sido cancelado.`, 'info');
     }
     
     // Update display
@@ -5246,17 +5380,17 @@ const showSicknessCheckModal = (sickFighters, callback) => {
         <div class="bg-slate-800 p-3 rounded-lg mb-3 border border-slate-600">
             <div class="flex justify-between items-center mb-2">
                 <h5 class="font-semibold text-mordheim-gold">${fighter.name}</h5>
-                <span class="text-sm text-slate-400">${fighter.type}</span>
+                <span class="text-sm text-slate-400">${translateFighterType(fighter.type)}</span>
             </div>
-            <p class="text-slate-300 mb-3">Is this fighter still sick?</p>
+            <p class="text-slate-300 mb-3">¿Sigue enfermo este guerrero?</p>
             <div class="flex space-x-3">
                 <button class="sickness-no-btn px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition" 
                         data-fighter-id="${fighter.id}" data-fighter-name="${fighter.name}">
-                    No - Recovered
+                    No - Recuperado
                 </button>
                 <button class="sickness-yes-btn px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 transition" 
                         data-fighter-id="${fighter.id}" data-fighter-name="${fighter.name}">
-                    Yes - Still Sick
+                    Sí - Sigue enfermo
                 </button>
             </div>
             <div class="selection-status mt-2 text-sm text-slate-400"></div>
@@ -5265,18 +5399,18 @@ const showSicknessCheckModal = (sickFighters, callback) => {
     
     modalContent.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgb(71, 85, 105); padding-bottom: 8px;">
-            <h3 style="color: rgb(251, 191, 36); margin: 0; font-size: 20px; font-weight: bold;">Sickness Check</h3>
+            <h3 style="color: rgb(251, 191, 36); margin: 0; font-size: 20px; font-weight: bold;">Comprobación de Enfermedad</h3>
             <button id="close-sickness-check-modal-btn" style="background: none; border: none; color: rgb(203, 213, 225); cursor: pointer; font-size: 18px; padding: 4px;">×</button>
         </div>
         <div style="margin-bottom: 24px;">
-            <p style="color: rgb(203, 213, 225); margin: 0 0 12px 0;">The following fighters have the Sickness injury. Please check their status:</p>
+            <p style="color: rgb(203, 213, 225); margin: 0 0 12px 0;">Los siguientes guerreros tienen la secuela Enfermedad. Por favor, comprueba su estado:</p>
         </div>
         <div class="sickness-fighters-list">
             ${fightersHTML}
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
             <button id="finish-sickness-check-btn" class="px-4 py-2 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition" disabled>
-                Continue to Battle
+                Continuar a la Batalla
             </button>
         </div>
     `;
@@ -5303,7 +5437,7 @@ const showSicknessCheckModal = (sickFighters, callback) => {
             yesBtn.classList.add('bg-orange-600', 'hover:bg-orange-700');
             
             // Update status display
-            statusDiv.textContent = 'Selected: Recovered';
+            statusDiv.textContent = 'Seleccionado: Recuperado';
             statusDiv.className = 'selection-status mt-2 text-sm text-green-400 font-semibold';
             
             console.log(`${fighterName} marked as recovered`);
@@ -5329,7 +5463,7 @@ const showSicknessCheckModal = (sickFighters, callback) => {
             noBtn.classList.add('bg-green-600', 'hover:bg-green-700');
             
             // Update status display
-            statusDiv.textContent = 'Selected: Still Sick';
+            statusDiv.textContent = 'Seleccionado: Sigue enfermo';
             statusDiv.className = 'selection-status mt-2 text-sm text-orange-400 font-semibold';
             
             console.log(`${fighterName} marked as still sick`);
@@ -5600,7 +5734,7 @@ const populateWarriorSourceDetails = (elementId, sources) => {
     container.innerHTML = '';
     
     if (sources.length === 0) {
-        container.innerHTML = '<p class="text-slate-500 italic">No bonuses from warriors</p>';
+        container.innerHTML = '<p class="text-slate-500 italic">Sin bonificaciones de guerreros</p>';
         return;
     }
     
@@ -5641,7 +5775,7 @@ export const showTreasureExplorationModal = () => {
     document.getElementById('advanced-dice-inputs').innerHTML = '';
     document.getElementById('advanced-calculated-total').textContent = '0';
     document.getElementById('advanced-locked-toggle').checked = false;
-    document.getElementById('calculation-mode-label').textContent = 'all dice';
+    document.getElementById('calculation-mode-label').textContent = 'todos los dados';
     document.getElementById('dice-modifiers-section-details').classList.remove('hidden');
     document.getElementById('dice-modifiers-section-chevron').classList.remove('rotate-180');
     document.getElementById('advanced-rerolls-available-details').classList.add('hidden');
@@ -5733,7 +5867,7 @@ export const handleTreasureCalculation = () => {
         });
         
         if (filledCount === 0) {
-            showMessage('Please enter dice values.', 'error');
+            showMessage('Por favor, introduce los valores de los dados.', 'error');
             return;
         }
         
@@ -5741,7 +5875,7 @@ export const handleTreasureCalculation = () => {
     }
 
     if (total <= 0) {
-        showMessage('Please enter valid dice values.', 'error');
+        showMessage('Por favor, introduce valores de dados válidos.', 'error');
         return;
     }
 
@@ -5786,7 +5920,7 @@ export const applyTreasureToWarband = async () => {
         TRANSACTION_TYPES.INCOME,
         TRANSACTION_CATEGORIES.TREASURE_FOUND,
         shards,
-        `Found ${shards} Wyrdstone Shard${shards > 1 ? 's' : ''} during exploration`,
+        `${shards === 1 ? 'Encontrado 1 Fragmento de Piedra Bruja' : `Encontrados ${shards} Fragmentos de Piedra Bruja`} durante la exploración`,
         {
             base_shards: baseShards,
             bonus_shards: bonus,
@@ -5800,9 +5934,9 @@ export const applyTreasureToWarband = async () => {
     
     // Show detailed message
     if (bonus > 0) {
-        showMessage(`Added ${shards} Wyrdstone Shards to your warband! (${baseShards} + ${bonus} from Incomparable Miners)`, 'success');
+        showMessage(`¡Añadidos ${shards} Fragmentos de Piedra Bruja a tu banda! (${baseShards} + ${bonus} por Mineros Incomparables)`, 'success');
     } else {
-        showMessage(`Added ${shards} Wyrdstone Shards to your warband!`, 'success');
+        showMessage(`¡Añadidos ${shards} Fragmentos de Piedra Bruja a tu banda!`, 'success');
     }
     
     // Close modal and reset battle state
@@ -5831,7 +5965,7 @@ export const toggleDiceInputMode = () => {
         document.getElementById('individual-input-section').classList.add('hidden');
         document.getElementById('advanced-input-section').classList.add('hidden');
         document.getElementById('advanced-locked-toggle').checked = false;
-        document.getElementById('calculation-mode-label').textContent = 'all dice';
+        document.getElementById('calculation-mode-label').textContent = 'todos los dados';
         // Hide exploration results in total mode
         document.getElementById('exploration-result').classList.add('hidden');
     } else if (mode === 'individual') {
@@ -5839,7 +5973,7 @@ export const toggleDiceInputMode = () => {
         document.getElementById('individual-input-section').classList.remove('hidden');
         document.getElementById('advanced-input-section').classList.add('hidden');
         document.getElementById('advanced-locked-toggle').checked = false;
-        document.getElementById('calculation-mode-label').textContent = 'all dice';
+        document.getElementById('calculation-mode-label').textContent = 'todos los dados';
         // Trigger exploration results update when switching to individual mode
         const diceInputs = document.querySelectorAll('.dice-input');
         const diceValues = [];
@@ -5959,7 +6093,7 @@ export const toggleAdvancedLocked = () => {
 
     // Update calculation mode label
     if (calculationModeLabel) {
-        calculationModeLabel.textContent = isLocked ? 'green dice' : 'all dice';
+        calculationModeLabel.textContent = isLocked ? 'dados verdes' : 'todos los dados';
     }
 
     // Recalculate total after toggling locked state
@@ -6180,15 +6314,15 @@ const updateExplorationResults = (diceValues) => {
         resultCard.className = 'bg-slate-700 p-3 rounded-lg border border-slate-600';
         resultCard.innerHTML = `
             <div class="mb-2">
-                <div class="text-sm text-slate-400 mb-1">Result:</div>
+                <div class="text-sm text-slate-400 mb-1">Resultado:</div>
                 <div class="text-lg font-bold text-white">${result.result}</div>
             </div>
             <div class="mb-2">
-                <div class="text-sm text-slate-400 mb-1">Description:</div>
+                <div class="text-sm text-slate-400 mb-1">Descripción:</div>
                 <div class="text-slate-300 text-sm">${result.description}</div>
             </div>
             <div>
-                <div class="text-sm text-slate-400 mb-1">Details:</div>
+                <div class="text-sm text-slate-400 mb-1">Detalles:</div>
                 <div class="text-slate-300 text-sm whitespace-pre-line">${result.details}</div>
             </div>
         `;
@@ -6234,7 +6368,7 @@ const updateExplorationResults = (diceValues) => {
             if (isLocked && result === winner) {
                 winnerBadge = `
                     <div class="inline-block px-2 py-1 bg-green-600 rounded text-white text-xs font-bold mb-2">
-                        WINNER
+                        GANADOR
                     </div>
                 `;
             }
@@ -6294,13 +6428,13 @@ const updateExplorationResults = (diceValues) => {
                 if (isAchievable) {
                     selectButton = `
                         <button class="select-result-btn w-full mt-3 py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition" data-result-data='${resultData}'>
-                            Select
+                            Seleccionar
                         </button>
                     `;
                 } else {
                     selectButton = `
                         <button class="select-result-btn w-full mt-3 py-2 px-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed" disabled data-result-data='${resultData}'>
-                            Select
+                            Seleccionar
                         </button>
                     `;
                 }
@@ -6309,15 +6443,15 @@ const updateExplorationResults = (diceValues) => {
             resultCard.innerHTML = `
                 ${winnerBadge}
                 <div class="mb-2">
-                    <div class="text-sm text-slate-400 mb-1">Result ${index + 1}:</div>
+                    <div class="text-sm text-slate-400 mb-1">Resultado ${index + 1}:</div>
                     <div class="text-lg font-bold text-white">${result.result}</div>
                 </div>
                 <div class="mb-2">
-                    <div class="text-sm text-slate-400 mb-1">Description:</div>
+                    <div class="text-sm text-slate-400 mb-1">Descripción:</div>
                     <div class="text-slate-300 text-sm">${result.description}</div>
                 </div>
                 <div>
-                    <div class="text-sm text-slate-400 mb-1">Details:</div>
+                    <div class="text-sm text-slate-400 mb-1">Detalles:</div>
                     <div class="text-slate-300 text-sm whitespace-pre-line">${result.details}</div>
                 </div>
                 ${selectButton}
@@ -6364,10 +6498,10 @@ export const showMigrationProgressModal = () => {
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     modal.innerHTML = `
         <div class="bg-slate-800 rounded-lg p-6 max-w-md mx-4">
-            <h3 class="text-xl font-bold text-mordheim-gold mb-4">Migrating Your Data</h3>
+            <h3 class="text-xl font-bold text-mordheim-gold mb-4">Migrando tus Datos</h3>
             <div class="text-slate-300 mb-4">
-                <p>We're upgrading your warband data to our new structure.</p>
-                <p class="mt-2 text-sm">This should only take a few moments...</p>
+                <p>Estamos actualizando los datos de tu banda a nuestra nueva estructura.</p>
+                <p class="mt-2 text-sm">Esto solo debería tomar unos instantes...</p>
             </div>
             <div class="flex items-center justify-center">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-mordheim-gold"></div>
@@ -6383,3 +6517,13 @@ export const hideMigrationProgressModal = (modal) => {
         modal.parentNode.removeChild(modal);
     }
 };
+
+// Listen for distance unit toggles to refresh active warband editor view
+window.addEventListener('distance-unit-changed', () => {
+    if (currentWarband && typeof renderWarbandEditor === 'function') {
+        const editorView = document.getElementById('warband-editor-view');
+        if (editorView && !editorView.classList.contains('hidden')) {
+            renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+        }
+    }
+});

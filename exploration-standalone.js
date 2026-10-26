@@ -52,7 +52,7 @@ const handleTreasureCalculation = () => {
         });
         
         if (filledCount === 0) {
-            alert('Please enter dice values.');
+            alert('Por favor, introduce los valores de los dados.');
             return;
         }
         
@@ -60,7 +60,7 @@ const handleTreasureCalculation = () => {
     }
 
     if (total <= 0) {
-        alert('Please enter valid dice values.');
+        alert('Por favor, introduce valores de dados válidos.');
         return;
     }
 
@@ -93,7 +93,7 @@ const toggleDiceInputMode = () => {
         document.getElementById('individual-input-section').classList.remove('hidden');
         document.getElementById('advanced-input-section').classList.add('hidden');
         document.getElementById('advanced-locked-toggle').checked = false;
-        document.getElementById('calculation-mode-label').textContent = 'all dice';
+        document.getElementById('calculation-mode-label').textContent = 'todos los dados';
         // Trigger exploration results update when switching to individual mode
         const diceInputs = document.querySelectorAll('.dice-input');
         const diceValues = [];
@@ -132,7 +132,7 @@ const generateAdvancedDiceInputs = (count) => {
         input.min = '1';
         input.max = '6';
         const isMobile = window.innerWidth <= 767;
-        input.placeholder = isMobile ? `D ${i + 1}` : `Dice ${i + 1}`;
+        input.placeholder = isMobile ? `D ${i + 1}` : `Dado ${i + 1}`;
         input.dataset.state = 'neutral'; // Track selection state
         input.addEventListener('input', (e) => {
             let value = parseInt(e.target.value) || 0;
@@ -211,7 +211,7 @@ const toggleAdvancedLocked = () => {
 
     // Update calculation mode label
     if (calculationModeLabel) {
-        calculationModeLabel.textContent = isLocked ? 'green dice' : 'all dice';
+        calculationModeLabel.textContent = isLocked ? 'dados verdes' : 'todos los dados';
     }
 
     // Recalculate total after toggling locked state
@@ -354,15 +354,15 @@ const updateExplorationResults = (diceValues) => {
         resultCard.className = 'bg-slate-700 p-3 rounded-lg border border-slate-600';
         resultCard.innerHTML = `
             <div class="mb-2">
-                <div class="text-sm text-slate-400 mb-1">Result:</div>
+                <div class="text-sm text-slate-400 mb-1">Resultado:</div>
                 <div class="text-lg font-bold text-white">${result.result}</div>
             </div>
             <div class="mb-2">
-                <div class="text-sm text-slate-400 mb-1">Description:</div>
+                <div class="text-sm text-slate-400 mb-1">Descripción:</div>
                 <div class="text-slate-300 text-sm">${result.description}</div>
             </div>
             <div>
-                <div class="text-sm text-slate-400 mb-1">Details:</div>
+                <div class="text-sm text-slate-400 mb-1">Detalles:</div>
                 <div class="text-slate-300 text-sm whitespace-pre-line">${result.details}</div>
             </div>
         `;
@@ -408,7 +408,7 @@ const updateExplorationResults = (diceValues) => {
             if (isLocked && result === winner) {
                 winnerBadge = `
                     <div class="inline-block px-2 py-1 bg-green-600 rounded text-white text-xs font-bold mb-2">
-                        WINNER
+                        GANADOR
                     </div>
                 `;
             }
@@ -471,13 +471,13 @@ const updateExplorationResults = (diceValues) => {
                     const removalInstructions = calculateDiceToRemoveForResult(result, results, allDiceValues);
                     selectButton = `
                         <button class="select-result-btn w-full mt-3 py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition" data-result-data='${resultData}'>
-                            Select
+                            Seleccionar
                         </button>
                     `;
                 } else {
                     selectButton = `
                         <button class="select-result-btn w-full mt-3 py-2 px-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed" disabled data-result-data='${resultData}'>
-                            Select
+                            Seleccionar
                         </button>
                     `;
                 }
@@ -486,15 +486,15 @@ const updateExplorationResults = (diceValues) => {
             resultCard.innerHTML = `
                 ${winnerBadge}
                 <div class="mb-2">
-                    <div class="text-sm text-slate-400 mb-1">Result:</div>
+                    <div class="text-sm text-slate-400 mb-1">Resultado:</div>
                     <div class="text-lg font-bold text-white">${result.result}</div>
                 </div>
                 <div class="mb-2">
-                    <div class="text-sm text-slate-400 mb-1">Description:</div>
+                    <div class="text-sm text-slate-400 mb-1">Descripción:</div>
                     <div class="text-slate-300 text-sm">${result.description}</div>
                 </div>
                 <div class="mb-2">
-                    <div class="text-sm text-slate-400 mb-1">Details:</div>
+                    <div class="text-sm text-slate-400 mb-1">Detalles:</div>
                     <div class="text-slate-300 text-sm whitespace-pre-line">${result.details}</div>
                 </div>
                 ${selectButton}
@@ -615,12 +615,12 @@ const updateMobilePlaceholders = () => {
     // Update individual dice inputs
     document.querySelectorAll('.dice-input').forEach((input) => {
         const diceIndex = input.dataset.diceIndex || (Array.from(document.querySelectorAll('.dice-input')).indexOf(input) + 1);
-        input.placeholder = isMobile ? `D ${diceIndex}` : `Dice ${diceIndex}`;
+        input.placeholder = isMobile ? `D ${diceIndex}` : `Dado ${diceIndex}`;
     });
     
     // Update advanced dice inputs
     document.querySelectorAll('.advanced-dice-input').forEach((input, index) => {
-        input.placeholder = isMobile ? `D ${index + 1}` : `Dice ${index + 1}`;
+        input.placeholder = isMobile ? `D ${index + 1}` : `Dado ${index + 1}`;
     });
 };
 

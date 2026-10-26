@@ -534,5 +534,145 @@ export const RULES = [
                 }
             ]
         )
+    },
+    {
+        name: "Sin Dolor",
+        englishName: "No Pain",
+        aliases: ["No Pain", "Sin Dolor", "Inmune al dolor", "Immune to pain", "Sin dolor", "Dolor"],
+        rules: createRuleTable(
+            "Los guerreros con la regla <b>Sin Dolor</b> no sienten el dolor físico de la forma en que lo hacen los seres vivos comunes (como los No Muertos, autómatas o berserkers consagrados).<br><br>Cualquier resultado de <i>Aturdido</i> en la tabla de heridas se trata inmediatamente como un resultado de <i>Derribado</i>. Esto significa que el guerrero nunca queda aturdido ni pierde sus siguientes acciones de combate: en su siguiente fase de recuperación simplemente se pone en pie y puede actuar de forma completamente normal.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Inmune a la Psicología",
+        englishName: "Immune to Psychology",
+        aliases: ["Immune to Psychology", "Inmune a la Psicología", "Inmune a la Psicologia", "Inmune a Psicología", "Immune", "Inmune", "Psicología", "Psicologia"],
+        rules: createRuleTable(
+            "Los guerreros inmunes a la psicología son completamente imperturbables ante los horrores que pueblan las ruinas de Mordheim.<br><br>No se ven afectados por las reglas de <b>Miedo</b>, <b>Terror</b>, <b>Pánico</b> ni las pruebas de <b>Solo ante el Peligro</b>. Además, no pueden entrar voluntariamente ni involuntariamente en <b>Furia Asesina</b> ni verse beneficiados por la regla <b>Odio</b>.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Inmune al Veneno",
+        englishName: "Immune to Poison",
+        aliases: ["Immune to Poison", "Inmune al Veneno", "Inmune al veneno", "Inmune a los Venenos", "Veneno", "Venenos"],
+        rules: createRuleTable(
+            "El guerrero no se ve afectado por ningún tipo de veneno, toxina o ataque venenoso (como Loto Negro, Raíz de Mandrágora, ataques venenosos de Skavens o armas emponzoñadas). Cualquier ataque con veneno se resuelve contra él como un ataque normal sin reglas especiales de veneno.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Inmune al Miedo",
+        englishName: "Immune to Fear",
+        aliases: ["Immune to Fear", "Inmune al Miedo", "Inmune al miedo", "Miedo"],
+        rules: createRuleTable(
+            "El guerrero supera automáticamente cualquier chequeo de Miedo que se le requiera realizar (por ejemplo al cargar contra una criatura que cause Miedo o al ser cargado por ella).",
+            [],
+            []
+        )
+    },
+    {
+        name: "Difícil de Matar",
+        englishName: "Hard to Kill",
+        aliases: ["Hard to Kill", "Difícil de Matar", "Dificil de Matar", "Heridas Graves"],
+        rules: createRuleTable(
+            "El guerrero es extraordinariamente resistente y aferrado a la vida. Cuando quede Fuera de Combate y su jugador deba tirar en la tabla de <b>Heridas Graves</b> tras la batalla, resta 1 al resultado obtenido en 1D66 (o en el dado de decenas según la tabla). Un resultado de 61-66 (Muerto) pasa a ser 51-56, salvando al héroe de una muerte inevitable.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Cabeza Dura",
+        englishName: "Hard Head",
+        aliases: ["Hard Head", "Cabeza Dura", "Conmoción", "Conmocion"],
+        rules: createRuleTable(
+            "El guerrero tiene un cráneo especialmente grueso (o un entrenamiento férreo). Ignora la regla especial <b>Conmoción</b> causada por mazas, martillos u otras armas contundentes; por tanto, una tirada para herir de 2-4 se trata según las reglas normales de herida en lugar de causar automáticamente un resultado de Aturdido.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Piel Escamosa",
+        englishName: "Scaly Skin",
+        aliases: ["Scaly Skin", "Piel Escamosa", "Armadura natural"],
+        rules: createRuleTable(
+            "El guerrero posee una gruesa capa de escamas, quitina o piel callosa que le otorga una tirada de salvación natural por armadura (generalmente especificada en su perfil, como 5+ o 6+). Esta salvación se puede combinar con escudos u otras protecciones de la forma habitual.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Regeneración",
+        englishName: "Regeneration",
+        aliases: ["Regeneration", "Regeneración", "Regeneracion"],
+        rules: createRuleTable(
+            "Cada vez que el guerrero sufra una herida con éxito (antes de comprobar en la tabla de heridas), tira 1D6. Con un resultado de 4+, el tejido se regenera al instante y la herida es anulada por completo. Los ataques causados por fuego impiden la regeneración durante ese turno.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Volar",
+        englishName: "Fly",
+        aliases: ["Fly", "Volar", "Vuelo", "Flight"],
+        rules: createRuleTable(
+            "La criatura se desplaza por los aires. Puede mover hasta 30 cm (12\") por turno ignorando cualquier elemento de escenografía, muros, edificios o miniaturas intermedias. Sin embargo, debe aterrizar al final de su movimiento sobre una superficie plana adecuada.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Trepar",
+        englishName: "Climb",
+        aliases: ["Climb", "Trepar", "Escalar"],
+        rules: createRuleTable(
+            "El guerrero es un trepador nato. Puede ascender o descender por cualquier superficie vertical sin necesidad de realizar chequeos de Iniciativa para evitar caídas.",
+            [],
+            []
+        )
+    },
+    {
+        name: "No Puede Correr",
+        englishName: "May not run",
+        aliases: ["May not run", "Cannot run", "No puede correr", "Movimiento"],
+        rules: createRuleTable(
+            "El guerrero tiene un movimiento torpe o pesado (como los Zombis). No puede duplicar su atributo de Movimiento para correr, aunque sí puede declarar Cargas de forma normal.",
+            [],
+            []
+        )
+    },
+    {
+        name: "No Gana Experiencia",
+        englishName: "Do not gain experience",
+        aliases: ["Do not gain experience", "No gana experiencia", "Experiencia", "PX"],
+        rules: createRuleTable(
+            "Esta criatura o guerrero (como animales, bestias o constructos) nunca gana puntos de experiencia ni tira en la tabla de avances tras las batallas.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Objetivo Grande",
+        englishName: "Large Target",
+        aliases: ["Large Target", "Objetivo Grande", "Blanco Grande"],
+        rules: createRuleTable(
+            "Cualquier miniatura que dispare con un arma de proyectiles contra un <b>Objetivo Grande</b> (como un Troll, Engendro del Caos o Rata Ogro) recibe un modificador de +1 a su tirada para impactar. Además, los Objetivos Grandes siempre pueden ser vistos por encima de miniaturas de tamaño humano estándar.",
+            [],
+            []
+        )
+    },
+    {
+        name: "Inflamable",
+        englishName: "Flammable",
+        aliases: ["Flammable", "Inflamable", "Vulnerable al Fuego", "Fuego"],
+        rules: createRuleTable(
+            "La criatura arde con gran facilidad (como momias o espantapájaros). Cualquier herida causada por fuego, llamas o hechizos ígneos se duplica automáticamente a 2 heridas en lugar de 1.",
+            [],
+            []
+        )
     }
 ];

@@ -106,11 +106,11 @@ function updateLedgerSummary() {
     // Display total upkeep costs
     let upkeepDisplay = '';
     if (upkeepCosts.gc_total > 0 && upkeepCosts.treasure_total > 0) {
-        upkeepDisplay = `${upkeepCosts.gc_total} GC, ${upkeepCosts.treasure_total} Treasure`;
+        upkeepDisplay = `${upkeepCosts.gc_total} CO, ${upkeepCosts.treasure_total} Tesoro`;
     } else if (upkeepCosts.gc_total > 0) {
-        upkeepDisplay = `${upkeepCosts.gc_total} GC`;
+        upkeepDisplay = `${upkeepCosts.gc_total} CO`;
     } else if (upkeepCosts.treasure_total > 0) {
-        upkeepDisplay = `${upkeepCosts.treasure_total} Treasure`;
+        upkeepDisplay = `${upkeepCosts.treasure_total} Tesoro`;
     } else {
         upkeepDisplay = '0';
     }
@@ -126,17 +126,17 @@ function updateLedgerSummary() {
         // No upkeep costs - disable button
         payUpkeepBtn.disabled = true;
         payUpkeepBtn.className = 'absolute top-1 right-1 px-2 py-1 bg-gray-600 text-white text-xs rounded opacity-50 cursor-not-allowed';
-        payUpkeepBtn.title = 'No upkeep costs to pay';
+        payUpkeepBtn.title = 'No hay costes de mantenimiento que pagar';
     } else if (upkeepCosts.gc_total > currentGC || upkeepCosts.treasure_total > currentTreasure) {
         // Insufficient funds - disable button with warning style
         payUpkeepBtn.disabled = true;
         payUpkeepBtn.className = 'absolute top-1 right-1 px-2 py-1 bg-red-700 text-white text-xs rounded opacity-75 cursor-not-allowed';
-        payUpkeepBtn.title = 'Insufficient funds to pay upkeep';
+        payUpkeepBtn.title = 'Fondos insuficientes para pagar mantenimiento';
     } else {
         // Sufficient funds - enable button
         payUpkeepBtn.disabled = false;
         payUpkeepBtn.className = 'absolute top-1 right-1 px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition';
-        payUpkeepBtn.title = 'Pay Upkeep Costs';
+        payUpkeepBtn.title = 'Pagar costes de mantenimiento';
     }
     
     // Color code the net total
@@ -165,13 +165,13 @@ function updateGameFilter() {
     });
     
     // Clear existing options (except "All Games")
-    filterSelect.innerHTML = '<option value="all">All Games</option>';
+    filterSelect.innerHTML = '<option value="all">Todas las partidas</option>';
     
     // Add game options in order
     Array.from(games).sort((a, b) => a - b).forEach(game => {
         const option = document.createElement('option');
         option.value = game;
-        option.textContent = game === 0 ? 'Pre-Game' : `Game ${game}`;
+        option.textContent = game === 0 ? 'Antes de la Partida' : `Partida ${game}`;
         filterSelect.appendChild(option);
     });
 }
@@ -195,7 +195,7 @@ function renderTransactionList() {
         transactionList.innerHTML = `
             <div class="text-center text-slate-500 py-4">
                 <i class="fas fa-receipt text-2xl mb-2"></i>
-                <p class="text-sm">No transactions found</p>
+                <p class="text-sm">No se han encontrado transacciones</p>
             </div>
         `;
         return;
@@ -225,7 +225,7 @@ function renderTransactionItem(transaction) {
     const date = new Date(transaction.date);
     const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    const gameLabel = transaction.games_played === 0 ? 'Pre-Game' : `Game ${transaction.games_played}`;
+    const gameLabel = transaction.games_played === 0 ? 'Antes de la Partida' : `Partida ${transaction.games_played}`;
     
     // Check if this is a hire transaction with equipment
     const hasEquipment = transaction.equipment && transaction.equipment.length > 0;
@@ -263,7 +263,7 @@ function renderTransactionItem(transaction) {
             equipmentInfo = `
                 <div class="text-xs text-slate-400 mb-1">
                     <i class="fas fa-toolbox text-xs mr-1"></i>
-                    Includes ${transaction.equipment.length} equipment item${transaction.equipment.length > 1 ? 's' : ''} (${equipmentTotal} GC)
+                    Incluye ${transaction.equipment.length} objeto${transaction.equipment.length > 1 ? 's' : ''} de equipo (${equipmentTotal} CO)
                 </div>
             `;
         }
@@ -301,7 +301,7 @@ function renderEquipmentSubsections(equipment, isIncomeParent) {
     return equipment.map(eq => {
         const eqDate = new Date(eq.date);
         const eqDateStr = eqDate.toLocaleDateString() + ' ' + eqDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const eqGameLabel = eq.games_played === 0 ? 'Pre-Game' : `Game ${eq.games_played}`;
+        const eqGameLabel = eq.games_played === 0 ? 'Antes de la Partida' : `Partida ${eq.games_played}`;
         
         return `
             <div class="bg-slate-600 p-2 rounded-lg text-sm ml-4 mr-2 mt-1 border-l-2 border-slate-500">
@@ -309,7 +309,7 @@ function renderEquipmentSubsections(equipment, isIncomeParent) {
                     <div class="flex-1">
                         <div class="flex items-center space-x-2 mb-1">
                             <i class="fas fa-toolbox text-red-400 text-xs"></i>
-                            <span class="font-medium text-red-400">-${eq.amount} GC</span>
+                            <span class="font-medium text-red-400">-${eq.amount} CO</span>
                             <span class="text-xs text-slate-400">${eqGameLabel}</span>
                         </div>
                         <p class="text-slate-300 text-xs">${eq.description}</p>
@@ -370,12 +370,12 @@ export function setupLedgerEventListeners() {
             const description = document.getElementById('transaction-description').value.trim();
             
             if (amount <= 0) {
-                showMessage('Please enter a valid amount greater than 0.', 'error');
+                showMessage('Por favor, introduce una cantidad válida superior a 0.', 'error');
                 return;
             }
             
             if (!description) {
-                showMessage('Please enter a description.', 'error');
+                showMessage('Por favor, introduce una descripción.', 'error');
                 return;
             }
             
@@ -453,7 +453,7 @@ export function setupLedgerEventListeners() {
  */
 async function handlePayUpkeep() {
     if (!currentWarband) {
-        showMessage("Please load a warband first.", 'error');
+        showMessage("Por favor, carga una banda primero.", 'error');
         return;
     }
 
@@ -462,7 +462,7 @@ async function handlePayUpkeep() {
     const totalCost = upkeepCosts.gc_total + upkeepCosts.treasure_total;
     
     if (totalCost === 0) {
-        showMessage("No upkeep costs to pay for current warband members.", 'info');
+        showMessage("No hay costes de mantenimiento que pagar para los miembros actuales de la banda.", 'info');
         return;
     }
 
@@ -477,15 +477,15 @@ async function handlePayUpkeep() {
         // Visual warning with cost breakdown
         const costBreakdown = [];
         if (upkeepCosts.gc_total > 0) {
-            costBreakdown.push(`${upkeepCosts.gc_total} Gold Crowns`);
+            costBreakdown.push(`${upkeepCosts.gc_total} Coronas de Oro`);
         }
         if (upkeepCosts.treasure_total > 0) {
-            costBreakdown.push(`${upkeepCosts.treasure_total} Treasure`);
+            costBreakdown.push(`${upkeepCosts.treasure_total} Tesoro`);
         }
         
-        showMessage(`⚠️ Cannot pay upkeep: Insufficient funds!`, 'error');
-        showMessage(`Required: ${costBreakdown.join(' and ')}`, 'error');
-        showMessage(`Available: ${currentGC} Gold Crowns, ${currentTreasure} Treasure`, 'error');
+        showMessage(`⚠️ ¡No se puede pagar el mantenimiento: Fondos insuficientes!`, 'error');
+        showMessage(`Necesario: ${costBreakdown.join(' y ')}`, 'error');
+        showMessage(`Disponible: ${currentGC} Coronas de Oro, ${currentTreasure} Tesoro`, 'error');
         return;
     }
 
@@ -499,18 +499,18 @@ async function handlePayUpkeep() {
         const breakdownDiv = document.getElementById('upkeep-cost-breakdown');
         const costBreakdown = [];
         if (upkeepCosts.gc_total > 0) {
-            costBreakdown.push(`${upkeepCosts.gc_total} Gold Crowns`);
+            costBreakdown.push(`${upkeepCosts.gc_total} Coronas de Oro`);
         }
         if (upkeepCosts.treasure_total > 0) {
-            costBreakdown.push(`${upkeepCosts.treasure_total} Treasure`);
+            costBreakdown.push(`${upkeepCosts.treasure_total} Tesoro`);
         }
         
         breakdownDiv.innerHTML = `
             <div class="text-slate-300 mb-2">
-                <strong>Phase:</strong> ${currentGames === 0 ? 'Pre-Game' : `Game ${currentGames}`}
+                <strong>Fase:</strong> ${currentGames === 0 ? 'Antes de la Partida' : `Partida ${currentGames}`}
             </div>
             <div class="text-slate-300">
-                <strong>Costs:</strong> ${costBreakdown.join(' + ')}
+                <strong>Costes:</strong> ${costBreakdown.join(' + ')}
             </div>
         `;
         

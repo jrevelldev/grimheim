@@ -10,7 +10,8 @@ import { getWarbandData } from '../utility.js';
 import { calculateFighterOrGroupTotalCost } from './card-renderer.js';
 import { getWarbands, currentWarband } from '../state.js';
 
-const DECK_STORAGE_KEY = 'rosterheim_builder_custom_cards';
+const DECK_STORAGE_KEY = 'grimheim_builder_custom_cards';
+const LEGACY_DECK_STORAGE_KEY = 'rosterheim_builder_custom_cards';
 
 export function sanitizeCustomCard(card) {
     if (!card || typeof card !== 'object') return card;
@@ -70,7 +71,7 @@ export function sanitizeCustomCard(card) {
  */
 export function getBuilderDeck() {
     try {
-        const raw = localStorage.getItem(DECK_STORAGE_KEY);
+        const raw = localStorage.getItem(DECK_STORAGE_KEY) || localStorage.getItem(LEGACY_DECK_STORAGE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
             if (parsed && Array.isArray(parsed.members)) {
@@ -104,6 +105,8 @@ export function saveBuilderDeck(deck) {
             members: Array.isArray(deck.members) ? deck.members : []
         };
         localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(toSave));
+        localStorage.setItem(LEGACY_DECK_STORAGE_KEY, JSON.stringify(toSave));
+        window.dispatchEvent(new CustomEvent('grimheim:card-deck-updated', { detail: toSave }));
         window.dispatchEvent(new CustomEvent('rosterheim:card-deck-updated', { detail: toSave }));
     } catch (e) {
         console.error('Failed to save builder card deck to localStorage:', e);

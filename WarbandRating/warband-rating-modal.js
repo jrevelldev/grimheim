@@ -16,7 +16,7 @@ function ensureModalExists() {
         <div class="bg-slate-700 p-6 rounded-xl w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
             <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-3">
                 <h3 class="text-2xl font-bold text-mordheim-gold">
-                    Warband Rating Breakdown
+                    Desglose de Valoración de la Banda
                 </h3>
                 <button id="close-rating-breakdown-btn" class="text-slate-400 hover:text-white transition text-xl">
                     <i class="fas fa-times"></i>
@@ -94,14 +94,28 @@ function getTypeAccentColor(type) {
 }
 
 /**
+ * Returns the Spanish plural display name for a fighter type.
+ */
+function getTypePluralDisplayName(type) {
+    switch (type) {
+        case 'Hero': return 'Héroes';
+        case 'Henchman': return 'Secuaces';
+        case 'Hired Sword': return 'Espadas de Alquiler';
+        case 'Dramatis Personae': return 'Personajes Ilustres';
+        case 'Vehicle': return 'Vehículos';
+        default: return `${type}s`;
+    }
+}
+
+/**
  * Renders a single member row.
  */
 function renderMemberRow(member) {
     const borderColor = getTypeBorderColor(member.type);
     const groupLabel = member.groupSize > 1 ? ` <span class="text-xs text-slate-400">×${member.groupSize}</span>` : '';
 
-    const equipmentPart = member.breakdownParts.find(p => p.startsWith('Equipment'));
-    const otherParts = member.breakdownParts.filter(p => !p.startsWith('Equipment'));
+    const equipmentPart = member.breakdownParts.find(p => p.startsWith('Equipo') || p.startsWith('Equipment'));
+    const otherParts = member.breakdownParts.filter(p => !p.startsWith('Equipo') && !p.startsWith('Equipment'));
     
     const lines = [];
     if (equipmentPart) {
@@ -148,7 +162,7 @@ function renderTypeGroup(type, members) {
         <div class="mb-4">
             <div class="flex justify-between items-center mb-2">
                 <h4 class="text-sm font-semibold ${accentColor} uppercase tracking-wide">
-                    ${type}s
+                    ${getTypePluralDisplayName(type)}
                     <span class="text-xs text-slate-500 font-normal ml-1">(${fighterCount})</span>
                 </h4>
                 <span class="text-sm font-bold text-slate-300">${groupTotal}</span>
@@ -172,7 +186,7 @@ export function showWarbandRatingBreakdown(members) {
     const houseRuleNote = breakdown.isExcludeStartingXpActive
         ? `<div class="bg-blue-900/30 border border-blue-700/50 rounded-lg px-3 py-2 mb-4 text-xs text-blue-300">
                <i class="fas fa-info-circle mr-1"></i>
-               House Rule Active: Only experience gained beyond starting amount counts toward rating.
+               Regla de la Casa Activa: Solo la experiencia obtenida más allá de la inicial cuenta para la valoración.
            </div>`
         : '';
     document.getElementById('rating-breakdown-house-rule-note').innerHTML = houseRuleNote;
@@ -181,7 +195,7 @@ export function showWarbandRatingBreakdown(members) {
     const summaryHTML = `
         <div class="bg-slate-800 rounded-lg p-4 mb-4">
             <div class="flex justify-between items-center">
-                <span class="text-sm text-slate-400 uppercase tracking-wide">Total Warband Rating</span>
+                <span class="text-sm text-slate-400 uppercase tracking-wide">Valoración Total de la Banda</span>
                 <span class="text-3xl font-bold text-mordheim-gold">${breakdown.total}</span>
             </div>
         </div>

@@ -1,5 +1,7 @@
 import { displayModal, hideModal, normalizeEquipment } from './utility.js';
 import { renderSelectedEquipment } from './equipment-management.js';
+import { translateEquipment } from './i18n.js';
+import { currentWarband } from './state.js';
 
 /**
  * Equipment Reorder Modal
@@ -54,7 +56,7 @@ const preserveDaggerCostOrder = (before, after) => {
 const formatCost = (item) => {
     const cost = typeof item.variableCost === 'number' ? item.variableCost : item.cost;
     if (cost === undefined || cost === null || cost === '') return '';
-    return `${cost} GC`;
+    return `${cost} CO`;
 };
 
 /** Renders the rows of the reorder list from workingList */
@@ -63,7 +65,7 @@ const renderReorderList = () => {
     if (!list) return;
 
     if (workingList.length === 0) {
-        list.innerHTML = `<li class="text-slate-500 text-sm p-2">No equipment selected.</li>`;
+        list.innerHTML = `<li class="text-slate-500 text-sm p-2">Ningún equipo seleccionado.</li>`;
         return;
     }
 
@@ -72,23 +74,28 @@ const renderReorderList = () => {
         const normalized = normalizeEquipment(item);
         const costLabel = formatCost(normalized);
         const movedClass = index === lastMovedIndex ? ' equip-reorder-moved' : '';
+        const spanishName = translateEquipment(normalized.name);
+        const nameDisplay = spanishName !== normalized.name
+            ? `${escapeHtml(spanishName)} <span class="text-slate-400 font-normal text-xs">(${escapeHtml(normalized.name)})</span>`
+            : escapeHtml(normalized.name || 'Objeto desconocido');
+
         return `
             <li class="equip-reorder-item${movedClass}" data-index="${index}">
-                <span class="equip-reorder-grab equip-reorder-handle" title="Drag to reorder" aria-hidden="true">
+                <span class="equip-reorder-grab equip-reorder-handle" title="Arrastrar para reordenar" aria-hidden="true">
                     <i class="fas fa-grip-vertical"></i>
                 </span>
                 <span class="equip-reorder-position">${index + 1}.</span>
                 <span class="equip-reorder-grab equip-reorder-name">
-                    ${escapeHtml(normalized.name || 'Unknown Item')}
+                    ${nameDisplay}
                     ${costLabel ? `<span class="equip-reorder-cost">${escapeHtml(costLabel)}</span>` : ''}
                 </span>
                 <span class="equip-reorder-arrows">
                     <button type="button" class="equip-reorder-arrow" data-action="move-up" data-index="${index}"
-                        title="Move up" aria-label="Move ${escapeHtml(normalized.name)} up" ${index === 0 ? 'disabled' : ''}>
+                        title="Subir" aria-label="Subir ${escapeHtml(spanishName)}" ${index === 0 ? 'disabled' : ''}>
                         <i class="fas fa-chevron-up"></i>
                     </button>
                     <button type="button" class="equip-reorder-arrow" data-action="move-down" data-index="${index}"
-                        title="Move down" aria-label="Move ${escapeHtml(normalized.name)} down" ${index === lastIndex ? 'disabled' : ''}>
+                        title="Bajar" aria-label="Bajar ${escapeHtml(spanishName)}" ${index === lastIndex ? 'disabled' : ''}>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                 </span>
@@ -123,6 +130,16 @@ const applyAndClose = () => {
     const finalList = preserveDaggerCostOrder(originalList, workingList);
     const jsonInput = document.getElementById('f-equipment-json');
     if (jsonInput) jsonInput.value = JSON.stringify(finalList);
+
+    // Keep active fighter in currentWarband in sync if editing an existing fighter
+    const fighterId = document.getElementById('fighter-id')?.value;
+    if (fighterId && currentWarband && Array.isArray(currentWarband.members)) {
+        const fighter = currentWarband.members.find(f => String(f.id) === String(fighterId));
+        if (fighter) {
+            fighter.equipment = finalList.map(item => ({ ...item }));
+        }
+    }
+
     renderSelectedEquipment();
     closeModal();
 };

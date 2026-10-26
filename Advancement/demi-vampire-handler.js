@@ -39,7 +39,7 @@ export function getDemiVampireBlockers(currentFighterId) {
         (f.warrior_choice || f.name) === 'Lahmia Vampire'
     );
     if (hasLahmiaVampire) {
-        blockers.push('Lahmia Vampire fighter type is still in warband roster');
+        blockers.push('El tipo de guerrero Vampira Lahmia todavía está en la lista de la banda');
     }
 
     // Check 2: Does another fighter already have the Leader rule?
@@ -49,7 +49,7 @@ export function getDemiVampireBlockers(currentFighterId) {
         f.special_rules.includes('Leader')
     );
     if (existingLeader) {
-        blockers.push(`Another fighter (${existingLeader.name}) is already assigned as Warband Leader`);
+        blockers.push(`Otro guerrero (${existingLeader.name}) ya está asignado como Líder de la banda`);
     }
 
     return blockers;

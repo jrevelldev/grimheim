@@ -9,8 +9,17 @@ import { applyHeavyArmourShieldPenalty, applyPaviseMovementPenalty } from '../eq
 import { STATS_FIELDS } from '../config.js';
 import { calculateArmorSave, normalizeEquipment, getOriginalName, adjustEquipmentCosts } from '../utility.js';
 import { isShieldMeleeIgnored } from '../state.js';
-import { formatXPDisplay } from '../slow-witted.js';
-import { getStatLabel, translateEquipment, translateInjury, translateWarrior, translateRace } from '../i18n.js';
+import { getStatLabel, translateEquipment, translateInjury, translateWarrior, translateRace, translateSpecialRule, translateSkill, getWeaponRuleSummary, getSpecialRuleSummary, formatMovementStat, getDistanceUnit } from '../i18n.js';
+
+function escapeAttr(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
 
 /**
  * Calculates modified stats for a fighter, taking into account equipment, skills, and injuries.
@@ -317,12 +326,16 @@ function renderCharacteristicsBlock(fighter, options = {}) {
                 <div class="card-multi-stat-row">
                     <div class="card-multi-stat-label">${statKey}</div>
                     <div class="card-stat-grid">
-                        ${STATS_FIELDS.map(s => `
+                        ${STATS_FIELDS.map(s => {
+                            const val = stats[s] !== undefined ? stats[s] : '-';
+                            const displayVal = s === 'M' ? formatMovementStat(val) : val;
+                            return `
                             <div class="card-stat-cell">
                                 <span class="card-stat-name">${getStatLabel(s)}</span>
-                                <span class="card-stat-val">${stats[s] !== undefined ? stats[s] : '-'}</span>
+                                <span class="card-stat-val">${displayVal}</span>
                             </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -339,12 +352,16 @@ function renderCharacteristicsBlock(fighter, options = {}) {
     return `
         <div class="card-section card-characteristics">
             <div class="card-stat-grid">
-                ${STATS_FIELDS.map(s => `
+                ${STATS_FIELDS.map(s => {
+                    const val = stats[s] !== undefined ? stats[s] : '-';
+                    const displayVal = s === 'M' ? formatMovementStat(val) : val;
+                    return `
                     <div class="card-stat-cell">
                         <span class="card-stat-name">${getStatLabel(s)}</span>
-                        <span class="card-stat-val">${stats[s] !== undefined ? stats[s] : '-'}</span>
+                        <span class="card-stat-val">${displayVal}</span>
                     </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         </div>
     `;
@@ -370,7 +387,12 @@ function renderEquipmentBlock(fighter, options = {}) {
         `;
     }
 
-    const items = (fighter.equipment || []).map(e => normalizeEquipment(e).name).filter(Boolean);
+    const items = (fighter.equipment || []).map(e => {
+        if (!e) return '';
+        if (typeof e === 'string') return e;
+        const norm = normalizeEquipment(e);
+        return norm?.name || e?.name || '';
+    }).filter(Boolean);
     if (items.length === 0) {
         return `
             <div class="card-section card-equipment">
@@ -379,11 +401,41 @@ function renderEquipmentBlock(fighter, options = {}) {
         `;
     }
 
+    const showRules = options.showWeaponRules !== false;
+
+    if (options.format === 'list') {
+        return `
+            <div class="card-section card-equipment">
+                <span class="card-label">Equipo:</span>
+                <div class="card-equip-list">
+                    ${items.map(name => {
+                        const trName = translateEquipment(name);
+                        const ruleInfo = getWeaponRuleSummary(name);
+                        const shortRule = showRules ? ruleInfo.short : '';
+                        const titleText = escapeAttr(ruleInfo.full || ruleInfo.short || trName);
+                        return `
+                            <div class="card-equip-list-item" title="${titleText}">
+                                <span class="card-equip-list-name">${trName}${shortRule ? ':' : ''}</span>
+                                ${shortRule ? `<span class="card-equip-list-rule">${shortRule}</span>` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     return `
         <div class="card-section card-equipment">
             <span class="card-label">Equipo:</span>
             <div class="card-pill-container">
-                ${items.map(name => `<span class="card-pill card-pill-equip">${translateEquipment(name)}</span>`).join(' ')}
+                ${items.map(name => {
+                    const trName = translateEquipment(name);
+                    const ruleInfo = getWeaponRuleSummary(name);
+                    const shortRule = showRules ? ruleInfo.short : '';
+                    const titleText = escapeAttr(ruleInfo.full || ruleInfo.short || trName);
+                    return `<span class="card-pill card-pill-equip" title="${titleText}"><span class="card-equip-name">${trName}</span>${shortRule ? ` <span class="card-pill-rule-tag">${shortRule}</span>` : ''}</span>`;
+                }).join(' ')}
             </div>
         </div>
     `;
@@ -513,7 +565,7 @@ function renderSkillsBlock(fighter, options = {}) {
         <div class="card-section card-skills">
             <span class="card-label">Habilidades:</span>
             <div class="card-pill-container">
-                ${skills.map(skill => `<span class="card-pill card-pill-skill">${skill}</span>`).join(' ')}
+                ${skills.map(skill => `<span class="card-pill card-pill-skill">${translateSkill(skill)}</span>`).join(' ')}
             </div>
         </div>
     `;
@@ -587,11 +639,44 @@ function renderSpecialRulesBlock(fighter, options = {}) {
         return '';
     }
 
+    const showReminders = options.showDescriptions !== false;
+    const format = options.format || 'tags';
+
+    if (format === 'list') {
+        return `
+            <div class="card-section card-special-rules">
+                <span class="card-label">Reglas Especiales:</span>
+                <div class="card-rules-list">
+                    ${rules.map(rule => {
+                        const trName = translateSpecialRule(rule);
+                        const summary = getSpecialRuleSummary(rule);
+                        const desc = showReminders ? (summary.short || summary.full || '') : '';
+                        const titleText = escapeAttr(summary.full || trName);
+                        return `
+                            <div class="card-rule-row" title="${titleText}">
+                                <span class="card-rule-row-name">${trName}</span>
+                                ${desc ? `<span class="card-rule-row-desc">${desc}</span>` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     return `
         <div class="card-section card-special-rules">
             <span class="card-label">Reglas Especiales:</span>
             <div class="card-pill-container">
-                ${rules.map(rule => `<span class="card-pill card-pill-rule">${rule}</span>`).join(' ')}
+                ${rules.map(rule => {
+                    const trName = translateSpecialRule(rule);
+                    const summary = getSpecialRuleSummary(rule);
+                    const titleText = escapeAttr(summary.full ? `${trName}: ${summary.full}` : trName);
+                    const reminderTag = showReminders && summary.short
+                        ? `<span class="card-pill-rule-tag">${summary.short}</span>`
+                        : '';
+                    return `<span class="card-pill card-pill-rule" title="${titleText}"><span class="card-rule-name">${trName}</span>${reminderTag}</span>`;
+                }).join(' ')}
             </div>
         </div>
     `;
@@ -737,7 +822,7 @@ function renderAdvancementFullBlock(fighter, options = {}) {
     return `
         <div class="card-section card-advancement-full">
             <div class="card-xp-header">
-                <span class="card-label">XP Full:</span> ${isBlank ? '<span class="card-blank-line-field card-blank-xp-field"></span>' : `<strong>${currentXp} XP</strong>`}
+                <span class="card-label">PX Completo:</span> ${isBlank ? '<span class="card-blank-line-field card-blank-xp-field"></span>' : `<strong>${currentXp} PX</strong>`}
             </div>
             <div class="card-xp-grid-90">${boxesHtml}</div>
         </div>
@@ -757,7 +842,7 @@ function renderNotesBlock(fighter, options = {}) {
 
     return `
         <div class="card-section card-notes">
-            <span class="card-label">Notes:</span>
+            <span class="card-label">Notas:</span>
             ${notesText ? `<div class="card-notes-text">${notesText.replace(/\n/g, '<br>')}</div>` : ''}
             ${options.showBlankLines ? `
                 <div class="card-blank-lines">
@@ -781,6 +866,27 @@ function renderBlankLinesBlock(fighter, options = {}) {
     return `
         <div class="card-section card-blank-lines">
             ${linesHtml}
+        </div>
+    `;
+}
+
+/**
+ * Generates a Spacer or Divider Block (blank vertical space or styled separator)
+ */
+function renderSpacerBlock(options = {}) {
+    const height = options?.height || 'medium';
+    const style = options?.style || 'space';
+
+    let content = '';
+    if (style === 'ornament') {
+        content = '<div class="card-divider-line"><span class="card-divider-ornament">♦</span></div>';
+    } else if (style !== 'space') {
+        content = '<div class="card-divider-line"></div>';
+    }
+
+    return `
+        <div class="card-section card-spacer-block card-spacer-height-${height} card-spacer-style-${style}">
+            ${content}
         </div>
     `;
 }
@@ -825,6 +931,9 @@ function renderSingleBlockContent(blockConfig, fighter, warband) {
             return renderNotesBlock(fighter, options);
         case 'blank_lines':
             return renderBlankLinesBlock(fighter, options);
+        case 'spacer':
+        case 'divider':
+            return renderSpacerBlock(options);
         default:
             return '';
     }
@@ -839,7 +948,7 @@ function renderSingleBlockContent(blockConfig, fighter, warband) {
  * @returns {string} HTML string of the card
  */
 export function renderFighterCard(fighter, warband, layout, isInteractive = false) {
-    if (!fighter) return '<div class="card-empty-placeholder">No fighter selected</div>';
+    if (!fighter) return '<div class="card-empty-placeholder">Ningún guerrero seleccionado</div>';
 
     const densityClass = layout?.cardDensity === 'compact' ? 'density-compact' : 'density-normal';
     const themeClass = layout?.cardTheme === 'clean' ? 'theme-clean' : 'theme-parchment';

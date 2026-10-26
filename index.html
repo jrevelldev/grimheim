@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rosterheim - Gestor de Bandas de Mordheim</title>
+    <title>Grimheim - Gestor de Bandas de Mordheim</title>
     <meta name="description"
         content="Gestor y creador de bandas de Mordheim para juegos de tablero. Crea, gestiona y haz seguimiento de tus bandas, guerreros, equipo y progreso de campaña.">
     <meta name="google-site-verification" content="L2sLb6QHHUNrfBQhDqlBMtDuX11XHfAZUnmJvKW2BW0" />
-    <meta property="og:site_name" content="Rosterheim">
+    <meta property="og:site_name" content="Grimheim">
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Inter & Cinzel fonts -->
@@ -30,12 +30,38 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Rosterheim",
-      "url": "https://rosterheim.net/",
+      "name": "Grimheim",
+      "url": "https://grimheim.local/",
       "description": "A comprehensive Mordheim warband roster manager app for tabletop gaming"
     }
     </script>
 
+    <!-- Strict Anti-FOUC Barrier: Absolutely prevents web preview before authentication -->
+    <style>
+        html:not(.auth-verified) #app {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        html:not(.auth-verified) #system-login-overlay {
+            display: flex !important;
+        }
+        html.auth-verified #system-login-overlay {
+            display: none !important;
+        }
+    </style>
+    <script>
+        (function() {
+            try {
+                var tok = localStorage.getItem('grimheim_firebase_user') || 
+                          localStorage.getItem('grimheim_guest_mode') || 
+                          localStorage.getItem('grimheim_auth_token') || 
+                          localStorage.getItem('rosterheim_auth_token');
+                if (tok) {
+                    document.documentElement.classList.add('auth-verified');
+                }
+            } catch(e) {}
+        })();
+    </script>
 </head>
 
 <body class="text-white min-h-screen">
@@ -43,25 +69,32 @@
     <!-- Hidden main house rule toggle for state management -->
     <input type="checkbox" id="house-rule-toggle" class="hidden">
 
-    <div id="app" class="max-w-7xl mx-auto p-4 md:p-8">
+    <div id="app" class="hidden max-w-7xl mx-auto p-4 md:p-8">
         <!-- Header -->
         <header id="main-header" class="header-bg p-4 rounded-t-xl shadow-lg mb-6 relative">
             <div class="beta-build">Versión Local</div>
-            <div class="text-center">
-                <h1 class="text-4xl font-extrabold tracking-tight text-mordheim-gold uppercase">
-                    Rosterheim
-                </h1>
-                <p id="user-info" class="text-sm mt-2 text-slate-300"></p>
+            <div class="text-center flex flex-col items-center justify-center pt-1 pb-1">
+                <button id="header-logo-btn" type="button" class="inline-block hover:brightness-110 transition duration-200 focus:outline-none" title="Grimheim - Inicio">
+                    <img src="grimheim-logo.svg" alt="Grimheim - Gestor de Bandas de Mordheim" class="h-16 sm:h-20 md:h-24 w-auto mx-auto filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
+                </button>
+                <h1 class="sr-only">Grimheim</h1>
+                <p id="user-info" class="text-xs sm:text-sm mt-1 text-slate-300"></p>
             </div>
             <!-- Mobile Hamburger Menu Button -->
             <button id="mobile-menu-btn"
-                class="md:hidden fixed top-4 right-4 z-50 p-2 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
+                class="md:hidden fixed top-4 right-4 z-50 p-2.5 bg-slate-800 text-mordheim-gold border border-mordheim-gold/40 rounded-xl hover:bg-slate-700 transition shadow-lg">
                 <i class="fas fa-bars text-xl"></i>
             </button>
 
             <!-- Mobile Navigation Menu -->
-            <div id="mobile-menu" class="md:hidden fixed inset-0 bg-slate-900 bg-opacity-95 z-40 hidden">
-                <div class="flex flex-col p-6 pt-16">
+            <div id="mobile-menu" class="md:hidden fixed inset-0 bg-slate-950/98 backdrop-blur-xl z-40 hidden">
+                <div class="flex flex-col p-6 pt-16 max-w-md mx-auto h-full overflow-y-auto">
+                    <!-- Home Button (Always visible on mobile) -->
+                    <button id="mobile-home-btn"
+                        class="w-full text-left px-4 py-3 bg-slate-800/90 hover:bg-slate-700 text-mordheim-gold font-bold rounded-xl transition flex items-center mb-3 border border-mordheim-gold/40 shadow-lg">
+                        <i class="fas fa-home mr-3 text-lg"></i>
+                        <span>Inicio (Tus Bandas)</span>
+                    </button>
                     <!-- Helper Section -->
                     <div class="mb-4">
                         <button id="mobile-helper-btn"
@@ -122,8 +155,25 @@
                     </div>
 
 
+                    <!-- Selector de Unidades Móvil (Desplegable) -->
+                    <div class="mb-4 pt-3 border-t border-slate-700/80">
+                        <label for="mobile-distance-unit-select" class="block text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">
+                            <i class="fas fa-ruler-combined mr-1 text-amber-200/70"></i> Unidad de Distancia
+                        </label>
+                        <div class="relative">
+                            <select id="mobile-distance-unit-select"
+                                class="w-full pl-3 pr-8 py-2.5 bg-slate-800 text-slate-200 rounded-lg border border-slate-700 font-medium text-sm focus:outline-none focus:ring-1 focus:ring-amber-500/40 appearance-none">
+                                <option value="inches">Pulgadas (") - Reglas oficiales</option>
+                                <option value="cm">Centímetros (cm) - Conversión métrica</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+
                     <!-- Botones de Importar / Exportar Local -->
-                    <div id="mobile-auth-buttons" class="mt-4 pt-4 border-t border-slate-700">
+                    <div id="mobile-auth-buttons" class="mt-2 pt-3 border-t border-slate-700">
                         <button id="import-warband-btn-mobile"
                             class="w-full px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition mb-2 flex items-center justify-center">
                             <i class="fas fa-file-import mr-2"></i> Importar Banda (JSON)
@@ -132,180 +182,274 @@
                             class="w-full px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition mb-2 flex items-center justify-center">
                             <i class="fas fa-file-export mr-2"></i> Exportar Todo (JSON)
                         </button>
+                        <button id="mobile-admin-users-btn"
+                            class="hidden w-full px-4 py-3 bg-amber-700 text-white rounded-lg hover:bg-amber-600 transition mb-2 flex items-center justify-center font-semibold shadow">
+                            <i class="fas fa-users-cog mr-2"></i> Gestión de Usuarios
+                        </button>
+                        <button id="mobile-system-logout-btn"
+                            class="hidden w-full px-4 py-3 bg-red-800 text-white rounded-lg hover:bg-red-700 transition mb-2 flex items-center justify-center font-semibold shadow">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
+                        </button>
                         <button id="mobile-login-btn" class="hidden"></button>
                         <button id="mobile-logout-btn" class="hidden"></button>
                     </div>
                 </div>
             </div>
 
-            <!-- Desktop Navigation (unchanged) -->
-            <div class="hidden md:flex justify-end items-center space-x-2 mt-3 pt-3 border-t border-mordheim-gold/30">
-                <!-- Helper Dropdown -->
-                <div class="relative">
-                    <button id="helper-dropdown-btn"
-                        class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition flex items-center">
-                        Ayudante
-                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
+            <!-- Desktop Navigation Bar (Intelligent Dashboard Grouping) -->
+            <nav class="hidden md:flex flex-wrap items-center justify-between gap-3 mt-4 pt-3.5 border-t border-white/10" aria-label="Navegación principal">
+                <!-- Left Nav: Segmented Control Bar -->
+                <div class="inline-flex items-center rounded-xl bg-slate-900/90 border border-slate-750 p-1 gap-1 shadow-inner">
+                    <!-- Home / Inicio Button -->
+                    <button id="nav-home-btn" type="button"
+                        class="px-3 py-1.5 rounded-lg text-slate-200 hover:text-white hover:bg-slate-800 text-xs sm:text-sm font-medium transition flex items-center gap-1.5"
+                        title="Ir a la lista de bandas (Inicio)">
+                        <i class="fas fa-shield-alt text-amber-300/80 text-xs"></i>
+                        <span>Inicio</span>
                     </button>
-                    <div id="helper-dropdown"
-                        class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-lg shadow-lg z-50">
-                        <a href="exploration.html"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition flex items-center">
-                            Exploración
-                            </a>
-                        <a href="Helper/sell-treasure.html"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition flex items-center">
-                            Vender Tesoro
-                            </a>
-                    </div>
-                </div>
-                <!-- Card Builder Button -->
-                <button id="card-builder-btn"
-                    class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition flex items-center">
-                    Creador de Cartas
-                    </button>
-                <!-- Data Dropdown -->
-                <div class="relative">
-                    <button id="data-dropdown-btn"
-                        class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition flex items-center">
-                        Datos
-                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
-                    </button>
-                    <div id="data-dropdown"
-                        class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-lg shadow-lg z-50">
-                        <button id="character-review-dropdown-btn"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition flex items-center justify-between">
-                            Personajes
-                            <i class="fas fa-chevron-down ml-2 text-xs"></i>
+
+                    <!-- Helper Dropdown -->
+                    <div class="relative">
+                        <button id="helper-dropdown-btn" type="button"
+                            class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs sm:text-sm font-medium transition flex items-center gap-1.5">
+                            <i class="fas fa-compass text-amber-300/80 text-xs"></i>
+                            <span>Ayudante</span>
+                            <i class="fas fa-chevron-down text-[10px] ml-0.5 text-slate-400"></i>
                         </button>
-                        <div id="character-submenu" class="hidden ml-4 mt-1 space-y-1">
-                            <button id="hired-sword-review-btn"
-                                class="w-full text-left px-3 py-2 text-white hover:bg-slate-600 transition text-sm">
-                                Espadas de Alquiler
+                        <div id="helper-dropdown"
+                            class="hidden absolute left-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-md">
+                            <a href="exploration.html"
+                                class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-2 text-xs sm:text-sm">
+                                <i class="fas fa-map-marked-alt text-amber-300/80 text-xs"></i>
+                                <span>Exploración</span>
+                            </a>
+                            <a href="Helper/sell-treasure.html"
+                                class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-2 text-xs sm:text-sm">
+                                <i class="fas fa-coins text-amber-300/80 text-xs"></i>
+                                <span>Vender Tesoro</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Card Builder Button -->
+                    <button id="card-builder-btn" type="button"
+                        class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs sm:text-sm font-medium transition flex items-center gap-1.5"
+                        title="Creador de Cartas de Guerreros">
+                        <i class="fas fa-id-card text-amber-300/80 text-xs"></i>
+                        <span>Creador de Cartas</span>
+                    </button>
+
+                    <!-- Data Dropdown -->
+                    <div class="relative">
+                        <button id="data-dropdown-btn" type="button"
+                            class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs sm:text-sm font-medium transition flex items-center gap-1.5">
+                            <i class="fas fa-book-open text-amber-300/80 text-xs"></i>
+                            <span>Datos</span>
+                            <i class="fas fa-chevron-down text-[10px] ml-0.5 text-slate-400"></i>
+                        </button>
+                        <div id="data-dropdown"
+                            class="hidden absolute left-0 mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-md">
+                            <button id="character-review-dropdown-btn" type="button"
+                                class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center justify-between text-xs sm:text-sm">
+                                <span>Personajes</span>
+                                <i class="fas fa-chevron-right text-[10px] text-slate-400"></i>
                             </button>
-                            <button id="dramatis-personae-review-btn"
-                                class="w-full text-left px-3 py-2 text-white hover:bg-slate-600 transition text-sm">
-                                Personajes Ilustres
+                            <div id="character-submenu" class="hidden ml-3 my-1 border-l border-slate-750 pl-2 space-y-1">
+                                <button id="hired-sword-review-btn" type="button"
+                                    class="w-full text-left px-3 py-1.5 text-slate-300 hover:text-white hover:bg-slate-800 transition text-xs rounded-md">
+                                    Espadas de Alquiler
+                                </button>
+                                <button id="dramatis-personae-review-btn" type="button"
+                                    class="w-full text-left px-3 py-1.5 text-slate-300 hover:text-white hover:bg-slate-800 transition text-xs rounded-md">
+                                    Personajes Ilustres
+                                </button>
+                            </div>
+                            <button id="special-rules-btn" type="button"
+                                class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition text-xs sm:text-sm">
+                                Reglas Especiales
+                            </button>
+                            <button id="rules-btn" type="button"
+                                class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition text-xs sm:text-sm">
+                                Reglas Generales
                             </button>
                         </div>
-                        <button id="special-rules-btn"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Reglas Especiales
-                        </button>
-                        <button id="rules-btn"
-                            class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
-                            Reglas
-                        </button>
                     </div>
                 </div>
 
-                <div id="auth-buttons" class="flex items-center">
-                    <input type="file" id="import-file-input" accept=".json" class="hidden">
-                    <button id="import-warband-btn"
-                        class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition flex items-center"
-                        title="Importar banda desde archivo JSON">
-                        <i class="fas fa-file-import mr-1"></i> Importar (JSON)
+                <!-- Right Nav: Distance Unit, Backup Segmented & Auth -->
+                <div id="auth-buttons" class="flex flex-wrap items-center gap-2.5">
+                    <!-- Distance Unit Dropdown (Pulgadas / CM) -->
+                    <div class="relative flex items-center" title="Cambiar unidad de distancia para movimiento y disparos">
+                        <label for="distance-unit-select" class="sr-only">Unidad de distancia</label>
+                        <div class="relative inline-flex items-center">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-amber-200/70">
+                                <i class="fas fa-ruler-combined text-xs"></i>
+                            </span>
+                            <select id="distance-unit-select"
+                                class="pl-7 pr-7 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-medium rounded-lg border border-slate-750 hover:border-slate-650 focus:outline-none cursor-pointer transition shadow-xs appearance-none">
+                                <option value="inches">Pulgadas (")</option>
+                                <option value="cm">Centímetros (cm)</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-400">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Backup / JSON Grouped Segment -->
+                    <div class="inline-flex items-center rounded-lg bg-slate-900 border border-slate-750 p-0.5 shadow-xs">
+                        <input type="file" id="import-file-input" accept=".json" class="hidden">
+                        <button id="import-warband-btn" type="button"
+                            class="px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-md transition flex items-center gap-1.5"
+                            title="Importar banda desde archivo JSON">
+                            <i class="fas fa-file-import text-[11px] text-amber-300/80"></i>
+                            <span>Importar</span>
+                        </button>
+                        <div class="h-3 w-px bg-slate-750"></div>
+                        <button id="export-all-btn" type="button"
+                            class="px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-md transition flex items-center gap-1.5"
+                            title="Exportar todas las bandas guardadas a un archivo JSON de respaldo">
+                            <i class="fas fa-file-export text-[11px] text-amber-300/80"></i>
+                            <span>Exportar</span>
+                        </button>
+                    </div>
+
+                    <!-- User and Logout Actions -->
+                    <button id="admin-users-btn" type="button"
+                        class="hidden px-2.5 py-1.5 bg-amber-950/20 hover:bg-amber-950/40 text-amber-200/90 hover:text-white text-xs rounded-lg border border-amber-800/40 transition flex items-center gap-1.5 shadow-xs font-medium"
+                        title="Administración de Usuarios (Superusuario)">
+                        <i class="fas fa-users-cog text-xs"></i>
+                        <span>Usuarios</span>
                     </button>
-                    <button id="export-all-btn"
-                        class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition ml-2 flex items-center"
-                        title="Exportar todas las bandas guardadas a un archivo JSON de respaldo">
-                        <i class="fas fa-file-export mr-1"></i> Exportar Todo
+                    <button id="system-logout-btn" type="button"
+                        class="hidden px-2.5 py-1.5 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300/90 hover:text-white text-xs rounded-lg border border-rose-800/40 transition flex items-center gap-1.5 shadow-xs font-medium"
+                        title="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt text-xs"></i>
+                        <span>Salir</span>
                     </button>
                     <button id="login-btn" class="hidden"></button>
                     <button id="logout-btn" class="hidden"></button>
                 </div>
-            </div>
+            </nav>
         </header>
 
         <!-- Main Content Area -->
         <div id="main-view">
             <!-- Warband List View -->
-            <div id="warband-list-view" class="bg-slate-800 p-6 rounded-xl shadow-2xl">
-                <h2 class="text-2xl font-bold mb-4 border-b pb-2 border-slate-700">Tus Bandas</h2>
-                <div id="warbands-container" class="space-y-4">
+            <div id="warband-list-view" class="bg-slate-800/40 border border-slate-700/50 rounded-2xl shadow-xl p-5 sm:p-7 backdrop-blur-sm">
+                <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-700/60">
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-100 tracking-wide flex items-center gap-2.5">
+                        <i class="fas fa-shield-alt text-lg text-amber-200/80"></i>
+                        <span>Tus Bandas</span>
+                    </h2>
+                    <span class="text-xs text-slate-400 font-normal">Gestión de Campaña</span>
+                </div>
+                <div id="warbands-container" class="space-y-3">
                     <!-- Warbands will be listed here -->
                 </div>
-                <button id="create-new-warband-btn"
-                    class="mt-6 w-full p-3 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-500 transition shadow-md">
-                    <i class="fas fa-plus mr-2"></i> Crear Nueva Banda
+                <button id="create-new-warband-btn" type="button"
+                    class="mt-5 w-full py-3 px-4 bg-slate-800 hover:bg-slate-750 text-amber-100/90 hover:text-white font-semibold text-xs sm:text-sm rounded-xl transition duration-150 border border-amber-600/35 hover:border-amber-500/50 shadow-sm flex items-center justify-center gap-2 tracking-wide uppercase hover:bg-slate-700/90">
+                    <i class="fas fa-plus-circle text-sm text-amber-300/80"></i>
+                    <span>Crear Nueva Banda</span>
                 </button>
             </div>
 
             <!-- Warband Editor/Viewer (Hidden by default) -->
             <div id="warband-editor-view" class="hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <button id="back-to-warbands-btn" class="text-slate-300 hover:text-mordheim-gold transition">
-                        <i class="fas fa-arrow-left mr-2"></i> <span class="hidden lg:inline">Volver a la Lista de Bandas</span><span class="lg:hidden">Lista</span>
+                <!-- Top Action Breadcrumb & Toolbar -->
+                <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                    <button id="back-to-warbands-btn" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-750 transition text-xs sm:text-sm font-medium shadow-xs">
+                        <i class="fas fa-arrow-left text-xs text-amber-300/80"></i> <span class="hidden sm:inline">Volver a la Lista de Bandas</span><span class="sm:hidden">Lista</span>
                     </button>
-                    <div class="flex space-x-2">
+                    <div class="flex items-center gap-2">
                         <button id="turn-actions-btn"
-                            class="p-2 px-3 bg-slate-600 text-white text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md">
-                            Acciones de Turno
+                            class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs sm:text-sm font-medium rounded-xl border border-slate-750 hover:border-slate-650 transition shadow-xs flex items-center gap-1.5">
+                            <i class="fas fa-hourglass-half text-xs text-slate-400"></i> <span>Acciones de Turno</span>
                         </button>
                         <button id="battle-view-btn"
-                            class="p-2 px-3 bg-slate-600 text-white text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md">
-                            <i class="fas fa-sword mr-1"></i> Modo Batalla
+                            class="px-4 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 hover:text-white text-xs sm:text-sm font-semibold rounded-xl border border-amber-500/40 hover:border-amber-400/60 transition shadow-xs flex items-center gap-2">
+                            <i class="fas fa-khanda text-xs"></i> <span>Modo Batalla</span>
                         </button>
                         <!-- Options Dropdown -->
                         <div class="relative">
                             <button id="options-dropdown-btn"
-                                class="p-2 px-3 bg-slate-600 text-white text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md flex items-center">
-                                Opciones
-                                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                                class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-750 hover:border-slate-650 transition shadow-xs flex items-center gap-1.5">
+                                <span>Opciones</span>
+                                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
                             </button>
                             <div id="options-dropdown"
-                                class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-lg shadow-lg z-50">
+                                class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-md">
                                 <button id="house-rules-btn"
-                                    class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
+                                    class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition text-xs sm:text-sm">
                                     Reglas de la Casa
-                        </button>
+                                </button>
                                 <button id="print-warband-btn"
-                                    class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition">
+                                    class="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition text-xs sm:text-sm">
                                     Imprimir Banda
                                 </button>
                                 <button id="export-current-warband-btn"
-                                    class="w-full text-left px-4 py-2 text-white hover:bg-slate-600 transition flex items-center">
-                                    <i class="fas fa-download mr-2"></i> Exportar Banda (JSON)
+                                    class="w-full text-left px-4 py-2 text-amber-200/90 hover:text-white hover:bg-slate-800 transition flex items-center gap-2 text-xs sm:text-sm">
+                                    <i class="fas fa-download text-xs"></i> Exportar Banda (JSON)
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="header-bg p-4 rounded-lg mb-6 flex justify-between items-center shadow-lg">
-                    <div class="flex-1">
-                        <h2 id="warband-title" class="text-3xl font-bold text-mordheim-gold"></h2>
-                        <div class="mt-2 flex items-center space-x-4">
-                            <!-- Alignment Display Mode -->
-                            <div id="alignment-display" class="flex items-center space-x-2">
-                                <span class="text-sm text-slate-400 cursor-help border-b border-dotted border-slate-400"
-                                    title="El alineamiento determina qué Espadas de Alquiler y Personajes Ilustres pueden contratarse">Alineamiento:</span>
-                                <span id="alignment-text" class="text-sm font-semibold text-slate-200"></span>
-                            </div>
-                            <!-- Alignment Edit Mode -->
-                            <div id="alignment-edit" class="hidden flex items-center space-x-2">
-                                <span class="text-sm text-slate-400">Alineamiento:</span>
-                                <select id="alignment-select"
-                                    class="text-sm p-1 rounded bg-slate-700 border border-slate-600 text-white">
-                                    <option value="good">Bueno</option>
-                                    <option value="evil">Malvado</option>
-                                </select>
-                            </div>
-                            <!-- Aristocracy of the Night Display (shown after pre-game for Undead) -->
-                            <div id="aristocracy-display" class="hidden flex items-center space-x-2">
-                                <button id="aristocracy-header-info-link"
-                                    class="text-sm text-slate-400 hover:text-mordheim-gold cursor-pointer border-b border-dotted border-slate-400 hover:border-mordheim-gold transition text-left focus:outline-none"
-                                    title="Ver reglas de Aristocracia">Aristocracia:</button>
-                                <span
-                                    class="aristocracy-text text-sm font-semibold text-slate-200 cursor-pointer hover:text-mordheim-gold transition"
-                                    id="aristocracy-header-text-link" title="Click to view Aristocracy rules"></span>
+
+                <!-- Modern Warband Hero Card (Dashboard Header) -->
+                <div class="bg-slate-850/80 border border-slate-750/80 rounded-2xl p-4 sm:p-6 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xl backdrop-blur-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center flex-shrink-0 text-amber-300/90 shadow-md">
+                            <i class="fas fa-shield-alt text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 id="warband-title" class="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight"></h2>
+                            <div class="mt-2 flex flex-wrap items-center gap-2 sm:gap-2.5">
+                                <!-- Alignment Display Mode -->
+                                <div id="alignment-display" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-750 text-xs text-slate-300">
+                                    <span class="text-slate-500 font-medium">Alineamiento:</span>
+                                    <span id="alignment-text" class="font-semibold text-slate-200"></span>
+                                </div>
+                                <!-- Alignment Edit Mode -->
+                                <div id="alignment-edit" class="hidden flex items-center gap-1.5">
+                                    <span class="text-xs text-slate-400">Alineamiento:</span>
+                                    <select id="alignment-select"
+                                        class="text-xs px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-750 text-slate-200">
+                                        <option value="good">Bueno</option>
+                                        <option value="evil">Malvado</option>
+                                    </select>
+                                </div>
+                                <!-- Aristocracy of the Night Display -->
+                                <div id="aristocracy-display" class="hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-750 text-xs">
+                                    <button id="aristocracy-header-info-link"
+                                        class="text-slate-400 hover:text-amber-200 transition focus:outline-none"
+                                        title="Ver reglas de Aristocracia">Aristocracia:</button>
+                                    <span class="aristocracy-text font-semibold text-slate-200 hover:text-amber-200 cursor-pointer transition"
+                                        id="aristocracy-header-text-link" title="Haz clic para ver las reglas de Aristocracia de la Noche"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xl font-semibold text-slate-200"><span id="warband-rating-label"
-                                class="cursor-pointer underline text-yellow-300 hover:text-mordheim-gold transition"
-                                title="Ver desglose de valoración">Valoración</span>: <span id="warband-rating">0</span></p>
-                        <p class="text-sm text-slate-400">Tesorería: <span id="warband-gc">0</span> CO</p>
+                    <!-- Right KPI Metrics Group -->
+                    <div class="flex items-center gap-3 self-end md:self-center">
+                        <div id="warband-rating-label" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-750 hover:border-amber-500/40 transition cursor-pointer shadow-inner" title="Ver desglose de valoración">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-300 flex-shrink-0">
+                                <i class="fas fa-trophy text-xs"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Valoración</span>
+                                <span id="warband-rating" class="text-lg sm:text-xl font-bold text-amber-200/95 leading-tight">0</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-750 shadow-inner">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-300 flex-shrink-0">
+                                <i class="fas fa-coins text-xs"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Tesorería</span>
+                                <span class="text-lg sm:text-xl font-bold text-slate-100 leading-tight"><span id="warband-gc">0</span> <span class="text-xs text-slate-400 font-normal">CO</span></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -324,25 +468,37 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Left Column: Roster List -->
                     <div id="mobile-members-content"
-                        class="lg:col-span-2 bg-slate-800 p-6 rounded-xl shadow-inner custom-scroll max-h-[100vh] overflow-y-auto">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-700">
-                            <h3 class="text-xl font-semibold hidden lg:block">Miembros de la Banda</h3>
-                            <div class="flex space-x-1 lg:space-x-2 w-full lg:w-auto justify-center lg:justify-end">
-                                <button id="change-order-btn"
-                                    class="p-1.5 px-2 lg:p-2 lg:px-3 bg-slate-600 text-white text-xs lg:text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md whitespace-nowrap">
-                                    <i class="fas fa-sort hidden lg:inline"></i> Ordenar
-                                </button>
-                                <button id="build-cards-btn"
-                                    class="p-1.5 px-2 lg:p-2 lg:px-3 bg-slate-600 text-white text-xs lg:text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md whitespace-nowrap">
-                                    Crear Cartas
-                                </button>
-                                <button id="advancement-hub-btn"
-                                    class="p-1.5 px-2 lg:p-2 lg:px-3 bg-slate-600 text-white text-xs lg:text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md whitespace-nowrap">
-                                    Avances
-                                </button>
+                        class="lg:col-span-2 bg-slate-850/50 border border-slate-750/70 p-5 sm:p-6 rounded-2xl shadow-xl backdrop-blur-sm custom-scroll max-h-[100vh] overflow-y-auto">
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-5 border-b pb-3.5 border-slate-750/70">
+                            <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2.5">
+                                <i class="fas fa-users text-amber-300/80 text-sm"></i>
+                                <span>Miembros de la Banda</span>
+                            </h3>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <!-- Roster Toolset Segment -->
+                                <div class="inline-flex items-center rounded-lg bg-slate-900 border border-slate-750 p-0.5 shadow-xs">
+                                    <button id="change-order-btn"
+                                        class="px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-md transition flex items-center gap-1.5"
+                                        title="Reordenar la posición de los guerreros">
+                                        <i class="fas fa-sort text-[11px] text-slate-400"></i> <span>Ordenar</span>
+                                    </button>
+                                    <div class="h-3 w-px bg-slate-750"></div>
+                                    <button id="build-cards-btn"
+                                        class="px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-md transition flex items-center gap-1.5"
+                                        title="Generar cartas para imprimir">
+                                        <i class="fas fa-id-card text-[11px] text-slate-400"></i> <span>Crear Cartas</span>
+                                    </button>
+                                    <div class="h-3 w-px bg-slate-750"></div>
+                                    <button id="advancement-hub-btn"
+                                        class="px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-md transition flex items-center gap-1.5"
+                                        title="Ver centro de avances y experiencia">
+                                        <i class="fas fa-chart-line text-[11px] text-slate-400"></i> <span>Avances</span>
+                                    </button>
+                                </div>
+                                <!-- Primary Action: Add Fighter -->
                                 <button id="add-fighter-btn"
-                                    class="p-1.5 px-2 lg:p-2 lg:px-3 bg-slate-600 text-white text-xs lg:text-sm font-semibold rounded-full hover:bg-slate-500 transition shadow-md whitespace-nowrap">
-                                    <i class="fas fa-user-plus hidden lg:inline"></i> Añadir Guerrero
+                                    class="px-3.5 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 hover:text-white text-xs font-semibold rounded-lg border border-amber-500/40 hover:border-amber-400/60 transition shadow-xs flex items-center gap-1.5">
+                                    <i class="fas fa-user-plus text-xs text-amber-300/90"></i> <span>Añadir Guerrero</span>
                                 </button>
                             </div>
                         </div>
@@ -353,26 +509,28 @@
                     <!-- Right Column: Treasury/Notes/Actions -->
                     <div id="mobile-management-content" class="lg:col-span-1 space-y-6">
                         <!-- Pre-Game Toggle Card -->
-                        <div class="bg-slate-700 p-4 rounded-xl shadow-lg">
-                            <h3 class="text-lg font-semibold mb-3 border-b border-slate-600 pb-2 text-mordheim-gold">
-                                Fase de Creación Inicial</h3>
+                        <div class="bg-slate-850/50 border border-slate-750/70 p-5 rounded-2xl shadow-xl backdrop-blur-sm">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2 mb-3 border-b border-slate-750/70 pb-2">
+                                <i class="fas fa-flag text-amber-300/80 text-xs"></i>
+                                <span>Fase de Creación Inicial</span>
+                            </h3>
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-300">Modo Creación Inicial:</span>
+                                <span class="text-sm text-slate-300">Modo Creación Inicial:</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="pre-game-toggle" class="sr-only peer">
                                     <div
-                                        class="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-mordheim-gold rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600/80">
                                     </div>
                                 </label>
                             </div>
-                            <p id="pre-game-status" class="text-sm text-slate-400 mt-2">Actualmente en fase de creación inicial</p>
+                            <p id="pre-game-status" class="text-xs text-slate-400 mt-2">Actualmente en fase de creación inicial</p>
 
                             <!-- Alignment Selection (shown only when pre-game mode is enabled) -->
-                            <div id="pre-game-alignment-section" class="hidden mt-4 pt-4 border-t border-slate-600">
+                            <div id="pre-game-alignment-section" class="hidden mt-4 pt-3 border-t border-slate-750/70">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-slate-400">Alineamiento:</span>
+                                    <span class="text-xs text-slate-400">Alineamiento:</span>
                                     <select id="pre-game-alignment-select"
-                                        class="text-sm p-1 rounded bg-slate-700 border border-slate-600 text-white">
+                                        class="text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200">
                                         <option value="good">Bueno</option>
                                         <option value="evil">Malvado</option>
                                     </select>
@@ -380,13 +538,13 @@
                             </div>
 
                             <!-- Aristocracy of the Night (shown only for Undead warbands in pre-game mode) -->
-                            <div id="pre-game-aristocracy-section" class="hidden mt-4 pt-4 border-t border-slate-600">
+                            <div id="pre-game-aristocracy-section" class="hidden mt-4 pt-3 border-t border-slate-750/70">
                                 <div class="flex items-center justify-between">
                                     <button id="aristocracy-info-link"
-                                        class="text-sm text-slate-400 hover:text-mordheim-gold cursor-pointer border-b border-dotted border-slate-400 hover:border-mordheim-gold transition text-left focus:outline-none"
+                                        class="text-xs text-slate-400 hover:text-amber-200 cursor-pointer transition text-left focus:outline-none"
                                         title="Ver reglas de Aristocracia de la Noche">Aristocracia de la Noche:</button>
                                     <select id="pre-game-aristocracy-select"
-                                        class="text-sm p-1 rounded bg-slate-700 border border-slate-600 text-white">
+                                        class="text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200">
                                         <option value="None">Ninguna</option>
                                         <option value="Von Carstein">Von Carstein</option>
                                         <option value="Blood Dragon">Blood Dragon</option>
@@ -398,11 +556,11 @@
                             </div>
 
                             <!-- Location (shown for Lahmian warbands, always visible) -->
-                            <div id="pre-game-location-section" class="hidden mt-4 pt-4 border-t border-slate-600">
+                            <div id="pre-game-location-section" class="hidden mt-4 pt-3 border-t border-slate-750/70">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-slate-400">Localización:</span>
+                                    <span class="text-xs text-slate-400">Localización:</span>
                                     <select id="pre-game-location-select"
-                                        class="text-sm p-1 rounded bg-slate-700 border border-slate-600 text-white">
+                                        class="text-xs p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200">
                                         <option value="Foreign">Extranjera</option>
                                         <option value="Khemrian">Khemriana</option>
                                     </select>
@@ -411,47 +569,51 @@
                         </div>
 
                         <!-- Game Tracker Card -->
-                        <div id="game-tracker-card" class="bg-slate-700 p-4 rounded-xl shadow-lg hidden">
-                            <h3 class="text-lg font-semibold mb-3 border-b border-slate-600 pb-2 text-mordheim-gold">
-                                Contador de Partidas</h3>
+                        <div id="game-tracker-card" class="bg-slate-850/50 border border-slate-750/70 p-5 rounded-2xl shadow-xl backdrop-blur-sm hidden">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2 mb-3 border-b border-slate-750/70 pb-2">
+                                <i class="fas fa-dice text-amber-300/80 text-xs"></i>
+                                <span>Contador de Partidas</span>
+                            </h3>
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-300">Partidas Jugadas:</span>
+                                <span class="text-sm text-slate-300">Partidas Jugadas:</span>
                                 <div class="flex items-center space-x-2">
                                     <button id="decrease-games-btn"
-                                        class="p-1 text-white rounded hover:opacity-80 transition"
-                                        style="background-color: var(--terracotta-red);">
+                                        class="p-1 px-2.5 text-xs bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-800/40 rounded-lg transition">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                     <span id="games-played-count"
-                                        class="text-xl font-bold text-mordheim-gold w-8 text-center">0</span>
+                                        class="text-lg font-bold text-amber-200 w-8 text-center">0</span>
                                     <button id="increase-games-btn"
-                                        class="p-1 text-white rounded hover:opacity-80 transition"
-                                        style="background-color: var(--sage-green);">
+                                        class="p-1 px-2.5 text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-700/40 rounded-lg transition">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-sm text-slate-400 mt-2">Registro de partidas jugadas con esta banda</p>
+                            <p class="text-xs text-slate-400 mt-2">Registro de partidas jugadas con esta banda</p>
                         </div>
 
                         <!-- Treasury Management Card -->
-                        <div class="bg-slate-700 p-4 rounded-xl shadow-lg">
-                            <div class="flex justify-between items-center mb-3 border-b border-slate-600 pb-2">
-                                <h3 class="text-lg font-semibold">Tesorería</h3>
+                        <div class="bg-slate-850/50 border border-slate-750/70 p-5 rounded-2xl shadow-xl backdrop-blur-sm">
+                            <div class="flex justify-between items-center mb-3.5 border-b border-slate-750/70 pb-2.5">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                                    <i class="fas fa-coins text-amber-300/80 text-xs"></i>
+                                    <span>Tesorería</span>
+                                </h3>
                                 <button id="view-ledger-btn"
-                                    class="p-2 px-3 bg-blue-600 text-white text-xs font-semibold rounded-full hover:bg-blue-700 transition shadow-md">
-                                    Ver Libro Mayor
+                                    class="px-2.5 py-1 bg-slate-800/90 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700/70 rounded-lg text-xs font-medium shadow-xs transition flex items-center gap-1.5">
+                                    <i class="fas fa-book-open text-amber-300/80 text-[10px]"></i>
+                                    <span>Libro Mayor</span>
                                 </button>
                             </div>
 
                             <!-- Tab Navigation -->
-                            <div class="flex mb-4 border-b border-slate-600">
+                            <div class="flex gap-1.5 mb-3.5 p-1 bg-slate-800/60 rounded-xl border border-slate-750">
                                 <button id="gc-tab"
-                                    class="px-4 py-2 text-sm font-medium rounded-t-md bg-mordheim-gold text-slate-900 transition-colors border border-mordheim-gold border-b-0">
+                                    class="flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-700 text-amber-200/95 transition-all text-center shadow-xs">
                                     Coronas de Oro
                                 </button>
                                 <button id="treasure-tab"
-                                    class="px-4 py-2 text-sm font-medium rounded-t-md text-slate-400 hover:text-white transition-colors border border-slate-600 border-b-0">
+                                    class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 transition-all text-center">
                                     Piedra Bruja / Tesoro
                                 </button>
                             </div>
@@ -460,34 +622,40 @@
                             <div id="gc-content" class="tab-content">
                                 <div class="flex items-center space-x-2 mb-3">
                                     <input type="number" id="gc-input"
-                                        class="w-24 p-2 rounded-lg bg-slate-800 border border-slate-600 text-white"
+                                        class="w-24 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-amber-500/40"
                                         placeholder="Cantidad">
                                     <button id="add-gc-btn"
-                                        class="p-2 text-white rounded-lg hover:opacity-80 transition"
-                                        style="background-color: var(--sage-green);"><i class="fas fa-plus"></i> Añadir</button>
+                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-emerald-300 hover:text-emerald-200 border border-emerald-700/40 rounded-lg text-xs font-medium transition shadow-xs flex items-center gap-1">
+                                        <i class="fas fa-plus text-[10px]"></i> Añadir
+                                    </button>
                                     <button id="spend-gc-btn"
-                                        class="p-2 text-white rounded-lg hover:opacity-80 transition"
-                                        style="background-color: var(--terracotta-red);"><i class="fas fa-minus"></i> Gastar</button>
+                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-rose-300 hover:text-rose-200 border border-rose-800/40 rounded-lg text-xs font-medium transition shadow-xs flex items-center gap-1">
+                                        <i class="fas fa-minus text-[10px]"></i> Gastar
+                                    </button>
                                 </div>
-                                <p class="text-sm text-slate-400">Coronas de Oro actuales: <span id="current-gc"
-                                        class="font-bold text-mordheim-gold">0</span></p>
+                                <p class="text-xs text-slate-400">Coronas de Oro actuales: <span id="current-gc"
+                                        class="font-bold text-amber-200 text-sm">0</span></p>
                             </div>
 
                             <!-- Treasure Tab Content -->
                             <div id="treasure-content" class="tab-content hidden">
                                 <div class="flex items-center space-x-2 mb-3">
                                     <input type="number" id="treasure-input"
-                                        class="w-24 p-2 rounded-lg bg-slate-800 border border-slate-600 text-white"
+                                        class="w-24 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-amber-500/40"
                                         placeholder="Cantidad">
                                     <button id="add-treasure-btn"
-                                        class="p-2 text-white rounded-lg hover:opacity-80 transition"
-                                        style="background-color: var(--sage-green);"><i class="fas fa-plus"></i> Añadir</button>
+                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-emerald-300 hover:text-emerald-200 border border-emerald-700/40 rounded-lg text-xs font-medium transition shadow-xs flex items-center gap-1">
+                                        <i class="fas fa-plus text-[10px]"></i> Añadir
+                                    </button>
                                     <button id="spend-treasure-btn"
-                                        class="p-2 text-white rounded-lg hover:opacity-80 transition"
-                                        style="background-color: var(--terracotta-red);"><i class="fas fa-minus"></i> Vender</button>
+                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-amber-200 hover:text-amber-100 border border-amber-600/35 rounded-lg text-xs font-medium transition shadow-xs flex items-center gap-1">
+                                        <i class="fas fa-coins text-[10px]"></i> Vender
+                                    </button>
                                     <button id="remove-treasure-btn"
-                                        class="p-2 text-white rounded-lg hover:opacity-80 transition"
-                                        style="background-color: #6b7280;">Retirar</button>
+                                        class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition">
+                                        Retirar
+                                    </button>
+                                </div>
                                 </div>
                                 <p class="text-sm text-slate-400">Tesoro actual: <span id="current-treasure"
                                         class="font-bold text-mordheim-gold">0</span></p>
@@ -497,44 +665,56 @@
 
 
                         <!-- Warband Special Rules -->
-                        <div id="warband-special-rules-container" class="bg-slate-700 p-4 rounded-xl shadow-lg"
+                        <div id="warband-special-rules-container" class="bg-slate-850/50 border border-slate-750/70 p-5 rounded-2xl shadow-xl backdrop-blur-sm"
                             style="display: none;">
-                            <div class="flex justify-between items-center mb-2 border-b border-slate-600 pb-2">
-                                <h3 class="text-lg font-semibold text-mordheim-gold">Reglas Especiales de la Banda</h3>
+                            <div class="flex justify-between items-center mb-3.5 border-b border-slate-750/70 pb-2.5">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                                    <i class="fas fa-scroll text-amber-300/80 text-xs"></i>
+                                    <span>Reglas Especiales de la Banda</span>
+                                </h3>
                                 <button id="toggle-special-rules-btn"
-                                    class="text-slate-400 hover:text-mordheim-gold transition-colors">
-                                    <i class="fas fa-chevron-up"></i>
+                                    class="text-slate-400 hover:text-amber-200 transition-colors p-1"
+                                    title="Alternar visibilidad">
+                                    <i class="fas fa-chevron-up text-xs"></i>
                                 </button>
                             </div>
-                            <div id="warband-special-rules" class="text-sm text-slate-300 hidden"></div>
+                            <div id="warband-special-rules" class="text-xs text-slate-300 hidden leading-relaxed"></div>
                         </div>
 
                         <!-- Stored Equipment Card (NEW) -->
-                        <div class="bg-slate-700 p-4 rounded-xl shadow-lg">
-                            <div class="flex justify-between items-center mb-2 border-b border-slate-600 pb-2">
-                                <h3 class="text-lg font-semibold text-mordheim-gold">Armería de la Banda</h3>
+                        <div class="bg-slate-850/50 border border-slate-750/70 p-5 rounded-2xl shadow-xl backdrop-blur-sm">
+                            <div class="flex justify-between items-center mb-3.5 border-b border-slate-750/70 pb-2.5">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                                    <i class="fas fa-warehouse text-amber-300/80 text-xs"></i>
+                                    <span>Armería de la Banda</span>
+                                </h3>
                                 <button id="add-storage-btn"
-                                    class="p-2 px-3 bg-blue-600 text-white text-xs font-semibold rounded-full hover:bg-blue-700 transition shadow-md">
-                                    <i class="fas fa-plus"></i> Añadir Equipo
+                                    class="px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-amber-200/90 hover:text-white border border-amber-600/35 hover:border-amber-500/50 rounded-lg text-xs font-medium transition shadow-xs flex items-center gap-1.5"
+                                    title="Añadir equipo a la armería">
+                                    <i class="fas fa-plus text-[10px] text-amber-300/80"></i> <span>Añadir Equipo</span>
                                 </button>
                             </div>
                             <ul id="stored-equipment-list"
-                                class="space-y-1 text-sm max-h-40 overflow-y-auto custom-scroll">
+                                class="space-y-1.5 text-sm max-h-48 overflow-y-auto custom-scroll">
                                 <!-- Stored equipment will be rendered here -->
                             </ul>
                         </div>
 
                         <!-- General Notes Card -->
-                        <div class="bg-slate-700 p-4 rounded-xl shadow-lg">
-                            <div class="flex justify-between items-center mb-2 border-b border-slate-600 pb-2">
-                                <h3 class="text-lg font-semibold">Notas de la Banda</h3>
+                        <div class="bg-slate-850/50 border border-slate-750/70 p-5 rounded-2xl shadow-xl backdrop-blur-sm">
+                            <div class="flex justify-between items-center mb-3.5 border-b border-slate-750/70 pb-2.5">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                                    <i class="fas fa-feather-alt text-amber-300/80 text-xs"></i>
+                                    <span>Notas de la Banda</span>
+                                </h3>
                                 <button id="toggle-notes-btn"
-                                    class="text-slate-400 hover:text-mordheim-gold transition-colors">
-                                    <i class="fas fa-chevron-up"></i>
+                                    class="text-slate-400 hover:text-amber-200 transition-colors p-1"
+                                    title="Alternar visibilidad">
+                                    <i class="fas fa-chevron-up text-xs"></i>
                                 </button>
                             </div>
                             <textarea id="warband-notes"
-                                class="w-full p-2 h-32 rounded-lg bg-slate-800 border border-slate-600 text-white resize-none hidden"
+                                class="w-full p-3 h-32 rounded-xl bg-slate-900/70 border border-slate-750 text-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-500/40 resize-none hidden"
                                 placeholder="Registra eventos de campaña, reglas especiales y notas generales aquí..."></textarea>
                         </div>
                     </div>
@@ -667,7 +847,7 @@
 
             <!-- Battle Fighters Grid -->
             <div class="bg-slate-800 p-4 rounded-xl shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 text-mordheim-gold">Warband Members</h3>
+                <h3 class="text-lg font-semibold mb-4 text-mordheim-gold">Miembros de la Banda</h3>
                 <div id="battle-fighters-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                     <!-- Fighter cards will be populated here -->
                 </div>
@@ -832,17 +1012,17 @@
     <!-- New/Edit Fighter Modal -->
     <div id="fighter-modal"
         class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-700 p-6 rounded-xl w-full max-w-4xl shadow-2xl custom-scroll max-h-[80vh] overflow-y-auto">
+        <div class="bg-slate-700 p-6 rounded-xl w-full max-w-4xl shadow-2xl custom-scroll max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-2">
                 <h3 id="fighter-modal-title" class="text-2xl font-bold text-mordheim-gold">Añadir Nuevo Guerrero</h3>
                 <div class="flex gap-3 items-center">
                     <button id="f-notes-btn" class="text-slate-400 hover:text-yellow-300 transition text-xl"
-                        title="Toggle Notes">
+                        title="Mostrar/ocultar notas">
                         <i class="fas fa-sticky-note"></i>
                     </button>
                     <button id="cost-breakdown-btn"
                         class="text-mordheim-gold hover:text-yellow-300 transition text-xl hidden"
-                        title="View Cost Breakdown">
+                        title="Ver desglose de costes">
                         <i class="fas fa-coins"></i>
                     </button>
                 </div>
@@ -861,7 +1041,7 @@
                     <!-- Chevron only shown on mobile in edit mode via JS -->
                     <button type="button" id="fighter-identity-toggle-btn"
                         class="hidden text-slate-400 hover:text-slate-200 transition-colors p-1 md:!hidden"
-                        title="Toggle Fighter Identity">
+                        title="Mostrar/ocultar identidad del guerrero">
                         <i id="fighter-identity-chevron" class="fas fa-chevron-up transition-transform duration-200"></i>
                     </button>
                 </div>
@@ -1024,13 +1204,13 @@
             <!-- Equipment and Skills (New Layout) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <!-- Equipment Selector Panel (New) -->
-                <div id="equipment-section" class="md:col-span-2 bg-slate-800 p-4 rounded-lg shadow-inner">
+                <div id="equipment-section" class="md:col-span-2 bg-slate-800 p-4 rounded-lg shadow-inner flex flex-col">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="text-lg font-semibold text-mordheim-gold">Equipo <span id="equipment-cost-total"
                                 class="text-sm font-normal text-slate-400"> (Total: 0 CO)</span></h4>
                         <div class="flex gap-2">
                             <button id="reorder-equipment-btn" type="button" disabled
-                                title="Add at least 2 items to reorder"
+                                title="Añade al menos 2 objetos para reordenar"
                                 class="py-1 px-3 bg-slate-600 text-white text-xs font-semibold rounded-lg hover:bg-slate-500 transition shadow-md opacity-50 cursor-not-allowed">
                                 <i class="fas fa-sort"></i> Ordenar
                             </button>
@@ -1042,16 +1222,16 @@
                     </div>
 
                     <!-- Selected Equipment List -->
-                    <div class="mb-3">
+                    <div class="flex-1 flex flex-col min-h-0 mb-2">
                         <p class="text-xs uppercase text-slate-400 mb-1">Equipo Actual (Por Guerrero):</p>
                         <ul id="selected-equipment-list"
-                            class="space-y-1 bg-slate-900 p-2 rounded max-h-32 overflow-y-auto custom-scroll">
+                            class="space-y-1 bg-slate-900 p-2.5 rounded-lg flex-1 min-h-[14rem] max-h-[26rem] overflow-y-auto custom-scroll border border-slate-700/60">
                             <!-- Selected equipment items go here -->
                         </ul>
                     </div>
 
                     <!-- Granted Skill Categories Display -->
-                    <div id="granted-skill-categories-display" class="mb-3">
+                    <div id="granted-skill-categories-display" class="empty:hidden mt-1">
                         <!-- Granted skill categories will be displayed here -->
                     </div>
 
@@ -1095,7 +1275,7 @@
                     <div id="advancements-taken-wrapper" class="hidden">
                         <label class="block mb-1 text-slate-300 text-sm">Avances Obtenidos</label>
                         <div id="advancements-taken-list"
-                            class="bg-slate-800 p-3 rounded-lg text-sm text-slate-300 italic">None</div>
+                            class="bg-slate-800 p-3 rounded-lg text-sm text-slate-300 italic">Ninguno</div>
                     </div>
                 </div>
             </div>
@@ -1274,7 +1454,7 @@
             <div class="mb-4">
                 <textarea id="notes-modal-textarea" rows="6"
                     class="w-full p-2 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-mordheim-gold focus:border-mordheim-gold"
-                    placeholder="Enter notes, rules, lore, campaign stats, etc."></textarea>
+                    placeholder="Introduce notas, reglas, trasfondo, estadísticas de campaña, etc."></textarea>
             </div>
             <div class="flex justify-end space-x-3">
                 <button id="cancel-notes-btn"
@@ -1295,7 +1475,7 @@
                     <p id="gear-modal-subtitle" class="text-sm text-slate-400"></p>
                 </div>
                 <button id="gear-close-x-btn" type="button" class="text-slate-300 hover:text-white transition"
-                    title="Cancel">
+                    title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -1478,7 +1658,7 @@
             <div class="flex justify-between items-center mb-2 flex-shrink-0">
                 <h3 id="equipment-reorder-title" class="text-2xl font-bold text-mordheim-gold">Reordenar Equipo</h3>
                 <button id="equipment-reorder-close-btn" type="button" class="text-slate-400 hover:text-white text-xl"
-                    aria-label="Close">
+                    aria-label="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -1604,7 +1784,7 @@
                     <p id="total-upkeep" class="text-lg font-bold text-orange-400">0</p>
                     <button id="pay-upkeep-btn"
                         class="absolute top-1 right-1 px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition"
-                        title="Pay Upkeep Costs">
+                        title="Pagar costes de mantenimiento">
                         <i class="fas fa-coins"></i> Pagar
                     </button>
                 </div>
@@ -1679,14 +1859,12 @@
     <!-- Set Firebase Config -->
     <script>
         window.__firebase_config = JSON.stringify({
-            apiKey: "AIzaSyDhV9n0WBM0gLHq0a-lpGuWOpZK_hlsrw8",
-            //authDomain: "rosterheim.firebaseapp.com",
-            authDomain: "rosterheim.net",
-            projectId: "rosterheim",
-            storageBucket: "rosterheim.firebasestorage.app",
-            messagingSenderId: "125343728273",
-            appId: "1:125343728273:web:2bcfa74ee9836d17c4b530",
-            measurementId: "G-GPF9PBV8JP"
+            apiKey: "AIzaSyCfJcrcw0cEfWhPFJewMkrQk5GN6LCO01I",
+            authDomain: "grimheim-873b4.firebaseapp.com",
+            projectId: "grimheim-873b4",
+            storageBucket: "grimheim-873b4.firebasestorage.app",
+            messagingSenderId: "231606045100",
+            appId: "1:231606045100:web:c71fdff95b479ce000d209"
         });
     </script>
 
@@ -1707,6 +1885,12 @@
     <script type="module" src="app.js"></script>
     <script type="module">
         import { setupEventListeners } from './event-handlers.js';
+        import { initSystemAuth } from './auth-client.js';
+        import { initDistanceUnitUI } from './i18n.js';
+
+        // Check authentication and display blocking login if needed
+        initSystemAuth();
+        initDistanceUnitUI();
         setupEventListeners();
 
         // Changelog initialization
@@ -1837,7 +2021,7 @@
                         <label class="block mb-1 text-slate-300 text-sm">Coste Personalizado (CO)</label>
                         <input type="number" id="fighter-custom-cost-input"
                             class="w-full p-2 rounded-lg bg-slate-600 border border-slate-500 text-white" min="0"
-                            placeholder="Enter custom cost or leave empty for default">
+                            placeholder="Introduce el coste personalizado o deja vacío para el valor por defecto">
                         <p class="text-xs text-slate-400 mt-1">Modifica el coste por defecto del objeto seleccionado.</p>
                     </div>
 
@@ -2129,20 +2313,20 @@
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span class="text-slate-300">Coste Base:</span>
-                        <span id="add-henchmen-base-cost" class="text-yellow-200">0 GC</span>
+                        <span id="add-henchmen-base-cost" class="text-yellow-200">0 CO</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-300">Coste de Equipo:</span>
-                        <span id="add-henchmen-equipment-cost" class="text-yellow-200">0 GC</span>
+                        <span id="add-henchmen-equipment-cost" class="text-yellow-200">0 CO</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-300">Bonus de Experiencia (<span id="add-henchmen-xp-amount"></span> PX):</span>
-                        <span id="add-henchmen-experience-cost" class="text-yellow-200">0 GC</span>
+                        <span id="add-henchmen-experience-cost" class="text-yellow-200">0 CO</span>
                     </div>
                     <div class="border-t border-slate-600 pt-2 mt-2">
                         <div class="flex justify-between font-bold">
                             <span class="text-slate-200">Coste por Guerrero:</span>
-                            <span id="add-henchmen-per-fighter-cost" class="text-mordheim-gold">0 GC</span>
+                            <span id="add-henchmen-per-fighter-cost" class="text-mordheim-gold">0 CO</span>
                         </div>
                     </div>
                 </div>
@@ -2151,10 +2335,10 @@
             <div class="bg-slate-900 p-4 rounded-lg mb-4 border border-mordheim-gold">
                 <div class="flex justify-between text-lg font-bold">
                     <span class="text-slate-200">Coste Total:</span>
-                    <span id="add-henchmen-total-cost" class="text-mordheim-gold">0 GC</span>
+                    <span id="add-henchmen-total-cost" class="text-mordheim-gold">0 CO</span>
                 </div>
                 <p class="text-xs text-slate-400 mt-1">Tesorería Disponible: <span id="add-henchmen-treasury"
-                        class="text-yellow-200">0 GC</span></p>
+                        class="text-yellow-200">0 CO</span></p>
             </div>
 
             <div class="flex justify-end space-x-3">
@@ -2240,11 +2424,11 @@
                 <div id="replenishment-info" class="hidden space-y-2">
                     <div class="flex justify-between text-sm">
                         <span class="text-slate-300">Coste total de reposición:</span>
-                        <span id="replenishment-cost-display" class="text-yellow-200 font-semibold">0 GC</span>
+                        <span id="replenishment-cost-display" class="text-yellow-200 font-semibold">0 CO</span>
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-slate-300">Tesoro mínimo necesario:</span>
-                        <span id="treasure-needed-display" class="text-yellow-200 font-semibold">0 shards</span>
+                        <span id="treasure-needed-display" class="text-yellow-200 font-semibold">0 fragmentos</span>
                     </div>
                 </div>
             </div>
@@ -2336,12 +2520,12 @@
         <div class="bg-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
             <div id="auth-tabs" class="flex mb-4">
                 <button id="login-tab"
-                    class="flex-1 py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-t-lg">Login</button>
+                    class="flex-1 py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-t-lg">Iniciar Sesión</button>
                 <button id="register-tab"
-                    class="flex-1 py-2 px-4 bg-slate-600 text-white rounded-t-lg">Register</button>
+                    class="flex-1 py-2 px-4 bg-slate-600 text-white rounded-t-lg">Crear Cuenta</button>
             </div>
             <div id="login-form" class="auth-form">
-                <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Login</h3>
+                <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Iniciar Sesión</h3>
                 <form id="login-form-element">
                     <div class="mb-4">
                         <label class="block mb-1 text-slate-300 text-sm">Email</label>
@@ -2349,28 +2533,27 @@
                             class="w-full p-2 rounded-lg bg-slate-800 border border-slate-600 text-white" required>
                     </div>
                     <div class="mb-4">
-                        <label class="block mb-1 text-slate-300 text-sm">Password</label>
+                        <label class="block mb-1 text-slate-300 text-sm">Contraseña</label>
                         <input type="password" id="login-password"
                             class="w-full p-2 rounded-lg bg-slate-800 border border-slate-600 text-white" required>
                     </div>
                     <div class="mb-4" id="login-error" class="text-red-400 text-sm hidden"></div>
                     <button type="submit"
-                        class="w-full p-3 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Login</button>
+                        class="w-full p-3 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Iniciar Sesión</button>
                     <div class="mt-4 text-center">
                         <button id="forgot-password-link"
-                            class="text-slate-400 hover:text-mordheim-gold transition text-sm underline">Forgot
-                            Password?</button>
+                            class="text-slate-400 hover:text-mordheim-gold transition text-sm underline">¿Has olvidado tu contraseña?</button>
                     </div>
                 </form>
                 <hr class="my-4 border-slate-600">
                 <button id="google-login-btn"
                     class="w-full p-3 text-white font-bold rounded-lg hover:opacity-80 transition"
                     style="background-color: var(--terracotta-red);">
-                    <i class="fab fa-google mr-2"></i>Login with Google
+                    <i class="fab fa-google mr-2"></i>Iniciar sesión con Google
                 </button>
             </div>
             <div id="register-form" class="auth-form hidden">
-                <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Register</h3>
+                <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Crear Cuenta</h3>
                 <form id="register-form-element">
                     <div class="mb-4">
                         <label class="block mb-1 text-slate-300 text-sm">Email</label>
@@ -2378,18 +2561,18 @@
                             class="w-full p-2 rounded-lg bg-slate-800 border border-slate-600 text-white" required>
                     </div>
                     <div class="mb-4">
-                        <label class="block mb-1 text-slate-300 text-sm">Password</label>
+                        <label class="block mb-1 text-slate-300 text-sm">Contraseña</label>
                         <input type="password" id="register-password"
                             class="w-full p-2 rounded-lg bg-slate-800 border border-slate-600 text-white" required
                             minlength="6">
                     </div>
                     <div class="mb-4" id="register-error" class="text-red-400 text-sm hidden"></div>
                     <button type="submit"
-                        class="w-full p-3 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Register</button>
+                        class="w-full p-3 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Registrarse</button>
                 </form>
             </div>
             <div id="reset-password-form" class="auth-form hidden">
-                <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Reset Password</h3>
+                <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Restablecer Contraseña</h3>
                 <form id="reset-password-form-element">
                     <div class="mb-4">
                         <label class="block mb-1 text-slate-300 text-sm">Email</label>
@@ -2399,13 +2582,11 @@
                     <div class="mb-4" id="reset-error" class="text-red-400 text-sm hidden"></div>
                     <div class="mb-4" id="reset-success" class="text-green-400 text-sm hidden"></div>
                     <button type="submit"
-                        class="w-full p-3 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Send
-                        Reset Email</button>
+                        class="w-full p-3 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Enviar Enlace de Recuperación</button>
                 </form>
                 <div class="mt-4 text-center">
                     <button id="back-to-login-link"
-                        class="text-slate-400 hover:text-mordheim-gold transition text-sm underline">Back to
-                        Login</button>
+                        class="text-slate-400 hover:text-mordheim-gold transition text-sm underline">Volver al Inicio de Sesión</button>
                 </div>
             </div>
             <div class="flex justify-end mt-6">
@@ -2422,11 +2603,11 @@
             <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-3">
                 <h3 class="text-2xl font-bold text-mordheim-gold">Blog</h3>
                 <div class="flex items-center space-x-3">
-                    <input type="text" id="blog-search" placeholder="Search posts..."
+                    <input type="text" id="blog-search" placeholder="Buscar publicaciones..."
                         class="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-mordheim-gold">
                     <button id="close-blog-btn"
                         class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
-                        <i class="fas fa-times"></i> Close
+                        <i class="fas fa-times"></i> Cerrar
                     </button>
                 </div>
             </div>
@@ -2441,7 +2622,7 @@
                 <div class="flex items-center mb-3">
                     <button id="blog-back-button"
                         class="hidden px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition mr-3">
-                        <i class="fas fa-arrow-left"></i> Back to Posts
+                        <i class="fas fa-arrow-left"></i> Volver a Publicaciones
                     </button>
                 </div>
                 <div id="blog-posts-list" class="space-y-4">
@@ -2952,7 +3133,7 @@
                         <label class="block text-slate-300 font-medium mb-2">Número Total de Dados Lanzados:</label>
                         <input type="number" inputmode="numeric" id="total-dice-count-input"
                             class="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold"
-                            min="1" max="10" placeholder="Enter total number of dice (1-10)">
+                            min="1" max="10" placeholder="Introduce el número total de dados (1-10)">
                         <p class="text-xs text-slate-400 mt-1">Calculado de la exploración: <span id="calculated-dice-count" class="text-mordheim-gold font-bold">0</span></p>
 
                         <!-- Dynamically generated dice inputs -->
@@ -2968,7 +3149,7 @@
                                 <!-- Dice inputs will be generated here -->
                             </div>
                             <div class="mt-2 text-slate-400 text-sm">
-                                Auto-calculated Total (<span id="calculation-mode-label">all dice</span>): <span
+                                Total autocalculado (<span id="calculation-mode-label">todos los dados</span>): <span
                                     id="advanced-calculated-total" class="text-mordheim-gold font-bold">0</span>
                             </div>
                         </div>
@@ -2985,7 +3166,7 @@
                         <div class="mt-4">
                             <div class="flex justify-between items-center cursor-pointer hover:bg-slate-700 rounded-lg p-2 transition-colors"
                                 onclick="toggleExplorationSection('dice-modifiers-section-details')">
-                                <h4 class="text-lg font-bold text-mordheim-gold">Dice Modifiers</h4>
+                                <h4 class="text-lg font-bold text-mordheim-gold">Modificadores de Dados</h4>
                                 <i id="dice-modifiers-section-chevron"
                                     class="fas fa-chevron-down text-slate-400 transition-transform"></i>
                             </div>
@@ -3096,7 +3277,7 @@
                 <!-- Exploration Results Display (only shown in individual dice mode and advanced mode) -->
                 <div id="exploration-result" class="hidden bg-slate-800 p-4 rounded-lg border border-slate-600 mb-4">
                     <h4 class="text-lg font-bold text-mordheim-gold mb-3">
-                        Exploration Result
+                        Resultado de la Exploración
                     </h4>
                     <div id="exploration-results-list" class="space-y-3">
                         <!-- Results will be dynamically generated here -->
@@ -3112,7 +3293,7 @@
                 <div class="space-x-2">
                     <button id="calculate-treasure-btn"
                         class="py-2 px-4 bg-mordheim-gold text-slate-900 rounded-lg hover:bg-yellow-400 transition font-bold">
-                        Calculate Piedra Bruja / Tesoro
+                        Calcular Piedra Bruja / Tesoro
                                 </button>
                     <button id="apply-treasure-btn"
                         class="hidden py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-500 transition">
@@ -3139,10 +3320,10 @@
             <form id="feedback-form" class="space-y-4">
                 <!-- Feedback Type -->
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Type *</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Tipo *</label>
                     <select name="type" required
                         class="w-full p-2 rounded-lg bg-slate-600 border border-slate-500 text-white focus:border-mordheim-gold focus:outline-none">
-                        <option value="">Select type...</option>
+                        <option value="">Selecciona tipo...</option>
                         <option value="bug">Informe de Error</option>
                         <option value="feedback">Comentario General</option>
                         <option value="feature">Sugerencia</option>
@@ -3157,11 +3338,11 @@
                         <select name="category"
                             class="w-full p-2 rounded-lg bg-slate-600 border border-slate-500 text-white focus:border-mordheim-gold focus:outline-none">
                             <option value="other">Otro</option>
-                            <option value="ui">User Interface</option>
-                            <option value="gameplay">Gameplay Mechanics</option>
-                            <option value="performance">Performance</option>
-                            <option value="data">Data/Content</option>
-                            <option value="crash">Crash/Error</option>
+                            <option value="ui">Interfaz de Usuario</option>
+                            <option value="gameplay">Mecánicas de Juego</option>
+                            <option value="performance">Rendimiento</option>
+                            <option value="data">Datos / Contenido</option>
+                            <option value="crash">Cierre / Error Fatal</option>
                         </select>
                     </div>
 
@@ -3188,13 +3369,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Nombre (Opcional)</label>
-                        <input type="text" name="name" maxlength="50" placeholder="Your name or leave blank"
+                        <input type="text" name="name" maxlength="50" placeholder="Tu nombre (opcional)"
                             class="w-full p-2 rounded-lg bg-slate-600 border border-slate-500 text-white placeholder-slate-400 focus:border-mordheim-gold focus:outline-none">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Email (Opcional)</label>
-                        <input type="email" name="email" maxlength="100" placeholder="For follow-up questions"
+                        <input type="email" name="email" maxlength="100" placeholder="Para dudas o seguimiento"
                             class="w-full p-2 rounded-lg bg-slate-600 border border-slate-500 text-white placeholder-slate-400 focus:border-mordheim-gold focus:outline-none">
                     </div>
                 </div>
@@ -3203,10 +3384,10 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Mensaje *</label>
                     <textarea name="message" required rows="6" maxlength="2000"
-                        placeholder="Please provide detailed information about your feedback or bug report. Include steps to reproduce if reporting a bug."
+                        placeholder="Describe detalladamente tu comentario o el error encontrado. Si es un error, indica los pasos para reproducirlo."
                         class="w-full p-2 rounded-lg bg-slate-600 border border-slate-500 text-white placeholder-slate-400 focus:border-mordheim-gold focus:outline-none resize-none"></textarea>
                     <div class="text-xs text-slate-400 mt-1">
-                        Minimum 10 characters. Maximum 2000 characters.
+                        Mínimo 10 caracteres. Máximo 2000 caracteres.
                     </div>
                 </div>
 
@@ -3214,12 +3395,12 @@
                 <div class="flex justify-end space-x-3 pt-4 border-t border-slate-600">
                     <button type="button" id="cancel-feedback-btn"
                         class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
-                        Cancel
+                        Cancelar
                     </button>
                     <button type="submit"
                         class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
                         Enviar Comentarios
-                        </button>
+                    </button>
                 </div>
             </form>
         </div>
@@ -3278,7 +3459,234 @@
         </div>
     </div>
 
+    <!-- System Login & Registration Overlay (Firebase Serverless Auth) -->
+    <div id="system-login-overlay" class="fixed inset-0 bg-slate-950/98 backdrop-blur-xl flex items-center justify-center p-4 z-[99999]">
+        <div class="relative w-full max-w-md bg-[#15161a] border border-white/10 rounded-2xl shadow-2xl p-6 sm:p-8 text-white">
+            <div class="text-center mb-6">
+                <img src="grimheim-logo.svg" alt="Grimheim" class="h-14 sm:h-16 w-auto mx-auto mb-2 filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
+                <h2 class="sr-only">Grimheim</h2>
+                <p id="system-auth-title" class="text-sm font-bold text-[#dfbc77] uppercase tracking-wider">Acceso a Grimheim</p>
+                <p id="system-auth-subtitle" class="text-xs text-slate-400 mt-1">Sincroniza tus bandas automáticamente en la nube</p>
+            </div>
 
+            <!-- Tab Switcher: Iniciar Sesión / Registrarse -->
+            <div class="flex p-1 rounded-xl bg-[#101114] border border-white/10 mb-5">
+                <button type="button" id="system-tab-login" class="flex-1 py-2 text-xs font-semibold rounded-lg bg-white/10 text-white transition">
+                    Iniciar Sesión
+                </button>
+                <button type="button" id="system-tab-register" class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">
+                    Crear Cuenta
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="system-login-form" class="space-y-4">
+                <div>
+                    <label for="system-login-username" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Correo Electrónico
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input
+                            type="email"
+                            id="system-login-username"
+                            autocomplete="email"
+                            required
+                            placeholder="tu@correo.com"
+                            class="w-full pl-10 pr-3 py-2.5 bg-[#101114] border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#dfbc77] text-sm transition"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label for="system-login-password" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Contraseña
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input
+                            type="password"
+                            id="system-login-password"
+                            autocomplete="current-password"
+                            required
+                            placeholder="Mínimo 6 caracteres"
+                            class="w-full pl-10 pr-10 py-2.5 bg-[#101114] border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#dfbc77] text-sm transition"
+                        >
+                        <button
+                            type="button"
+                            id="toggle-login-password-visibility"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-200 transition"
+                            title="Mostrar/Ocultar contraseña"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="system-login-error" class="hidden p-3 bg-rose-500/15 border border-rose-500/30 rounded-lg text-xs text-rose-300 font-medium"></div>
+
+                <button
+                    type="submit"
+                    id="system-login-submit-btn"
+                    class="w-full py-2.5 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold rounded-lg shadow-sm transition flex items-center justify-center text-xs uppercase tracking-wider cursor-pointer mt-2"
+                >
+                    <i class="fas fa-sign-in-alt mr-2"></i> Iniciar Sesión
+                </button>
+            </form>
+
+            <!-- Google and Guest options -->
+            <div class="mt-4 pt-4 border-t border-white/10 space-y-2">
+                <button
+                    type="button"
+                    id="system-login-google-btn"
+                    class="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg transition flex items-center justify-center gap-2 text-xs font-semibold"
+                >
+                    <i class="fab fa-google text-amber-300"></i> Continuar con Google
+                </button>
+                <button
+                    type="button"
+                    id="system-login-guest-btn"
+                    class="w-full py-2 text-xs text-slate-400 hover:text-slate-200 transition text-center underline block"
+                >
+                    Continuar como invitado (Modo local sin cuenta)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Superuser Administration Modal -->
+    <div id="admin-users-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 z-[10000] overflow-y-auto">
+        <div class="relative w-full max-w-4xl bg-slate-800 border-2 border-mordheim-gold/80 rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden text-white my-auto">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-700 bg-slate-900">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/20 border border-mordheim-gold/50 flex items-center justify-center text-mordheim-gold">
+                        <i class="fas fa-users-cog text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-bold text-mordheim-gold leading-tight">Gestión de Usuarios</h3>
+                        <p class="text-xs text-slate-400">Crear y modificar usuarios con contraseñas encriptadas de forma segura (scrypt)</p>
+                    </div>
+                </div>
+                <button id="close-admin-users-modal-btn" type="button" class="text-slate-400 hover:text-white text-2xl p-1 transition" title="Cerrar modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 custom-scroll">
+                <!-- Feedback Message -->
+                <div id="admin-users-feedback" class="hidden p-3 rounded-lg text-sm"></div>
+
+                <!-- Form Section: Create or Edit User -->
+                <div id="admin-user-form-wrapper" class="bg-slate-900/80 border border-slate-700 p-4 sm:p-5 rounded-xl">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+                        <h4 id="admin-form-title" class="font-bold text-mordheim-gold text-base flex items-center">
+                            <i class="fas fa-user-plus mr-2 text-sm"></i> Crear Nuevo Usuario
+                        </h4>
+                        <button type="button" id="admin-reset-form-btn" class="text-xs text-slate-400 hover:text-slate-200 underline transition">
+                            Limpiar formulario
+                        </button>
+                    </div>
+
+                    <form id="admin-user-form" class="space-y-4">
+                        <input type="hidden" id="admin-user-id" value="">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="admin-user-username" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                                    Nombre de Usuario <span class="text-red-400">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="admin-user-username"
+                                    required
+                                    placeholder="Ej: sargento_karl"
+                                    class="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-mordheim-gold"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="admin-user-password" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                                    Contraseña <span class="text-red-400" id="admin-password-required-star">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    id="admin-user-password"
+                                    placeholder="Introduce una contraseña segura"
+                                    class="w-full p-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-mordheim-gold"
+                                >
+                                <p id="admin-password-help" class="text-[11px] text-slate-400 mt-1 hidden"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 pt-1">
+                            <input
+                                type="checkbox"
+                                id="admin-user-is-superuser"
+                                class="w-4 h-4 rounded text-mordheim-gold bg-slate-800 border-slate-600 focus:ring-mordheim-gold"
+                            >
+                            <label for="admin-user-is-superuser" class="text-xs sm:text-sm text-slate-300 font-medium cursor-pointer">
+                                Rol de Superusuario <span class="text-slate-400 font-normal">(permite acceder a este panel y gestionar otros usuarios)</span>
+                            </label>
+                        </div>
+
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button
+                                type="submit"
+                                id="admin-form-submit-btn"
+                                class="px-4 py-2 bg-mordheim-gold hover:bg-yellow-500 text-slate-950 font-bold rounded-lg text-xs sm:text-sm transition flex items-center shadow"
+                            >
+                                <i class="fas fa-user-plus mr-1.5"></i> Guardar Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Users List Table Section -->
+                <div>
+                    <h4 class="font-bold text-white text-base mb-3 flex items-center justify-between">
+                        <span><i class="fas fa-list mr-2 text-mordheim-gold text-sm"></i> Usuarios Registrados en el Sistema</span>
+                    </h4>
+
+                    <div id="admin-users-loading" class="hidden text-center py-4 text-slate-400">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Cargando usuarios...
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/90">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-950/70 border-b border-slate-700 text-xs text-slate-400 uppercase">
+                                <tr>
+                                    <th class="py-2.5 px-3 w-16">ID</th>
+                                    <th class="py-2.5 px-3">Usuario</th>
+                                    <th class="py-2.5 px-3">Rol</th>
+                                    <th class="py-2.5 px-3">Fecha de Creación</th>
+                                    <th class="py-2.5 px-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-table-body" class="divide-y divide-slate-800">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 sm:p-4 bg-slate-900 border-t border-slate-700 flex justify-end">
+                <button
+                    type="button"
+                    id="admin-cancel-btn"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition"
+                >
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
-
 </html>

@@ -22,7 +22,7 @@ const PRE_GAME_SECTIONS = [
         displayId: 'aristocracy-display',
         displayTextClass: 'aristocracy-text',
         field: 'aristocracy',
-        label: 'Aristocracy of the Night'
+        label: 'Aristocracia de la Noche'
     },
     {
         warbandType: 'Lahmian',
@@ -30,7 +30,7 @@ const PRE_GAME_SECTIONS = [
         selectId: 'pre-game-location-select',
         displayId: null,
         field: 'location',
-        label: 'Location',
+        label: 'Localización',
         alwaysVisible: true,
         defaultValue: 'Foreign'
     }
@@ -236,7 +236,7 @@ export function setupPreGameEventListeners(currentWarbandRef) {
                     }
                 }
 
-                showMessage(`${section.label} changed to ${newValue}.`, 'success');
+                showMessage(`${section.label} cambiado a ${newValue}.`, 'success');
             }
         });
     });

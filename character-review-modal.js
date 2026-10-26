@@ -6,6 +6,7 @@ import { SKILLS } from './data/skills.js';
 import { findSkillForWarband } from './skill-lookup.js';
 import { SPECIAL_RULES_DETAILS } from './data/special_rules.js';
 import { displayModal, hideModal } from './utility.js';
+import { translateEquipment, translateSkill, translateSpecialRule } from './i18n.js';
 
 class CharacterReviewModal {
     constructor() {
@@ -245,11 +246,11 @@ class CharacterReviewModal {
         // Format equipment names
         const equipmentNames = (data.initial_equipment || []).map(id => {
             const equipment = MASTER_EQUIPMENT_LIST.find(eq => eq.id === id);
-            return equipment ? equipment.name : `Item ${id}`;
+            return equipment ? translateEquipment(equipment.name) : `Objeto ${id}`;
         }).join(', ');
 
         // Format skills
-        const skills = (data.skills || []).join(', ');
+        const skills = (data.skills || []).map(s => translateSkill(s)).join(', ');
         const startingSkills = (data.starting_skills || []).join(', ');
 
         return `
@@ -295,7 +296,7 @@ class CharacterReviewModal {
         
         const skills = skillsString.split(',').map(skill => skill.trim());
         return skills.map(skill => 
-            `<span class="skill-link text-white hover:text-mordheim-gold cursor-pointer underline" data-skill="${skill}">${skill}</span>`
+            `<span class="skill-link text-white hover:text-mordheim-gold cursor-pointer underline" data-skill="${skill}">${translateSkill(skill)}</span>`
         ).join(', ');
     }
 
@@ -304,25 +305,27 @@ class CharacterReviewModal {
         
         const rules = rulesString.split(';').map(rule => rule.trim());
         return rules.map(rule => 
-            `<span class="rule-link text-white hover:text-mordheim-gold cursor-pointer underline" data-rule="${rule}">${rule}</span>`
+            `<span class="rule-link text-white hover:text-mordheim-gold cursor-pointer underline" data-rule="${rule}">${translateSpecialRule(rule)}</span>`
         ).join(', ');
     }
 
     showSkillDescription(skillName) {
         const skill = findSkillForWarband(skillName);
+        const translatedName = translateSkill(skillName);
         if (skill) {
-            this.showDescriptionModal(skillName, skill.rules || 'No description available', 'skill');
+            this.showDescriptionModal(translatedName, skill.rules || 'Descripción no disponible', 'skill');
         } else {
-            this.showDescriptionModal(skillName, 'Skill description not found', 'skill');
+            this.showDescriptionModal(translatedName, 'Descripción de habilidad no encontrada', 'skill');
         }
     }
 
     showRuleDescription(ruleName) {
         const rule = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
+        const translatedName = translateSpecialRule(ruleName);
         if (rule) {
-            this.showDescriptionModal(ruleName, rule.rules || 'No description available', 'rule');
+            this.showDescriptionModal(translatedName, rule.rules || 'Descripción no disponible', 'rule');
         } else {
-            this.showDescriptionModal(ruleName, 'Rule description not found', 'rule');
+            this.showDescriptionModal(translatedName, 'Descripción de regla no encontrada', 'rule');
         }
     }
 

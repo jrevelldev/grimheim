@@ -380,7 +380,7 @@ export const CHANGELOG_ENTRIES = [
                     'Updated Ledger to show upkeep costs',
                     'Added ability to pay ukeep cost via of the ledger',
                     'Began adding to Exploration phase to the end battle sequence',
-                    'Moved site to .NET domain rosterheim.net'
+                    'Moved site to domain Grimheim'
                 ]
             },
             {

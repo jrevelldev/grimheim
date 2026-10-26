@@ -8,7 +8,7 @@ export const renderHeroXPBar = (currentXP) => {
     const xp = parseFloat(currentXP) || 0;
     const maxXP = 90;
     const thresholds = HERO_XP_THRESHOLDS;
-    title.textContent = `Hero Advancement Tracker (0 to 90 XP)`;
+    title.textContent = `Registro de Avance de Héroes (0 a 90 PX)`;
     
     const fillPercentage = Math.min(100, (xp / maxXP) * 100);
 
@@ -42,7 +42,7 @@ export const renderHeroXPBar = (currentXP) => {
     barHTML += `</div>`;
     
     // Add label below the bar - use formatXPDisplay for fractional values
-    barHTML += `<p class="text-xs mt-10 text-slate-400">Current XP: <span class="font-bold text-lg text-yellow-200">${formatXPDisplay(xp)}</span> / Max XP: ${maxXP}</p>`;
+    barHTML += `<p class="text-xs mt-10 text-slate-400">PX actuales: <span class="font-bold text-lg text-yellow-200">${formatXPDisplay(xp)}</span> / PX máx.: ${maxXP}</p>`;
 
     container.innerHTML = barHTML;
 };
@@ -61,7 +61,7 @@ export const renderStandardXPBar = (currentXP) => {
     const xp = parseFloat(currentXP) || 0;
     const maxXP = 14;
     const thresholds = STANDARD_XP_THRESHOLDS;
-    title.textContent = `Standard Advancement Tracker (0 to 14 XP)`;
+    title.textContent = `Registro de Avance Estándar (0 a 14 PX)`;
 
     const fillPercentage = Math.min(100, (xp / maxXP) * 100);
 
@@ -95,7 +95,7 @@ export const renderStandardXPBar = (currentXP) => {
     barHTML += `</div>`;
 
     // Add label below the bar - use formatXPDisplay for fractional values
-    barHTML += `<p class="text-xs mt-10 text-slate-400">Current XP: <span class="font-bold text-lg text-yellow-200">${formatXPDisplay(xp)}</span> / Max XP: ${maxXP}</p>`;
+    barHTML += `<p class="text-xs mt-10 text-slate-400">PX actuales: <span class="font-bold text-lg text-yellow-200">${formatXPDisplay(xp)}</span> / PX máx.: ${maxXP}</p>`;
 
     container.innerHTML = barHTML;
 };

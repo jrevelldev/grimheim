@@ -54,7 +54,8 @@ export const AVAILABLE_BLOCKS = {
         icon: 'fa-khanda',
         allowedTypes: ['Hero', 'Henchman', 'Hired Sword', 'Vehicle', 'Dramatis Personae'],
         defaultOptions: {
-            format: 'tags' // 'tags' | 'list'
+            format: 'tags', // 'tags' | 'list'
+            showWeaponRules: true
         }
     },
     skills: {
@@ -84,7 +85,8 @@ export const AVAILABLE_BLOCKS = {
         icon: 'fa-scroll',
         allowedTypes: ['Henchman', 'Hired Sword', 'Vehicle', 'Dramatis Personae', 'Hero'],
         defaultOptions: {
-            showDescriptions: false
+            showDescriptions: true,
+            format: 'tags'
         }
     },
     spells: {
@@ -121,8 +123,8 @@ export const AVAILABLE_BLOCKS = {
     },
     notes: {
         id: 'notes',
-        name: 'Notes & Reminders',
-        description: 'Custom notes, background, or blank reminder lines',
+        name: 'Notas y Recordatorios',
+        description: 'Notas personalizadas, trasfondo o recordatorios',
         icon: 'fa-sticky-note',
         allowedTypes: ['Hero', 'Henchman', 'Hired Sword', 'Vehicle', 'Dramatis Personae'],
         defaultOptions: {
@@ -132,12 +134,34 @@ export const AVAILABLE_BLOCKS = {
     },
     blank_lines: {
         id: 'blank_lines',
-        name: 'Blank Lines',
-        description: 'Ruled lines for handwritten notes, tallies, or reminders',
+        name: 'Líneas Pautadas',
+        description: 'Líneas pautadas para notas manuscritas o marcas',
         icon: 'fa-grip-lines',
         allowedTypes: ['Hero', 'Henchman', 'Hired Sword', 'Vehicle', 'Dramatis Personae'],
         defaultOptions: {
             lineCount: 3
+        }
+    },
+    spacer: {
+        id: 'spacer',
+        name: 'Espacio / Espaciador (Spacer)',
+        description: 'Añade un espacio vertical en blanco o línea entre bloques',
+        icon: 'fa-arrows-alt-v',
+        allowedTypes: ['Hero', 'Henchman', 'Hired Sword', 'Vehicle', 'Dramatis Personae'],
+        defaultOptions: {
+            height: 'medium', // 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
+            style: 'space'    // 'space' | 'line' | 'gold' | 'dashed' | 'double' | 'ornament'
+        }
+    },
+    divider: {
+        id: 'divider',
+        name: 'Separador / Línea (Divider)',
+        description: 'Línea divisoria o segundo espacio para estructurar la carta',
+        icon: 'fa-minus',
+        allowedTypes: ['Hero', 'Henchman', 'Hired Sword', 'Vehicle', 'Dramatis Personae'],
+        defaultOptions: {
+            height: 'small',
+            style: 'line'
         }
     }
 };
@@ -161,7 +185,9 @@ export const DEFAULT_LAYOUTS = {
             { id: 'advancement', enabled: true, options: { ...AVAILABLE_BLOCKS.advancement.defaultOptions } },
             { id: 'advancement_full', enabled: false, options: { ...AVAILABLE_BLOCKS.advancement_full.defaultOptions } },
             { id: 'notes', enabled: false, options: { ...AVAILABLE_BLOCKS.notes.defaultOptions } },
-            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } }
+            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } },
+            { id: 'spacer', enabled: false, options: { ...AVAILABLE_BLOCKS.spacer.defaultOptions } },
+            { id: 'divider', enabled: false, options: { ...AVAILABLE_BLOCKS.divider.defaultOptions } }
         ]
     },
     'Henchman': {
@@ -174,7 +200,9 @@ export const DEFAULT_LAYOUTS = {
             { id: 'equipment', enabled: true, options: { ...AVAILABLE_BLOCKS.equipment.defaultOptions } },
             { id: 'special_rules', enabled: true, options: { ...AVAILABLE_BLOCKS.special_rules.defaultOptions } },
             { id: 'advancement', enabled: true, options: { ...AVAILABLE_BLOCKS.advancement.defaultOptions } },
-            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } }
+            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } },
+            { id: 'spacer', enabled: false, options: { ...AVAILABLE_BLOCKS.spacer.defaultOptions } },
+            { id: 'divider', enabled: false, options: { ...AVAILABLE_BLOCKS.divider.defaultOptions } }
         ]
     },
     'Hired Sword': {
@@ -189,7 +217,9 @@ export const DEFAULT_LAYOUTS = {
             { id: 'special_rules', enabled: true, options: { ...AVAILABLE_BLOCKS.special_rules.defaultOptions } },
             { id: 'advancement', enabled: true, options: { ...AVAILABLE_BLOCKS.advancement.defaultOptions } },
             { id: 'notes', enabled: false, options: { ...AVAILABLE_BLOCKS.notes.defaultOptions } },
-            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } }
+            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } },
+            { id: 'spacer', enabled: false, options: { ...AVAILABLE_BLOCKS.spacer.defaultOptions } },
+            { id: 'divider', enabled: false, options: { ...AVAILABLE_BLOCKS.divider.defaultOptions } }
         ]
     },
     'Vehicle': {
@@ -201,7 +231,9 @@ export const DEFAULT_LAYOUTS = {
             { id: 'equipment', enabled: true, options: { ...AVAILABLE_BLOCKS.equipment.defaultOptions } },
             { id: 'special_rules', enabled: true, options: { ...AVAILABLE_BLOCKS.special_rules.defaultOptions } },
             { id: 'notes', enabled: false, options: { ...AVAILABLE_BLOCKS.notes.defaultOptions } },
-            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } }
+            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } },
+            { id: 'spacer', enabled: false, options: { ...AVAILABLE_BLOCKS.spacer.defaultOptions } },
+            { id: 'divider', enabled: false, options: { ...AVAILABLE_BLOCKS.divider.defaultOptions } }
         ]
     },
     'Dramatis Personae': {
@@ -216,7 +248,9 @@ export const DEFAULT_LAYOUTS = {
             { id: 'special_rules', enabled: true, options: { ...AVAILABLE_BLOCKS.special_rules.defaultOptions } },
             { id: 'spells', enabled: true, options: { ...AVAILABLE_BLOCKS.spells.defaultOptions } },
             { id: 'notes', enabled: false, options: { ...AVAILABLE_BLOCKS.notes.defaultOptions } },
-            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } }
+            { id: 'blank_lines', enabled: false, options: { ...AVAILABLE_BLOCKS.blank_lines.defaultOptions } },
+            { id: 'spacer', enabled: false, options: { ...AVAILABLE_BLOCKS.spacer.defaultOptions } },
+            { id: 'divider', enabled: false, options: { ...AVAILABLE_BLOCKS.divider.defaultOptions } }
         ]
     }
 };

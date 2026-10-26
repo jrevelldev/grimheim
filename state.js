@@ -43,6 +43,7 @@ export function setCurrentWarband(value) {
 export function setWarbands(value) {
     warbands = value;
     if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('grimheim:warbands-updated', { detail: value }));
         window.dispatchEvent(new CustomEvent('rosterheim:warbands-updated', { detail: value }));
     }
 }

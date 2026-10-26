@@ -31,7 +31,7 @@ const createNewFighter = async (fighterId, name, role, warriorChoice, race, grou
                 if (maxAllowed !== Infinity) {
                     let currentCount = currentWarband.members.filter(m => m.name === warriorChoice).length;
                     if (currentCount >= maxAllowed) {
-                        showMessage(`Cannot add ${warriorChoice}; the warband already has the maximum allowed (${maxAllowed}).`, 'error');
+                        showMessage(`No se puede añadir ${warriorChoice}; la banda ya tiene el máximo permitido (${maxAllowed}).`, 'error');
                         return false; // Indicate failure
                     }
                 }
@@ -43,7 +43,7 @@ const createNewFighter = async (fighterId, name, role, warriorChoice, race, grou
     if (role === 'Hero') {
         const heroCount = currentWarband.members.filter(m => m.type === 'Hero').length;
         if (heroCount >= 6) {
-            showMessage("Cannot add a new hero; the warband already has 6 heroes.", 'error');
+            showMessage("No se puede añadir un nuevo héroe; la banda ya tiene 6 héroes.", 'error');
             return false;
         }
     }
@@ -358,7 +358,7 @@ const showNewFighterModal = () => {
     if (heroOption) {
         if (heroCount >= 6) {
             heroOption.disabled = true;
-            showMessage("Hero limit reached. You can only add non-hero fighters.", 'info');
+            showMessage("Límite de héroes alcanzado. Solo puedes añadir guerreros que no sean héroes.", 'info');
         } else {
             heroOption.disabled = false;
         }

@@ -2,6 +2,7 @@ import { HIRED_SWORDS, DRAMATIS_PERSONAE } from '../data/index.js';
 import { isExcludeStartingXpFromRatingActive } from '../state.js';
 import { getOriginalName } from '../get-original-name.js';
 import { normalizeEquipment } from '../utility.js';
+import { translateEquipment } from '../i18n.js';
 
 /** Parses the rating string for hired swords and dramatis personae */
 export const parseRatingString = (ratingString, xp) => {
@@ -170,11 +171,11 @@ export function calculateWarbandRatingBreakdown(members) {
         entry.equipmentContribution = memberEquipmentRating * groupSize;
         entry.equipmentDetails = equipmentDetails;
         if (entry.equipmentContribution > 0) {
-            const eqNames = equipmentDetails.map(e => `${e.name}: +${e.rating}`).join(', ');
+            const eqNames = equipmentDetails.map(e => `${translateEquipment(e.name)}: +${e.rating}`).join(', ');
             if (groupSize > 1) {
-                entry.breakdownParts.push(`Equipment (${eqNames}) × ${groupSize} = ${entry.equipmentContribution}`);
+                entry.breakdownParts.push(`Equipo (${eqNames}) × ${groupSize} = ${entry.equipmentContribution}`);
             } else {
-                entry.breakdownParts.push(`Equipment (${eqNames}) = ${entry.equipmentContribution}`);
+                entry.breakdownParts.push(`Equipo (${eqNames}) = ${entry.equipmentContribution}`);
             }
         }
         additionalRating += entry.equipmentContribution;
@@ -196,14 +197,14 @@ export function calculateWarbandRatingBreakdown(members) {
                 additionalRating += baseRating + xpBeyondStarting;
                 entry.breakdownParts.push(`Base: ${baseRating}`);
                 if (xpBeyondStarting > 0) {
-                    entry.breakdownParts.push(`XP (beyond starting): ${xpBeyondStarting}`);
+                    entry.breakdownParts.push(`PX (tras inicial): ${xpBeyondStarting}`);
                 }
             } else {
                 entry.xpContribution = xp;
                 additionalRating += baseRating + xp;
                 entry.breakdownParts.push(`Base: ${baseRating}`);
                 if (xp > 0) {
-                    entry.breakdownParts.push(`XP: ${xp}`);
+                    entry.breakdownParts.push(`PX: ${xp}`);
                 }
             }
         } else if (type === 'Dramatis Personae') {
@@ -222,7 +223,7 @@ export function calculateWarbandRatingBreakdown(members) {
                 }
                 entry.baseContribution = dpRating;
                 additionalRating += dpRating;
-                entry.breakdownParts.push(`Rating: ${dpRating} (from "${ratingData.trim()}")`);
+                entry.breakdownParts.push(`Valoración: ${dpRating} (de "${ratingData.trim()}")`);
             }
         } else if (type === 'Hero' || type === 'Henchman') {
             // Regular fighter - Large Target counts as 20 per fighter, others count as 5
@@ -236,15 +237,15 @@ export function calculateWarbandRatingBreakdown(members) {
                 entry.xpContribution = xpBeyondStarting;
                 totalXpBeyondStarting += xpBeyondStarting;
                 if (groupSize > 1) {
-                    entry.breakdownParts.push(`Fighters: ${fighterBaseValue}${isLargeTarget ? ' (Large Target)' : ''} × ${groupSize} = ${entry.baseContribution}`);
+                    entry.breakdownParts.push(`Guerreros: ${fighterBaseValue}${isLargeTarget ? ' (Objetivo Grande)' : ''} × ${groupSize} = ${entry.baseContribution}`);
                 } else {
-                    entry.breakdownParts.push(`Fighter: ${fighterBaseValue}${isLargeTarget ? ' (Large Target)' : ''}`);
+                    entry.breakdownParts.push(`Guerrero: ${fighterBaseValue}${isLargeTarget ? ' (Objetivo Grande)' : ''}`);
                 }
                 if (xpBeyondStarting > 0) {
                     if (groupSize > 1) {
-                        entry.breakdownParts.push(`XP (beyond starting): ${Math.max(0, xp - starting_xp)} × ${groupSize} = ${xpBeyondStarting}`);
+                        entry.breakdownParts.push(`PX (tras inicial): ${Math.max(0, xp - starting_xp)} × ${groupSize} = ${xpBeyondStarting}`);
                     } else {
-                        entry.breakdownParts.push(`XP (beyond starting): ${xpBeyondStarting}`);
+                        entry.breakdownParts.push(`PX (tras inicial): ${xpBeyondStarting}`);
                     }
                 }
             } else {
@@ -252,21 +253,21 @@ export function calculateWarbandRatingBreakdown(members) {
                 entry.xpContribution = xpTotal;
                 totalXp += xpTotal;
                 if (groupSize > 1) {
-                    entry.breakdownParts.push(`Fighters: ${fighterBaseValue}${isLargeTarget ? ' (Large Target)' : ''} × ${groupSize} = ${entry.baseContribution}`);
+                    entry.breakdownParts.push(`Guerreros: ${fighterBaseValue}${isLargeTarget ? ' (Objetivo Grande)' : ''} × ${groupSize} = ${entry.baseContribution}`);
                 } else {
-                    entry.breakdownParts.push(`Fighter: ${fighterBaseValue}${isLargeTarget ? ' (Large Target)' : ''}`);
+                    entry.breakdownParts.push(`Guerrero: ${fighterBaseValue}${isLargeTarget ? ' (Objetivo Grande)' : ''}`);
                 }
                 if (xpTotal > 0) {
                     if (groupSize > 1) {
-                        entry.breakdownParts.push(`XP: ${xp} × ${groupSize} = ${xpTotal}`);
+                        entry.breakdownParts.push(`PX: ${xp} × ${groupSize} = ${xpTotal}`);
                     } else {
-                        entry.breakdownParts.push(`XP: ${xpTotal}`);
+                        entry.breakdownParts.push(`PX: ${xpTotal}`);
                     }
                 }
             }
         } else {
             // Vehicle or other — contributes nothing except equipment
-            entry.breakdownParts.push('No rating contribution');
+            entry.breakdownParts.push('Sin aportación a la valoración');
         }
 
         entry.totalContribution = entry.baseContribution + entry.xpContribution + entry.equipmentContribution;

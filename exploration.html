@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exploración - Rosterheim</title>
+    <title>Exploración - Grimheim</title>
     <meta name="description" content="Herramienta de Exploración de Mordheim - Calcula los fragmentos de piedra bruja obtenidos en las tiradas de exploración">
     <meta name="google-site-verification" content="L2sLb6QHHUNrfBQhDqlBMtDuX11XHfAZUnmJvKW2BW0" />
-    <meta property="og:site_name" content="Rosterheim">
+    <meta property="og:site_name" content="Grimheim">
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Inter font -->
@@ -25,8 +25,8 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Rosterheim",
-      "url": "https://rosterheim.net/",
+      "name": "Grimheim",
+      "url": "https://grimheim.local/",
       "description": "A comprehensive Mordheim warband roster manager app for tabletop gaming"
     }
     </script>
@@ -34,144 +34,168 @@
     <!-- Set Firebase Config -->
     <script>
     window.__firebase_config = JSON.stringify({
-      apiKey: "AIzaSyDhV9n0WBM0gLHq0a-lpGuWOpZK_hlsrw8",
-      //authDomain: "rosterheim.firebaseapp.com",
-      authDomain: "rosterheim.net",
-      projectId: "rosterheim",
-      storageBucket: "rosterheim.firebasestorage.app",
-      messagingSenderId: "125343728273",
-      appId: "1:125343728273:web:2bcfa74ee9836d17c4b530",
-      measurementId: "G-GPF9PBV8JP"
+      apiKey: "AIzaSyCfJcrcw0cEfWhPFJewMkrQk5GN6LCO01I",
+      authDomain: "grimheim-873b4.firebaseapp.com",
+      projectId: "grimheim-873b4",
+      storageBucket: "grimheim-873b4.firebasestorage.app",
+      messagingSenderId: "231606045100",
+      appId: "1:231606045100:web:c71fdff95b479ce000d209"
     });
     </script>
     
+    <style>
+      html:not(.auth-verified) body { display: none !important; }
+    </style>
+    <!-- Auth protection -->
+    <script>
+      (function() {
+        var authed = localStorage.getItem('grimheim_firebase_user') || 
+                     localStorage.getItem('grimheim_guest_mode') || 
+                     localStorage.getItem('grimheim_auth_token') || 
+                     localStorage.getItem('rosterheim_auth_token');
+        if (!authed) {
+            window.location.replace('index.html');
+        } else {
+            document.documentElement.classList.add('auth-verified');
+        }
+      })();
+    </script>
 </head>
 <body class="text-white min-h-screen">
 
     <div id="app" class="max-w-7xl mx-auto p-4 md:p-8">
         <!-- Header -->
-        <header class="header-bg p-4 rounded-t-xl shadow-lg mb-6 relative">
+        <header class="header-bg p-4 sm:p-5 rounded-2xl shadow-xl mb-6 relative border border-white/10">
             <div class="beta-build">Versión Local</div>
-            <div class="text-center">
-                <h1 class="text-4xl font-extrabold tracking-tight text-mordheim-gold uppercase">
-                    Rosterheim
-                </h1>
-                <p class="text-sm mt-2 text-slate-300">Fase de Exploración de Tesoro</p>
+            <div class="text-center flex flex-col items-center justify-center pt-1 pb-2">
+                <a href="index.html" class="inline-block hover:brightness-110 transition duration-200" title="Grimheim - Inicio">
+                    <img src="grimheim-logo.svg" alt="Grimheim" class="h-14 sm:h-16 w-auto mx-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
+                </a>
+                <h1 class="sr-only">Grimheim</h1>
+                <p class="text-xs sm:text-sm mt-1 text-slate-400 font-medium tracking-wide">Fase de Exploración de Tesoro</p>
             </div>
             
-            <!-- Desktop Navigation -->
-            <div class="hidden md:flex justify-end items-center space-x-2 mt-3 pt-3 border-t border-mordheim-gold/30">
-                <a href="index.html" onclick="preserveAuthAndNavigate(event)" class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition">
-                    Home
-                </a>
+            <!-- Navigation Pod -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-white/10">
+                <div class="inline-flex items-center p-1 rounded-xl bg-[#101114] border border-white/10 shadow-sm gap-1">
+                    <a href="index.html" onclick="preserveAuthAndNavigate(event)" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 text-xs font-semibold uppercase tracking-wider transition" title="Volver a Inicio">
+                        <i class="fas fa-home text-[#dfbc77]"></i> Inicio
+                    </a>
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/10 text-white text-xs font-semibold uppercase tracking-wider shadow-sm">
+                        <i class="fas fa-compass text-[#dfbc77]"></i> Exploración
+                    </span>
+                    <a href="Helper/sell-treasure.html" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 text-xs font-semibold uppercase tracking-wider transition" title="Vender Piedra Bruja">
+                        <i class="fas fa-coins text-[#dfbc77]"></i> Vender Piedra Bruja
+                    </a>
+                </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <div class="bg-slate-800 p-6 rounded-xl shadow-2xl">
+        <div class="bg-[#15161a] p-5 sm:p-7 rounded-2xl border border-white/10 shadow-2xl">
             <div class="mb-6">
                 <!-- Dice Input Section -->
-                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
-                    <h4 class="text-lg font-bold text-mordheim-gold mb-3">Introduce tus Tiradas de Dados</h4>
+                <div class="bg-[#101114] p-5 rounded-xl border border-white/10 shadow-sm mb-5">
+                    <h4 class="text-base sm:text-lg font-bold text-[#dfbc77] mb-3">Introduce tus Tiradas de Dados</h4>
                     
                     <!-- Toggle between individual dice and advanced -->
-                    <div class="flex space-x-4 mb-4">
+                    <div class="flex space-x-4 mb-4 text-sm">
                         <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="dice-input-mode" value="individual" checked class="mr-2">
+                            <input type="radio" name="dice-input-mode" value="individual" checked class="mr-2 accent-[#dfbc77]">
                             <span class="text-slate-300">Dados Individuales</span>
                         </label>
                         <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="dice-input-mode" value="advanced" class="mr-2">
+                            <input type="radio" name="dice-input-mode" value="advanced" class="mr-2 accent-[#dfbc77]">
                             <span class="text-slate-300">Avanzado</span>
                         </label>
                     </div>
                     
                     <!-- Individual Dice Inputs -->
                     <div id="individual-input-section">
-                        <label class="block text-slate-300 font-medium mb-2">Resultados Individuales:</label>
+                        <label class="block text-slate-300 text-xs sm:text-sm font-medium mb-2">Resultados Individuales:</label>
                         <div class="grid grid-cols-6 gap-2">
-                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 1" data-dice-index="1">
-                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 2" data-dice-index="2">
-                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 3" data-dice-index="3">
-                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 4" data-dice-index="4">
-                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 5" data-dice-index="5">
-                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold text-center" min="1" max="6" placeholder="Dado 6" data-dice-index="6">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] text-center transition" min="1" max="6" placeholder="Dado 1" data-dice-index="1">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] text-center transition" min="1" max="6" placeholder="Dado 2" data-dice-index="2">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] text-center transition" min="1" max="6" placeholder="Dado 3" data-dice-index="3">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] text-center transition" min="1" max="6" placeholder="Dado 4" data-dice-index="4">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] text-center transition" min="1" max="6" placeholder="Dado 5" data-dice-index="5">
+                            <input type="number" inputmode="numeric" class="dice-input w-full px-2 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] text-center transition" min="1" max="6" placeholder="Dado 6" data-dice-index="6">
                         </div>
-                        <div class="mt-2 text-slate-400 text-sm">
-                            Total Calculado: <span id="calculated-total" class="text-mordheim-gold font-bold">0</span>
+                        <div class="mt-2 text-slate-400 text-xs sm:text-sm">
+                            Total Calculado: <span id="calculated-total" class="text-[#dfbc77] font-bold">0</span>
                         </div>
                     </div>
 
                     <!-- Advanced Input Section -->
                     <div id="advanced-input-section" class="hidden">
-                        <label class="block text-slate-300 font-medium mb-2">Número Total de Dados Lanzados:</label>
-                        <input type="number" inputmode="numeric" id="total-dice-count-input" class="w-56 px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-mordheim-gold" min="1" max="10" placeholder="Número de dados (1-10)">
+                        <label class="block text-slate-300 font-medium mb-2 text-xs sm:text-sm">Número Total de Dados Lanzados:</label>
+                        <input type="number" inputmode="numeric" id="total-dice-count-input" class="w-56 px-3 py-2 bg-[#15161a] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#dfbc77] transition" min="1" max="10" placeholder="Número de dados (1-10)">
 
                         <!-- Dynamically generated dice inputs -->
                         <div id="advanced-dice-inputs-container" class="mt-4 hidden">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="text-slate-300 font-medium">Resultados de los Dados:</label>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" id="advanced-locked-toggle" class="mr-2">
+                                <label class="text-slate-300 font-medium text-xs sm:text-sm">Resultados de los Dados:</label>
+                                <label class="flex items-center cursor-pointer text-xs">
+                                    <input type="checkbox" id="advanced-locked-toggle" class="mr-2 accent-[#dfbc77]">
                                     <span class="text-slate-300">Bloqueado</span>
                                 </label>
                             </div>
                             <div id="advanced-dice-inputs" class="grid grid-cols-6 gap-2">
                                 <!-- Dice inputs will be generated here -->
                             </div>
-                            <div class="mt-2 text-slate-400 text-sm">
-                                Auto-calculated Total (<span id="calculation-mode-label">todos los dados</span>): <span id="advanced-calculated-total" class="text-mordheim-gold font-bold">0</span>
+                            <div class="mt-2 text-slate-400 text-xs sm:text-sm">
+                                Total autocalculado (<span id="calculation-mode-label">todos los dados</span>): <span id="advanced-calculated-total" class="text-[#dfbc77] font-bold">0</span>
                             </div>
                         </div>
 
                         <!-- Maximize Total Button -->
                         <div class="mt-4">
-                            <button id="maximize-total-btn" class="w-full py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-500 transition">
-                                Maximize Total
+                            <button id="maximize-total-btn" class="w-full py-2.5 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-semibold rounded-lg shadow-sm transition">
+                                Maximizar Total
                             </button>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Treasure Chart -->
-                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
-                    <h4 class="text-lg font-bold text-mordheim-gold mb-3">Tabla de Hallazgo de Tesoro</h4>
+                <div class="bg-[#101114] p-5 rounded-xl border border-white/10 shadow-sm mb-5">
+                    <h4 class="text-base sm:text-lg font-bold text-[#dfbc77] mb-3">Tabla de Hallazgo de Tesoro</h4>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-slate-600">
-                                    <th class="text-left py-2 px-3 text-slate-300">Tirada de Dados</th>
-                                    <th class="text-left py-2 px-3 text-slate-300">Fragmentos Hallados</th>
+                                <tr class="border-b border-white/10">
+                                    <th class="text-left py-2 px-3 text-slate-400 text-xs font-semibold">Tirada de Dados</th>
+                                    <th class="text-left py-2 px-3 text-slate-400 text-xs font-semibold">Fragmentos Hallados</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="border-b border-slate-700">
+                                <tr class="border-b border-white/5">
                                     <td class="py-2 px-3 text-slate-300">1-5</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">1</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">1</td>
                                 </tr>
-                                <tr class="border-b border-slate-700">
+                                <tr class="border-b border-white/5">
                                     <td class="py-2 px-3 text-slate-300">6-11</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">2</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">2</td>
                                 </tr>
-                                <tr class="border-b border-slate-700">
+                                <tr class="border-b border-white/5">
                                     <td class="py-2 px-3 text-slate-300">12-17</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">3</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">3</td>
                                 </tr>
-                                <tr class="border-b border-slate-700">
+                                <tr class="border-b border-white/5">
                                     <td class="py-2 px-3 text-slate-300">18-24</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">4</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">4</td>
                                 </tr>
-                                <tr class="border-b border-slate-700">
+                                <tr class="border-b border-white/5">
                                     <td class="py-2 px-3 text-slate-300">25-30</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">5</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">5</td>
                                 </tr>
-                                <tr class="border-b border-slate-700">
+                                <tr class="border-b border-white/5">
                                     <td class="py-2 px-3 text-slate-300">31-35</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">6</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">6</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-3 text-slate-300">36+</td>
-                                    <td class="py-2 px-3 text-mordheim-gold font-bold">7</td>
+                                    <td class="py-2 px-3 text-[#dfbc77] font-bold">7</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -179,10 +203,10 @@
                 </div>
                 
                 <!-- Result Display -->
-                <div id="treasure-result" class="hidden bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                <div id="treasure-result" class="hidden bg-[#101114] p-5 rounded-xl border border-emerald-500/30 shadow-sm mb-5">
                     <div class="text-center">
-                        <div class="text-lg text-slate-300 mb-2">Tesoro Encontrado:</div>
-                        <div class="text-3xl font-bold text-mordheim-gold">
+                        <div class="text-sm text-slate-300 mb-1">Tesoro Encontrado:</div>
+                        <div class="text-2xl sm:text-3xl font-bold text-emerald-400">
                             <i class="fas fa-gem mr-2"></i>
                             <span id="treasure-shards">0</span> Fragmentos de Piedra Bruja
                         </div>
@@ -190,8 +214,8 @@
                 </div>
 
                 <!-- Exploration Results Display (only shown in individual dice mode and advanced mode) -->
-                <div id="exploration-result" class="hidden bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
-                    <h4 class="text-lg font-bold text-mordheim-gold mb-3">
+                <div id="exploration-result" class="hidden bg-[#101114] p-5 rounded-xl border border-white/10 shadow-sm mb-5">
+                    <h4 class="text-base sm:text-lg font-bold text-[#dfbc77] mb-3">
                         Resultado de la Exploración
                     </h4>
                     <div id="exploration-results-list" class="space-y-3">
@@ -200,13 +224,13 @@
                 </div>
             </div>
 
-            <div class="flex justify-between">
-                <a href="index.html" onclick="preserveAuthAndNavigate(event)" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
+            <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                <a href="index.html" onclick="preserveAuthAndNavigate(event)" class="py-2 px-4 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg border border-white/10 transition font-semibold text-xs sm:text-sm">
                     <i class="fas fa-arrow-left mr-2"></i>Volver al Inicio
                 </a>
                 <div class="space-x-2">
-                    <button id="calculate-treasure-btn" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition font-bold">
-                        Calculate Treasure
+                    <button id="calculate-treasure-btn" class="py-2 px-5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg transition font-semibold text-xs sm:text-sm shadow-sm">
+                        Calcular Tesoro
                     </button>
                 </div>
             </div>

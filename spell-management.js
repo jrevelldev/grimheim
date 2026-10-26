@@ -1,5 +1,6 @@
 import { MAGIC } from './data/magic.js';
 import { currentWarband } from './state.js';
+import { translateSkill } from './i18n.js';
 
 export { MAGIC };
 
@@ -336,10 +337,10 @@ export function saveSpellsToFighter(fighter, spells, updateDom = true, isV2Warba
         const skillsToShow = fighter.skills.filter(skill => !allMagicSpells.includes(skill));
         
         if (skillsToShow.length > 0) {
-            const skillsHtml = skillsToShow.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
+            const skillsHtml = skillsToShow.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`).join(', ');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
     }
 }

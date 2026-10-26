@@ -5,6 +5,7 @@ import { currentWarband } from '../state.js';
 import { saveWarband } from '../warband-service.js';
 import { isSicknessCasualty, markAsSicknessCasualty, removeSicknessInjury, showInjurySelectionModal, checkForAdvancement } from '../ui.js';
 import { trackEvent } from '../analytics.js';
+import { translateFighterType, translateInjury } from '../i18n.js';
 
 // End Battle state variables
 let battleResult = null;
@@ -73,10 +74,10 @@ export const updateUnderdogRatingDisplay = () => {
     // Update bonus display
     const bonusDisplay = document.getElementById('underdog-bonus-display');
     if (bonus > 0) {
-        bonusDisplay.innerHTML = `<span class="text-green-400 font-semibold">Underdog Bonus: +${bonus} experience per eligible fighter</span>`;
+        bonusDisplay.innerHTML = `<span class="text-green-400 font-semibold">Bonus por Desventaja: +${bonus} de experiencia por guerrero apto</span>`;
         bonusDisplay.className = 'mt-2 text-center text-sm text-green-400';
     } else {
-        bonusDisplay.innerHTML = '<span class="text-slate-500">No underdog bonus (your warband rating is equal or higher)</span>';
+        bonusDisplay.innerHTML = '<span class="text-slate-500">Sin bonus por desventaja (la valoración de tu banda es igual o superior)</span>';
         bonusDisplay.className = 'mt-2 text-center text-sm text-slate-500';
     }
 };
@@ -137,7 +138,7 @@ export const showEndBattleModal = () => {
     casualtyResolutions.clear();
     
     // Reset modal UI
-    document.getElementById('battle-result-text').textContent = 'Select battle result to continue';
+    document.getElementById('battle-result-text').textContent = 'Selecciona el resultado de la batalla para continuar';
     document.getElementById('casualties-section').classList.add('hidden');
     document.getElementById('experience-section').classList.add('hidden');
     document.getElementById('confirm-end-battle-btn').disabled = true;
@@ -165,7 +166,7 @@ export const setBattleResult = (result) => {
     window.battleResult = result; // Update window reference for ui.js
     
     // Update UI
-    const resultText = result === 'victory' ? 'Victory! Your warband was victorious.' : 'Defeat. Your warband was defeated.';
+    const resultText = result === 'victory' ? '¡Victoria! Tu banda ha resultado victoriosa.' : 'Derrota. Tu banda ha sido derrotada.';
     document.getElementById('battle-result-text').textContent = resultText;
     
     // Show casualties section if there are any casualties
@@ -235,21 +236,21 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h5 class="font-semibold text-mordheim-gold">${fighter.name}</h5>
-                        <p class="text-sm text-slate-400">${fighter.type} - ${casualtyCount} casualty(ies)</p>
-                        <p class="text-sm text-orange-400">Sickness Casualty</p>
+                        <p class="text-sm text-slate-400">${translateFighterType(fighter.type)} - ${casualtyCount} baja(s)</p>
+                        <p class="text-sm text-orange-400">Baja por Enfermedad</p>
                     </div>
                 </div>
                 
                 <div class="space-y-2">
-                    <p class="text-slate-300 mb-3">Is ${fighter.name} still sick?</p>
+                    <p class="text-slate-300 mb-3">¿Sigue enfermo ${fighter.name}?</p>
                     <div class="flex space-x-3">
                         <button class="sickness-recovered-btn px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition" 
                                 data-fighter-id="${fighter.id}" data-fighter-name="${fighter.name}">
-                            No - Recovered
+                            No - Recuperado
                         </button>
                         <button class="sickness-still-sick-btn px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 transition" 
                                 data-fighter-id="${fighter.id}" data-fighter-name="${fighter.name}">
-                            Yes - Still Sick
+                            Sí - Sigue Enfermo
                         </button>
                     </div>
                     <div id="sickness-resolution-${fighter.id}" class="mt-2 text-sm text-slate-400"></div>
@@ -275,7 +276,7 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
                 stillSickBtn.classList.add('bg-orange-600', 'hover:bg-orange-700');
                 
                 // Update status display
-                resolutionDiv.textContent = 'Selected: Recovered - Sickness injury will be removed';
+                resolutionDiv.textContent = 'Seleccionado: Recuperado - La herida por Enfermedad será eliminada';
                 resolutionDiv.className = 'mt-2 text-sm text-green-400 font-semibold';
                 
                 console.log(`${fighter.name} marked as recovered in casualty resolution`);
@@ -292,7 +293,7 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
                 recoveredBtn.classList.add('bg-green-600', 'hover:bg-green-700');
                 
                 // Update status display
-                resolutionDiv.textContent = 'Selected: Still Sick - Sickness injury will be kept';
+                resolutionDiv.textContent = 'Seleccionado: Sigue Enfermo - La herida por Enfermedad se mantendrá';
                 resolutionDiv.className = 'mt-2 text-sm text-orange-400 font-semibold';
                 
                 console.log(`${fighter.name} marked as still sick in casualty resolution`);
@@ -302,16 +303,16 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
             // Normal casualty handling
             const injuryDisplay = resolution.injury ? `
                 <div class="ml-6 p-2 bg-slate-700 rounded">
-                    <span class="text-yellow-200">${resolution.injury}</span>
+                    <span class="text-yellow-200">${translateInjury(resolution.injury)}</span>
                     <button onclick="changeInjury('${fighter.id}')" class="ml-2 text-blue-400 hover:text-blue-300">
-                        <i class="fas fa-edit"></i> Change
+                        <i class="fas fa-edit"></i> Cambiar
                     </button>
                 </div>
             ` : `
                 <div class="ml-6">
                     <button onclick="selectInjury('${fighter.id}')" 
                             class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
-                        Select Injury
+                        Seleccionar Secuela
                     </button>
                 </div>
             `;
@@ -320,7 +321,7 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h5 class="font-semibold text-mordheim-gold">${fighter.name}</h5>
-                        <p class="text-sm text-slate-400">${fighter.type} - ${casualtyCount} casualty(ies)</p>
+                        <p class="text-sm text-slate-400">${translateFighterType(fighter.type)} - ${casualtyCount} baja(s)</p>
                     </div>
                 </div>
                 
@@ -329,14 +330,14 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
                         <input type="radio" name="casualty-${fighter.id}" value="no-injury" 
                                ${!resolution.injury && !resolution.removed ? 'checked' : ''}
                                class="text-mordheim-gold focus:ring-mordheim-gold">
-                        <span class="text-slate-300">No injury</span>
+                        <span class="text-slate-300">Sin secuela</span>
                     </label>
                     
                     <label class="flex items-center space-x-2">
                         <input type="radio" name="casualty-${fighter.id}" value="injury" 
                                ${resolution.injury ? 'checked' : ''}
                                class="text-mordheim-gold focus:ring-mordheim-gold">
-                        <span class="text-slate-300">Select injury</span>
+                        <span class="text-slate-300">Seleccionar secuela</span>
                     </label>
                     
                     ${injuryDisplay}
@@ -345,7 +346,7 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
                         <input type="radio" name="casualty-${fighter.id}" value="remove" 
                                ${resolution.removed ? 'checked' : ''}
                                class="text-mordheim-gold focus:ring-mordheim-gold">
-                        <span class="text-slate-300">Remove from warband</span>
+                        <span class="text-slate-300">Eliminar de la banda (Muerto)</span>
                     </label>
                 </div>
             `;
@@ -377,31 +378,31 @@ const renderCasualtiesSection = (individualFighters, henchmenGroups) => {
             <div class="flex justify-between items-start mb-3">
                 <div>
                     <h5 class="font-semibold text-mordheim-gold">${henchmenGroup.name}</h5>
-                    <p class="text-sm text-slate-400">Henchmen Group - ${originalGroupSize} members, ${casualtyCount} casualties</p>
+                    <p class="text-sm text-slate-400">Grupo de Secuaces - ${originalGroupSize} miembros, ${casualtyCount} bajas</p>
                 </div>
             </div>
             
             <div class="space-y-3">
                 <div class="flex items-center space-x-4">
-                    <label class="text-slate-300">Number to remove (dead):</label>
+                    <label class="text-slate-300">Bajas definitivas (muertos):</label>
                     <input type="number" inputmode="numeric"
                            id="dead-count-${henchmenGroup.id}" 
                            value="${resolution.deadCount}" 
                            min="0" 
                            max="${casualtyCount}"
                            class="w-20 p-2 rounded bg-slate-700 border border-slate-600 text-white text-center">
-                    <span class="text-sm text-slate-400">of ${casualtyCount} casualties</span>
+                    <span class="text-sm text-slate-400">de ${casualtyCount} bajas sufridas</span>
                 </div>
                 
                 <div class="text-sm text-slate-300">
-                    <span>Original size: ${originalGroupSize}</span>
+                    <span>Tamaño original: ${originalGroupSize}</span>
                     <span class="mx-2">→</span>
                     <span class="${remainingSize > 0 ? 'text-green-400' : 'text-red-400'}">
-                        Remaining: ${remainingSize}
+                        Restantes: ${remainingSize}
                     </span>
                 </div>
                 
-                ${remainingSize === 0 ? '<div class="text-sm text-red-400">Group will be removed from warband</div>' : ''}
+                ${remainingSize === 0 ? '<div class="text-sm text-red-400">El grupo será eliminado de la banda</div>' : ''}
             </div>
         `;
         
@@ -531,16 +532,16 @@ export const renderExperienceSection = () => {
                 
                 // Build experience breakdown display
                 let xpBreakdown = '';
-                if (survivalXP > 0) xpBreakdown += `<span class="text-green-400 text-sm">+${survivalXP} survival</span>`;
-                if (leaderXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-yellow-400 text-sm">+${leaderXP} leader</span>`;
-                if (killXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-blue-400 text-sm">+${killXP} kills</span>`;
-                if (underdogXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-purple-400 text-sm">+${underdogXP} underdog</span>`;
+                if (survivalXP > 0) xpBreakdown += `<span class="text-green-400 text-sm">+${survivalXP} supervivencia</span>`;
+                if (leaderXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-yellow-400 text-sm">+${leaderXP} líder</span>`;
+                if (killXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-blue-400 text-sm">+${killXP} bajas</span>`;
+                if (underdogXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-purple-400 text-sm">+${underdogXP} desfavorecido</span>`;
                 
                 xpDiv.innerHTML = `
                     <div class="flex justify-between items-center">
                         <div>
                             <span class="font-semibold text-mordheim-gold">${fighter.name}</span>
-                            <span class="text-sm text-slate-400 ml-2">(${fighter.type})</span>
+                            <span class="text-sm text-slate-400 ml-2">(${translateFighterType(fighter.type)})</span>
                         </div>
                         <div class="flex items-center space-x-2">
                             ${xpBreakdown}
@@ -593,14 +594,14 @@ export const renderExperienceSection = () => {
                     
                     // Build experience breakdown display
                     let xpBreakdown = '';
-                    if (survivalXP > 0) xpBreakdown += `<span class="text-green-400 text-sm">+${survivalXP} survival</span>`;
-                    if (underdogXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-purple-400 text-sm">+${underdogXP} underdog</span>`;
+                    if (survivalXP > 0) xpBreakdown += `<span class="text-green-400 text-sm">+${survivalXP} supervivencia</span>`;
+                    if (underdogXP > 0) xpBreakdown += `${xpBreakdown ? ' ' : ''}<span class="text-purple-400 text-sm">+${underdogXP} desfavorecido</span>`;
                     
                     xpDiv.innerHTML = `
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-semibold text-mordheim-gold">${henchmenGroup.name}</span>
-                                <span class="text-sm text-slate-400 ml-2">(Henchmen Group - ${remainingSize}/${originalGroupSize})</span>
+                                <span class="text-sm text-slate-400 ml-2">(Grupo de Secuaces - ${remainingSize}/${originalGroupSize})</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 ${xpBreakdown}
@@ -702,8 +703,8 @@ export const processBattleEnd = async () => {
     showPostBattleChoiceModal();
     
     // Show success message
-    const resultText = battleResult === 'victory' ? 'victory' : 'defeat';
-    showMessage(`Battle ended successfully. Your warband suffered a ${resultText}.`, 'success');
+    const resultText = battleResult === 'victory' ? 'una victoria' : 'una derrota';
+    showMessage(`Batalla finalizada con éxito. Tu banda ha obtenido ${resultText}.`, 'success');
     
     // Reset battle state will be called after exploration phase is complete
     // Don't reset here so exploration modal can access casualty data
@@ -724,7 +725,7 @@ const applyCasualtyResolutions = () => {
             const resolutionDiv = document.getElementById(`sickness-resolution-${fighter.id}`);
             if (resolutionDiv) {
                 const statusText = resolutionDiv.textContent;
-                if (statusText.includes('Recovered')) {
+                if (statusText.includes('Recovered') || statusText.includes('Recuperado')) {
                     // Remove sickness injury
                     removeSicknessInjury(fighter);
                     console.log(`Applied: Removed Sickness injury from ${fighter.name}`);

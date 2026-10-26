@@ -156,7 +156,8 @@ export const validateFeedback = (formData) => {
     // Check required fields
     rules.requiredFields.forEach(field => {
         if (!formData[field] || formData[field].trim() === '') {
-            errors.push(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+            const fieldName = field === 'subject' ? 'El asunto' : (field === 'message' ? 'El mensaje' : 'El campo');
+            errors.push(`${fieldName} es obligatorio`);
         }
     });
     
@@ -166,38 +167,38 @@ export const validateFeedback = (formData) => {
         
         if (field === 'name' && value) {
             if (value.length > rules.maxLength.name) {
-                errors.push(`Name must be ${rules.maxLength.name} characters or less`);
+                errors.push(`El nombre debe tener ${rules.maxLength.name} caracteres o menos`);
             }
             if (!rules.patterns.name.test(value)) {
-                errors.push('Name contains invalid characters');
+                errors.push('El nombre contiene caracteres no válidos');
             }
         }
         
         if (field === 'subject') {
             if (value.length > rules.maxLength.subject) {
-                errors.push(`Subject must be ${rules.maxLength.subject} characters or less`);
+                errors.push(`El asunto debe tener ${rules.maxLength.subject} caracteres o menos`);
             }
             if (!rules.patterns.subject.test(value)) {
-                errors.push('Subject contains invalid characters');
+                errors.push('El asunto contiene caracteres no válidos');
             }
         }
         
         if (field === 'message') {
             if (value.length < 10) {
-                errors.push('Message must be at least 10 characters long');
+                errors.push('El mensaje debe tener al menos 10 caracteres');
             }
             if (value.length > rules.maxLength.message) {
-                errors.push(`Message must be ${rules.maxLength.message} characters or less`);
+                errors.push(`El mensaje debe tener ${rules.maxLength.message} caracteres o menos`);
             }
             if (!rules.patterns.message.test(value)) {
-                errors.push('Message contains invalid characters');
+                errors.push('El mensaje contiene caracteres no válidos');
             }
         }
         
         if (field === 'email' && value) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(value)) {
-                errors.push('Please enter a valid email address');
+                errors.push('Por favor, introduce una dirección de correo electrónico válida');
             }
         }
     });
@@ -288,7 +289,7 @@ export const showFeedbackErrors = (errors) => {
     if (errorContainer) {
         errorContainer.innerHTML = `
             <div class="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded mb-4">
-                <div class="font-bold mb-2">Please fix the following errors:</div>
+                <div class="font-bold mb-2">Por favor, corrige los siguientes errores:</div>
                 <ul class="list-disc list-inside text-sm">
                     ${errors.map(error => `<li>${error}</li>`).join('')}
                 </ul>
@@ -304,7 +305,7 @@ export const handleFeedbackSubmit = async (e) => {
     
     // Check rate limiting first
     if (isRateLimited()) {
-        showMessage('You have reached the submission limit. Please try again later.', 'error');
+        showMessage('Has alcanzado el límite de envíos. Por favor, inténtalo más tarde.', 'error');
         return;
     }
     
@@ -335,14 +336,14 @@ export const handleFeedbackSubmit = async (e) => {
         recordSubmission();
         
         // Show success message
-        showMessage('Thank you for your feedback! We appreciate your input.', 'success');
+        showMessage('¡Gracias por tus comentarios! Agradecemos tu aportación.', 'success');
         
         // Close modal and clear form
         hideFeedbackModal();
         
     } catch (error) {
         console.error('Error submitting feedback:', error);
-        showMessage('There was an error submitting your feedback. Please try again.', 'error');
+        showMessage('Se ha producido un error al enviar tus comentarios. Por favor, inténtalo de nuevo.', 'error');
     }
 };
 

@@ -11,7 +11,7 @@ import { useLocalStorage, userId, currentWarband, warbands, tempItemToRemove, te
 import { isSlowWitted, isElemental, hasHalfXPRate, formatXPDisplay } from './slow-witted.js';
 import { handleChosenOfChaosSkillChange } from './equiprules/marauders-of-chaos.js';
 import { applyMountStats } from './equiprules/mounts.js';
-import { translateEquipment } from './i18n.js';
+import { translateEquipment, translateSkill } from './i18n.js';
 
 
 /** Updates the race display in the edit fighter modal when race changes */
@@ -21,7 +21,7 @@ const updateRaceDisplayInModal = (newRace) => {
         raceSelect.value = newRace;
         // Update the racial maximums display to reflect the new race
         renderRacialMaximums();
-        showMessage(`Race changed to ${newRace}`, 'success');
+        showMessage(`Raza cambiada a ${newRace}`, 'success');
     }
 };
 
@@ -87,25 +87,25 @@ const validateAndFormatXPInput = (fighter, newValue, saveWarband) => {
     
     // Check if the value is a valid number
     if (isNaN(parsedValue) || parsedValue < 0) {
-        showMessage("Invalid XP value. Please enter a non-negative number.", 'error');
+        showMessage("Valor de PX no válido. Por favor, introduce un número mayor o igual a cero.", 'error');
         // Reset to previous valid value
         xpInput.value = fighter.xp;
         return;
     }
 
     // Check if fighter has Slow Witted or Elemental rule
-    const ruleName = isSlowWitted(fighter) ? "Slow Witted" : (isElemental(fighter) ? "Elemental" : null);
+    const ruleName = isSlowWitted(fighter) ? "Lento de Reflejos" : (isElemental(fighter) ? "Elemental" : null);
     if (ruleName) {
         // For Slow Witted / Elemental fighters, XP must be in 0.5 increments
         // Check if the value is a multiple of 0.5
         const isMultipleOfHalf = Math.abs((parsedValue * 2) % 1) < 0.0001;
         
         if (!isMultipleOfHalf) {
-            showMessage(`${ruleName} fighters can only have XP values in 0.5 increments (e.g., 0.5, 1.0, 1.5, 2.0).`, 'error');
+            showMessage(`Los guerreros con la regla ${ruleName} solo pueden tener valores de PX en incrementos de 0,5 (ej. 0,5, 1,0, 1,5, 2,0).`, 'error');
             // Round to nearest valid 0.5 increment
             const roundedValue = Math.round(parsedValue * 2) / 2;
             xpInput.value = formatXPDisplay(roundedValue);
-            showMessage(`XP automatically corrected to ${formatXPDisplay(roundedValue)}`, 'info');
+            showMessage(`PX corregida automáticamente a ${formatXPDisplay(roundedValue)}`, 'info');
         } else {
             // Valid value, update the display format
             xpInput.value = formatXPDisplay(parsedValue);
@@ -113,10 +113,10 @@ const validateAndFormatXPInput = (fighter, newValue, saveWarband) => {
     } else {
         // For normal fighters, ensure whole numbers
         if (!Number.isInteger(parsedValue)) {
-            showMessage("Normal fighters should have whole number XP values. Decimal values will be rounded.", 'warning');
+            showMessage("Los guerreros normales deben tener valores de PX enteros. Los valores decimales se redondearán.", 'warning');
             const roundedValue = Math.round(parsedValue);
             xpInput.value = roundedValue.toString();
-            showMessage(`XP automatically corrected to ${roundedValue}`, 'info');
+            showMessage(`PX corregida automáticamente a ${roundedValue}`, 'info');
         }
     }
 
@@ -695,8 +695,9 @@ const removeSkill = (skillName, skillIndex, saveWarband) => {
     if (!fighter) return;
 
     // Show confirmation dialog
+    const displaySkill = translateSkill(skillName) || skillName;
     showConfirmationModal(
-        `Are you sure you want to remove "${skillName}" from ${fighter.name}? This action cannot be undone.`,
+        `¿Seguro que quieres eliminar "${displaySkill}" de ${fighter.name}? Esta acción no se puede deshacer.`,
         async () => {
             // Remove the skill from the fighter's skills array
             if (Array.isArray(fighter.skills)) {
@@ -758,7 +759,7 @@ const removeSkill = (skillName, skillIndex, saveWarband) => {
             // Save the warband
             await saveWarband();
 
-            showMessage(`Removed "${skillName}" from ${fighter.name}`, 'success');
+            showMessage(`Habilidad "${displaySkill}" eliminada de ${fighter.name}.`, 'success');
         }
     );
 };

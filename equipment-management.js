@@ -1,6 +1,6 @@
 import { MASTER_EQUIPMENT_LIST, WARBANDS, MASTER_INJURY_LIST, VEHICLES, SKILLS } from './data/index.js';
 import { findSkillForWarband } from './skill-lookup.js';
-import { translateEquipmentCategory, translateEquipment, translateRarity } from './i18n.js';
+import { translateEquipmentCategory, translateEquipment, translateRarity, translateEquipmentRules, translateSkill, translateSpecialRule, translateSkillCategory } from './i18n.js';
 
 // Global variables for storage modal
 window.selectedItemId = null;
@@ -97,7 +97,7 @@ export const getPregameCostDisplayInfo = (item, warbandName, specificName) => {
     };
     const isCheaper = pgBase + averageDice(pgVariable) <= normalBase + averageDice(normalVariable);
     return {
-        originalCostText: ` from ${normalText} GC`,
+        originalCostText: ` de ${normalText} CO`,
         textColor: isCheaper ? 'green-300' : 'red-300'
     };
 };
@@ -230,7 +230,7 @@ export const validateLuckyItemsLimit = (selectedEquipment, item, currentWarband)
         if (luckyItemCounts[item.id] >= 1) {
             return {
                 valid: false,
-                message: `House Rule: Lucky items are limited to one each per warband. ${item.name} is already equipped in the warband.`
+                message: `Regla de la Casa: Los objetos de la suerte están limitados a uno por banda. ${translateEquipment(item.name)} ya está equipado en la banda.`
             };
         }
 
@@ -239,12 +239,8 @@ export const validateLuckyItemsLimit = (selectedEquipment, item, currentWarband)
 };
 
 /** Formats equipment rules for display, handling both string and array formats */
-export const formatEquipmentRules = (rules) => {
-    if (Array.isArray(rules)) {
-        return rules.join('<br><br>');
-    }
-    // First replace double newlines with <br><br>, then single newlines with <br>
-    return rules.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+export const formatEquipmentRules = (rules, itemName = '') => {
+    return translateEquipmentRules(itemName, rules);
 };
 
 /** Gets unique grades for a given category */
@@ -513,13 +509,13 @@ export const renderEquipmentOptions = () => {
         const armourShieldResult = applyArmourShieldHalfCostDiscount(displayedCost, item);
         if (armourShieldResult.discountApplied) {
             displayedCost = armourShieldResult.finalCost;
-            originalCostText = ` (House Rule: 50% Armour/Shield Discount - Was: ${armourShieldResult.originalCost} GC)`;
+            originalCostText = ` (Regla de la Casa: 50% Descuento Armadura/Escudo - Antes: ${armourShieldResult.originalCost} CO)`;
             textColor = 'green-300';
         }
 
         // Check if cost is different from base (for display purposes)
         if (!armourShieldResult.discountApplied && modifiedCost !== baseCost) {
-            originalCostText = ` (Base: ${baseCost} GC)`;
+            originalCostText = ` (Base: ${baseCost} CO)`;
             textColor = modifiedCost < baseCost ? 'green-300' : 'red-300';
         }
 
@@ -620,12 +616,12 @@ export const renderEquipmentOptions = () => {
         if (blackpowder20Result.discountApplied || preGameDiscountApplied) {
             if (preGameDiscountApplied && blackpowder20Result.discountApplied) {
                 displayedCost = blackpowder20Result.finalCost;
-                originalCostText = ` (House Rules: Pre-Game 1/3 + 20% Blackpowder Discount - Was: ${preGameOriginalCost} GC)`;
+                originalCostText = ` (Reglas de la Casa: Pre-Partida 1/3 + 20% Descuento Pólvora - Antes: ${preGameOriginalCost} CO)`;
             } else if (blackpowder20Result.discountApplied) {
                 displayedCost = blackpowder20Result.finalCost;
-                originalCostText = ` (House Rule: 20% Blackpowder Discount - Was: ${blackpowder20Result.originalCost} GC)`;
+                originalCostText = ` (Regla de la Casa: 20% Descuento Pólvora - Antes: ${blackpowder20Result.originalCost} CO)`;
             } else {
-                originalCostText = ` (House Rule: Pre-Game Blackpowder Discount - Was: ${preGameOriginalCost} GC)`;
+                originalCostText = ` (Regla de la Casa: Descuento Pólvora Pre-Partida - Antes: ${preGameOriginalCost} CO)`;
             }
             textColor = 'green-300';
         }
@@ -654,7 +650,7 @@ export const renderEquipmentOptions = () => {
                 <p class="font-semibold equip-name-toggle" data-rules-target="${rulesId}" style="cursor: pointer;">
                     <i class="fas fa-chevron-right text-xs text-slate-500 equip-chevron" style="transition: transform 0.2s; margin-right: 4px; font-size: 0.6rem;"></i>${displayName} <span class="text-${textColor} text-xs">(${displayedCost}${variableCostDisplay} CO${originalCostText})</span>${rarityDisplay}
                 </p>
-                <p id="${rulesId}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules)}</p>
+                <p id="${rulesId}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules, item.name)}</p>
             </div>
             <button class="text-green-400 hover:text-green-300 ml-2 flex-shrink-0" data-action="add-equipment" data-item-id="${item.id}">
                 <i class="fas fa-plus-circle"></i> Añadir
@@ -756,28 +752,29 @@ export const updateGrantedSkillCategoriesDisplay = (selectedEquipment) => {
         if (effective.length > 0 || restrictedCategories.length > 0) {
             // Build display: base categories as plain text, equipment-granted ones highlighted
             const categoriesHtml = effective.map(category => {
+                const categoryEs = translateSkillCategory(category);
                 const isFromEquipment = grantedCategories.includes(category) && !baseCats.includes(category);
                 if (isFromEquipment) {
-                    return `<span class="text-slate-300">${category}</span> <span class="text-green-400 text-xs">(from equipment)</span>`;
+                    return `<span class="text-slate-300">${categoryEs}</span> <span class="text-green-400 text-xs">(por equipo)</span>`;
                 }
                 const isFromSkill = category === "Strength" && hasSkillGrant && !baseCats.includes(category);
                 if (isFromSkill) {
-                    return `<span class="text-slate-300">${category}</span> <span class="text-green-400 text-xs">(from skill)</span>`;
+                    return `<span class="text-slate-300">${categoryEs}</span> <span class="text-green-400 text-xs">(por habilidad)</span>`;
                 }
-                return `<span class="text-slate-300">${category}</span>`;
+                return `<span class="text-slate-300">${categoryEs}</span>`;
             }).join(', ');
 
             // Show restricted categories with strikethrough
             const restrictedHtml = restrictedCategories.length > 0
                 ? (effective.length > 0 ? ', ' : '') + restrictedCategories.map(cat =>
-                    `<span class="text-red-400 line-through">${cat}</span> <span class="text-red-400 text-xs">(restricted by equipment)</span>`
+                    `<span class="text-red-400 line-through">${translateSkillCategory(cat)}</span> <span class="text-red-400 text-xs">(restringido por equipo)</span>`
                 ).join(', ')
                 : '';
 
             // Check if a skill access override is active
             const overrideInput = document.getElementById('f-skill-categories-override-json');
             const hasOverride = overrideInput && overrideInput.value && overrideInput.value !== '[]';
-            const overrideIndicator = hasOverride ? ' <span class="text-orange-400 text-xs font-semibold ml-2">(overridden)</span>' : '';
+            const overrideIndicator = hasOverride ? ' <span class="text-orange-400 text-xs font-semibold ml-2">(personalizado)</span>' : '';
 
             skillTablesList.innerHTML = categoriesHtml + restrictedHtml + overrideIndicator;
             skillTablesDisplay.classList.remove('hidden');
@@ -1035,7 +1032,7 @@ export const renderSelectedEquipment = () => {
 
     selectedEquipment.forEach((item, index) => {
         const listItem = document.createElement('li');
-        listItem.className = 'flex justify-between items-center text-yellow-200 text-sm';
+        listItem.className = 'flex justify-between items-center text-yellow-200 text-sm py-1 px-2 rounded hover:bg-slate-800/60 transition';
 
         const masterItem = MASTER_EQUIPMENT_LIST.find(i => i.name === item.name);
         const originalCost = masterItem ? masterItem.baseCost : item.baseCost || item.cost;
@@ -1063,13 +1060,27 @@ export const renderSelectedEquipment = () => {
             ? `${translateEquipment(item.name)} <span class="text-slate-400 font-normal text-xs">(${item.name})</span>`
             : item.name;
 
+        const canMoveUp = index > 0;
+        const canMoveDown = index < selectedEquipment.length - 1;
+        const showMoveBtns = selectedEquipment.length > 1;
+
         listItem.innerHTML = `
             <span>${displayName} <span class="text-slate-400 text-xs">${costDisplay}</span>${rarityDisplay}</span>
-            ${canRemove ? `
-            <button class="text-red-400 hover:text-red-300" data-action="remove-equipment" data-item-index="${index}" data-item-name="${item.name}" data-item-cost="${displayCost}" data-item-rules="${item.rules}">
-                <i class="fas fa-times-circle"></i>
-            </button>
-            ` : ''}
+            <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                ${showMoveBtns ? `
+                <button type="button" class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded transition ${!canMoveUp ? 'opacity-20 cursor-not-allowed' : 'hover:bg-slate-700'}" data-action="move-equipment-up" data-item-index="${index}" title="Subir" ${!canMoveUp ? 'disabled' : ''}>
+                    <i class="fas fa-arrow-up text-xs"></i>
+                </button>
+                <button type="button" class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded transition ${!canMoveDown ? 'opacity-20 cursor-not-allowed' : 'hover:bg-slate-700'}" data-action="move-equipment-down" data-item-index="${index}" title="Bajar" ${!canMoveDown ? 'disabled' : ''}>
+                    <i class="fas fa-arrow-down text-xs"></i>
+                </button>
+                ` : ''}
+                ${canRemove ? `
+                <button type="button" class="text-red-400 hover:text-red-300 px-1 py-0.5" data-action="remove-equipment" data-item-index="${index}" data-item-name="${item.name}" data-item-cost="${displayCost}" data-item-rules="${item.rules}" title="Eliminar">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                ` : ''}
+            </div>
         `;
         listContainer.appendChild(listItem);
     });
@@ -1083,7 +1094,7 @@ export const renderSelectedEquipment = () => {
         reorderBtn.disabled = !canReorder;
         reorderBtn.classList.toggle('opacity-50', !canReorder);
         reorderBtn.classList.toggle('cursor-not-allowed', !canReorder);
-        reorderBtn.title = canReorder ? 'Change the order of this fighter\'s equipment' : 'Add at least 2 items to reorder';
+        reorderBtn.title = canReorder ? 'Reordenar el equipo de este guerrero' : 'Añade al menos 2 objetos para reordenar';
     }
 
     // Update granted skill categories display
@@ -1104,6 +1115,50 @@ export const renderSelectedEquipment = () => {
 
     // Notify listeners (e.g. the Gear quick-manage modal) that the equipment list changed
     document.dispatchEvent(new CustomEvent('fighter-equipment-changed'));
+};
+
+/** Moves an equipment item up or down in the selected equipment list */
+export const moveEquipmentItem = (fromIndex, toIndex) => {
+    const jsonInput = document.getElementById('f-equipment-json');
+    if (!jsonInput) return;
+
+    let selectedEquipment;
+    try {
+        selectedEquipment = JSON.parse(jsonInput.value || '[]');
+    } catch (e) {
+        return;
+    }
+
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= selectedEquipment.length || toIndex >= selectedEquipment.length) {
+        return;
+    }
+
+    const [item] = selectedEquipment.splice(fromIndex, 1);
+    selectedEquipment.splice(toIndex, 0, item);
+
+    // Keep first dagger free cost logic intact
+    const isDagger = (it) => normalizeEquipment(it).name === 'Dagger';
+    let daggerCount = 0;
+    selectedEquipment = selectedEquipment.map(it => {
+        if (isDagger(it)) {
+            daggerCount++;
+            return { ...it, cost: daggerCount === 1 ? 0 : (it.baseCost || 2) };
+        }
+        return it;
+    });
+
+    jsonInput.value = JSON.stringify(selectedEquipment);
+
+    // If an existing fighter in currentWarband is being edited, keep its equipment array in sync
+    const fighterId = document.getElementById('fighter-id')?.value;
+    if (fighterId && currentWarband && Array.isArray(currentWarband.members)) {
+        const fighter = currentWarband.members.find(f => String(f.id) === String(fighterId));
+        if (fighter) {
+            fighter.equipment = selectedEquipment.map(it => ({ ...it }));
+        }
+    }
+
+    renderSelectedEquipment();
 };
 
 /** Applies Book of the Dead logic - adds/removes Necromancy for Vampires */
@@ -1173,11 +1228,11 @@ const removeNecromancySpellsFromSkills = () => {
         if (skillsDisplay) {
             if (filteredSkills.length > 0) {
                 const skillsHtml = filteredSkills.map(skill =>
-                    `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`
+                    `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`
                 ).join(', ');
                 skillsDisplay.innerHTML = skillsHtml;
             } else {
-                skillsDisplay.textContent = 'None';
+                skillsDisplay.textContent = 'Ninguna';
             }
         }
     }
@@ -1246,11 +1301,11 @@ const removeHornedRatSpellsFromSkills = () => {
         if (skillsDisplay) {
             if (filteredSkills.length > 0) {
                 const skillsHtml = filteredSkills.map(skill =>
-                    `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`
+                    `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`
                 ).join(', ');
                 skillsDisplay.innerHTML = skillsHtml;
             } else {
-                skillsDisplay.textContent = 'None';
+                skillsDisplay.textContent = 'Ninguna';
             }
         }
     }
@@ -1280,11 +1335,11 @@ const applyManeatersLogic = (selectedEquipment) => {
         if (skillsDisplay) {
             if (result.skills.length > 0) {
                 const skillsHtml = result.skills.map(skill =>
-                    `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`
+                    `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${translateSkill(skill)}</span>`
                 ).join(', ');
                 skillsDisplay.innerHTML = skillsHtml;
             } else {
-                skillsDisplay.textContent = 'None';
+                skillsDisplay.textContent = 'Ninguna';
             }
         }
     }
@@ -1363,7 +1418,7 @@ export const addEquipment = async (itemId, customCost = null, customRules = null
         const diceDescription = parsedCost.multiplier > 1 ?
             `${parsedCost.diceCount}D6 × ${parsedCost.multiplier}` :
             `${parsedCost.diceCount}D6`;
-        document.getElementById('dice-roll-base-cost').textContent = `Base: ${parsedCost.base} GC + (result of ${diceDescription})`;
+        document.getElementById('dice-roll-base-cost').textContent = `Base: ${parsedCost.base} CO + (resultado de ${diceDescription})`;
         document.getElementById('dice-roll-value').value = ''; // Clear previous value
         displayModal('dice-roll-modal'); // Updated call
         return;
@@ -1580,7 +1635,7 @@ const addMagicAccessFromEquipment = (magicGroups) => {
     
     // Show success message
     if (newRules.length > 0) {
-        showMessage(`Magic access granted: ${newRules.join(', ')}`, 'success');
+        showMessage(`Acceso a magia concedido: ${newRules.join(', ')}`, 'success');
     }
 };
 
@@ -1753,7 +1808,7 @@ const removeMagicAccessFromEquipment = (magicGroups) => {
     // Show success message if any magic groups were removed
     const removedMagicGroups = magicGroups.filter(mg => !remainingMagicGroups.has(mg));
     if (removedMagicGroups.length > 0) {
-        showMessage(`Magic access removed: ${removedMagicGroups.join(', ')}`, 'info');
+        showMessage(`Acceso a magia eliminado: ${removedMagicGroups.join(', ')}`, 'info');
     }
 };
 
@@ -1805,7 +1860,7 @@ const addSkillsFromEquipment = (skillNames) => {
             skillsDisplay.innerHTML = skillsHtml;
         }
 
-        showMessage(`Skill granted: ${skillNames.join(', ')}`, 'info');
+        showMessage(`Habilidad concedida: ${skillNames.map(s => translateSkill(s) || s).join(', ')}`, 'info');
     }
 };
 
@@ -1854,10 +1909,10 @@ export const removeSkillsFromEquipment = (skillNames) => {
             const skillsHtml = updatedSkills.map(skill => `<span class="underline cursor-pointer text-mordheim-gold" data-skill="${skill}">${skill}</span>`).join(', ');
             skillsDisplay.innerHTML = skillsHtml;
         } else {
-            skillsDisplay.textContent = 'None';
+            skillsDisplay.textContent = 'Ninguna';
         }
 
-        showMessage(`Skill removed: ${removedSkills.join(', ')}`, 'info');
+        showMessage(`Habilidad eliminada: ${removedSkills.map(s => translateSkill(s) || s).join(', ')}`, 'info');
     }
 };
 
@@ -1877,15 +1932,14 @@ const showEquipmentSkillSelectionModal = (item) => {
     if (!modal || !title || !info || !list || !cancelBtn) return;
 
     const categories = item.skillSelection;
-    const categoryNames = categories.join(' or ');
 
     // Set title and info
-    title.textContent = `Choose a Skill (${item.name})`;
+    title.textContent = `Elegir una Habilidad (${translateEquipment(item.name)})`;
     info.innerHTML = `
         <p class="text-sm text-slate-300">
             <i class="fas fa-info-circle text-mordheim-gold mr-1"></i>
-            <span class="font-semibold text-mordheim-gold">${item.name}</span> grants one free skill from the 
-            ${categories.map(c => `<span class="text-mordheim-gold font-semibold">${c}</span>`).join(' or ')} skill list${categories.length > 1 ? 's' : ''}.
+            <span class="font-semibold text-mordheim-gold">${translateEquipment(item.name)}</span> otorga una habilidad gratuita de la lista de 
+            ${categories.map(c => `<span class="text-mordheim-gold font-semibold">${translateSkillCategory(c)}</span>`).join(' o ')}.
         </p>
     `;
 
@@ -1921,7 +1975,8 @@ const showEquipmentSkillSelectionModal = (item) => {
     list.innerHTML = '';
 
     if (availableSkills.length === 0) {
-        list.innerHTML = `<p class="text-slate-400 text-center py-4">No ${categoryNames} skills available.</p>`;
+        const categoryNamesEs = categories.map(c => translateSkillCategory(c)).join(' o ');
+        list.innerHTML = `<p class="text-slate-400 text-center py-4">No hay habilidades de ${categoryNamesEs} disponibles.</p>`;
     } else {
         for (const category in groupedSkills) {
             const categoryId = `equip-skill-${category.replace(/\s+/g, '-')}`;
@@ -1931,7 +1986,7 @@ const showEquipmentSkillSelectionModal = (item) => {
                 const catHeader = document.createElement('div');
                 catHeader.className = 'flex items-center justify-between cursor-pointer text-lg font-semibold text-mordheim-gold mt-3 hover:text-yellow-400 transition p-2 bg-slate-800 rounded-lg';
                 catHeader.innerHTML = `
-                    <span>${category}</span>
+                    <span>${translateSkillCategory(category)}</span>
                     <i class="fas fa-chevron-down transition-transform" id="equip-chevron-${categoryId}"></i>
                 `;
 
@@ -1977,7 +2032,7 @@ const createEquipmentSkillElement = (skill, equipmentItem) => {
     const skillEl = document.createElement('div');
     skillEl.className = 'p-3 rounded-lg cursor-pointer transition hover:bg-slate-700 bg-slate-800';
     skillEl.innerHTML = `
-        <p class="font-semibold text-sm text-white">${skill.name}</p>
+        <p class="font-semibold text-sm text-white">${translateSkill(skill.name)}</p>
         <p class="text-xs text-slate-400 mt-1">${skill.rules || ''}</p>
     `;
 
@@ -2002,7 +2057,7 @@ const createEquipmentSkillElement = (skill, equipmentItem) => {
         }
 
         hideModal('equipment-skill-selection-modal');
-        showMessage(`${equipmentItem.name} equipped — ${skill.name} skill granted!`, 'success');
+        showMessage(`¡${translateEquipment(equipmentItem.name)} equipado — habilidad ${translateSkill(skill.name) || skill.name} concedida!`, 'success');
     });
 
     return skillEl;
@@ -2039,7 +2094,7 @@ const rollbackEquipmentSkillSelection = (item) => {
             } catch (e) {}
         }
 
-        showMessage(`${item.name} was not equipped (skill selection cancelled).`, 'info');
+        showMessage(`${translateEquipment(item.name)} no fue equipado (selección de habilidad cancelada).`, 'info');
     }
 };
 
@@ -2065,7 +2120,7 @@ const addSpecialRulesFromEquipment = (ruleNames) => {
         // Update the display in the modal
         updateWarriorRulesDisplay();
 
-        showMessage(`Special rule granted: ${newRules.join(', ')}`, 'info');
+        showMessage(`Regla especial concedida: ${newRules.map(r => translateSpecialRule(r) || r).join(', ')}`, 'info');
     }
 };
 
@@ -2109,7 +2164,7 @@ export const removeSpecialRulesFromEquipment = (ruleNames) => {
         // Update the display in the modal
         updateWarriorRulesDisplay();
 
-        showMessage(`Special rule removed: ${removedRules.join(', ')}`, 'info');
+        showMessage(`Regla especial eliminada: ${removedRules.map(r => translateSpecialRule(r) || r).join(', ')}`, 'info');
     }
 };
 
@@ -2144,7 +2199,7 @@ const removeSkillCategoriesFromEquipment = (skillCategories) => {
     // Show success message if any skill categories were removed
     const removedCategories = skillCategories.filter(cat => !remainingSkillCategories.has(cat));
     if (removedCategories.length > 0) {
-        showMessage(`Skill categories removed: ${removedCategories.join(', ')}`, 'info');
+        showMessage(`Categorías de habilidad eliminadas: ${removedCategories.join(', ')}`, 'info');
     }
 };
 
@@ -2420,12 +2475,12 @@ export const updateSellPrice = () => {
      let sellPriceNote = "Enter the amount of Gold Crowns to receive from selling this item (default is 50% of original cost).";
 
      if (groupSize > 1) {
-         sellPriceNote = `Enter the amount of Gold Crowns to receive from selling this item (default is 50% of original cost per model x ${groupSize} models).`;
+         sellPriceNote = `Introduce la cantidad de Coronas de Oro a recibir por vender este objeto (por defecto el 50% del coste original por miniatura × ${groupSize} miniaturas).`;
      }
 
      if (tempItemToRemove && tempItemToRemove.name === "Armour; Toughened Leathers") {
         defaultSellPrice = 0;
-        sellPriceNote = "Toughened Leathers cannot be sold for any GC (House Rule). Selling returns 0 GC.";
+        sellPriceNote = "El Cuero Endurecido no se puede vender por ninguna CO (Regla de la Casa). Vender devuelve 0 CO.";
      }
 
      document.getElementById('sell-price-input').value = defaultSellPrice;
@@ -2540,12 +2595,15 @@ export const renderStorageEquipmentOptions = (searchTerm = '') => {
         const isSelected = item.id === window.selectedItemId;
         const itemElement = document.createElement('div');
         itemElement.className = `flex justify-between items-center p-2 rounded-lg hover:bg-slate-700 cursor-pointer text-sm transition ${isSelected ? 'bg-blue-600' : ''}`;
+        const displayName = translateEquipment(item.name) !== item.name
+            ? `${translateEquipment(item.name)} <span class="text-slate-400 font-normal text-xs">(${item.name})</span>`
+            : item.name;
         itemElement.innerHTML = `
             <div>
-                <p class="font-semibold">${item.name} <span class="text-slate-400 text-xs">(${displayCost} GC)</span></p>
-                <p class="text-xs text-slate-500 italic">${formatEquipmentRules(item.rules)}</p>
+                <p class="font-semibold">${displayName} <span class="text-slate-400 text-xs">(${displayCost} CO)</span></p>
+                <p class="text-xs text-slate-500 italic">${formatEquipmentRules(item.rules, item.name)}</p>
                 <button class="${isSelected ? 'text-green-400 hover:text-green-300' : 'text-blue-400 hover:text-blue-300'} ml-2" onclick="selectItemForStorage(${item.id}, ${parsedCost.base}); return false;">
-                    <i class="fas fa-${isSelected ? 'check-circle' : 'check-circle'}"></i> ${isSelected ? 'Selected' : 'Select'}
+                    <i class="fas fa-${isSelected ? 'check-circle' : 'check-circle'}"></i> ${isSelected ? 'Seleccionado' : 'Seleccionar'}
                 </button>
             </div>
         `;
@@ -2571,14 +2629,14 @@ export const showSellFromStorageModal = (name, cost, maxQuantity) => {
 /** Shows the modal to select a fighter for retrieval */
 export const showRetrieveModal = (index) => {
     if (!currentWarband || !currentWarband.members || currentWarband.members.length === 0) {
-         showMessage('You must have fighters in your warband to retrieve stored items.', 'error');
+         showMessage('Debes tener guerreros en tu banda para recuperar objetos almacenados.', 'error');
          return;
     }
 
     // Check if the equipment exists at the given index
     if (!currentWarband.stored_equipment || !currentWarband.stored_equipment[index]) {
         console.error('Equipment not found at index:', index, 'stored_equipment:', currentWarband.stored_equipment);
-        showMessage('Equipment not found in storage.', 'error');
+        showMessage('Equipo no encontrado en el almacén.', 'error');
         return;
     }
 
@@ -2587,7 +2645,7 @@ export const showRetrieveModal = (index) => {
     
     if (!normalizedItem || !normalizedItem.name) {
         console.error('Failed to normalize equipment or missing name:', currentWarband.stored_equipment[index], 'normalized:', normalizedItem);
-        showMessage('Invalid equipment data.', 'error');
+        showMessage('Datos de equipo no válidos.', 'error');
         return;
     }
     
@@ -3247,7 +3305,7 @@ export const renderModalEquipmentOptions = () => {
                     <p class="font-semibold equip-name-toggle" data-rules-target="${modalRulesId}" style="cursor: pointer;">
                         <i class="fas fa-chevron-right text-xs text-slate-500 equip-chevron" style="transition: transform 0.2s; margin-right: 4px; font-size: 0.6rem;"></i>${displayName} <span class="text-${textColor} text-xs">(${displayedCost}${variableCostDisplay} CO${originalCostText})</span>${rarityDisplay}
                     </p>
-                    <p id="${modalRulesId}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules)}</p>
+                    <p id="${modalRulesId}" class="text-xs text-slate-500 italic equip-rules-content hidden" style="margin-top: 4px;">${formatEquipmentRules(item.rules, item.name)}</p>
                 </div>
                 <button class="text-green-400 hover:text-green-300 ml-2 flex-shrink-0" data-action="add-equipment-from-modal" data-item-id="${item.id}" data-cost="${actualCost}">
                     <i class="fas fa-plus-circle"></i> Añadir

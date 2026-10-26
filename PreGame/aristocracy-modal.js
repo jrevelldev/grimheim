@@ -4,134 +4,134 @@ const MODAL_ID = 'aristocracy-info-modal';
 
 const BLOODLINE_DATA = {
     'None': {
-        name: 'Core Undead',
-        title: 'Core Undead Warband',
-        description: 'The standard Mordheim Undead warband configuration, representing a traditional coven led by a Vampire of no particular lineage or a newly turned creature.',
+        name: 'Ninguno',
+        title: 'Banda de No Muertos Básica',
+        description: 'La configuración estándar de banda de No Muertos de Mordheim, que representa un aquelarre tradicional liderado por un Vampiro sin un linaje particular o una criatura recién convertida.',
         powers: [
             {
-                name: 'Standard Roster',
-                type: 'Power',
-                text: 'Allows standard Undead recruitment, item rules, and equipment choices as specified in the Mordheim rulebook.'
+                name: 'Lista Estándar',
+                type: 'Poder',
+                text: 'Permite el reclutamiento estándar de No Muertos, reglas de objetos y opciones de equipo según lo especificado en el reglamento de Mordheim.'
             }
         ]
     },
     'Von Carstein': {
         name: 'Von Carstein',
-        title: 'Von Carstein Bloodline',
-        description: 'The most common and noble of the vampire lineages. They are elegant, charismatic, and hold dominion over creatures of the night.',
+        title: 'Linaje Von Carstein',
+        description: 'El linaje vampírico más común y noble. Son elegantes, carismáticos y tienen dominio sobre las criaturas de la noche.',
         powers: [
             {
-                name: 'Von Carstein Bloodline Powers',
-                type: 'Power',
-                text: 'Vampire has access to Von Carstein specific bloodline powers (e.g., Transfix, Aura of Majesty, Call Winds, Summon Bats).'
+                name: 'Poderes del Linaje Von Carstein',
+                type: 'Poder',
+                text: 'El Vampiro tiene acceso a los poderes del linaje específicos de Von Carstein (p. ej., Petrificación, Aura de Majestad, Llamada del Viento, Invocar Murciélagos).'
             }
         ]
     },
     'Blood Dragon': {
-        name: 'Blood Dragon',
-        title: 'Blood Dragon Bloodline',
-        description: 'Vampiric knights dedicated entirely to martial perfection and the art of combat. They seek out great warriors to test their skills.',
+        name: 'Dragón Sangriento',
+        title: 'Linaje Dragón Sangriento',
+        description: 'Caballeros vampíricos dedicados por completo a la perfección marcial y al arte del combate. Buscan a grandes guerreros para poner a prueba sus habilidades.',
         powers: [
             {
-                name: 'Martial Prowess',
-                type: 'Power',
-                text: 'Blood Dragon Vampires start with +2 Weapon Skill.'
+                name: 'Destreza Marcial',
+                type: 'Poder',
+                text: 'Los Vampiros Dragón Sangriento comienzan con +2 a Habilidad de Armas.'
             },
             {
-                name: 'Eternally Brave',
-                type: 'Power',
-                text: 'Blood Dragon Vampires may re-roll the first failed Rout test (if the Vampire is not out of action).'
+                name: 'Eternamente Valiente',
+                type: 'Poder',
+                text: 'Los Vampiros Dragón Sangriento pueden repetir el primer chequeo de Retirada fallido (si el Vampiro no está fuera de combate).'
             },
             {
-                name: 'Honour',
-                type: 'Restriction',
-                text: 'Blood Dragon Vampires may not attempt to break away from combat or Voluntarily Rout (if the Vampire is not out of action).'
+                name: 'Honor',
+                type: 'Restricción',
+                text: 'Los Vampiros Dragón Sangriento no pueden intentar huir de un combate ni Retirarse Voluntariamente (si el Vampiro no está fuera de combate).'
             },
             {
-                name: 'Warrior Code',
-                type: 'Restriction',
-                text: 'Blood Dragon Vampires cannot use Magic (even with the Book of the Dead from TC #11).'
+                name: 'Código del Guerrero',
+                type: 'Restricción',
+                text: 'Los Vampiros Dragón Sangriento no pueden usar Magia (ni siquiera con el Libro de los Muertos).'
             },
             {
-                name: 'Men-at-arms',
-                type: 'Power',
-                text: 'Dregs start with +1 Weapon Skill.'
+                name: 'Hombres de Armas',
+                type: 'Poder',
+                text: 'Los Parásitos comienzan con +1 a Habilidad de Armas.'
             }
         ]
     },
     'Necrarchs': {
-        name: 'Necrarchs',
-        title: 'Necrarch Bloodline',
-        description: 'Hermetic, grotesque scholars of necromancy who seek to unravel the secrets of life and death, sacrificing physical prowess for supreme magical lore.',
+        name: 'Necrarcas',
+        title: 'Linaje Necrarca',
+        description: 'Eruditos de la nigromancia herméticos y grotescos que buscan desvelar los secretos de la vida y de la muerte, sacrificando su destreza física en favor de un conocimiento mágico supremo.',
         powers: [
             {
-                name: 'Poor warrior',
-                type: 'Restriction',
-                text: 'Necrarch Vampires start with -2 Weapon Skill, may only be armed with a single-handed dagger, sword, axe or mace and cannot take Strength Skills.'
+                name: 'Mal Guerrero',
+                type: 'Restricción',
+                text: 'Los Vampiros Necrarcas comienzan con -2 a Habilidad de Armas, solo pueden armarse con una sola daga, espada, hacha o maza de una mano y no pueden elegir Habilidades de Fuerza.'
             },
             {
-                name: 'Necromantic Lore',
-                type: 'Power',
-                text: 'The Necrarch starts the game as a Wizard in exactly the same way as the Necromancer.'
+                name: 'Saber Nigromántico',
+                type: 'Poder',
+                text: 'El Necrarca empieza la partida siendo un Hechicero de la misma forma que el Nigromante.'
             },
             {
-                name: 'Loathes the Living',
-                type: 'Restriction',
-                text: 'May not hire any Hired Swords.'
+                name: 'Desprecio a los Vivos',
+                type: 'Restricción',
+                text: 'No puede contratar ninguna Espada de Alquiler.'
             }
         ]
     },
     'Lahmia': {
         name: 'Lahmia',
-        title: 'Lahmia Bloodline',
-        description: 'Seductive and stunningly beautiful vampires who manipulate kingdoms from the shadows. They possess supernatural quickness and lethal elegance.',
+        title: 'Linaje Lahmia',
+        description: 'Vampiresas seductoras y de impresionante belleza que manipulan reinos desde las sombras. Poseen una rapidez sobrenatural y una elegancia letal.',
         powers: [
             {
-                name: 'Poor warrior',
-                type: 'Restriction',
-                text: 'Lahmian Vampires start with -1 Weapon Skill and cannot wear Heavy armour, and may only be armed with a single-handed dagger, sword, axe or mace.'
+                name: 'Mal Guerrero',
+                type: 'Restricción',
+                text: 'Las Vampiresas Lahmia comienzan con -1 a Habilidad de Armas, no pueden llevar armadura pesada, y solo pueden armarse con una sola daga, espada, hacha o maza de una mano.'
             },
             {
-                name: 'Enchanting Beauty',
-                type: 'Power',
-                text: '-1 to any living opponent’s Leadership while in base contact with Vampire (note: this has no effect against the Undead or Daemons).'
+                name: 'Belleza Cautivadora',
+                type: 'Poder',
+                text: '-1 al Liderazgo de cualquier enemigo vivo mientras esté en contacto peana con peana con la Vampiresa (nota: esto no tiene efecto contra No Muertos ni Demonios).'
             },
             {
-                name: 'Unnatural Speed',
-                type: 'Power',
-                text: 'Lahmian Vampires start with +2 to Initiative.'
+                name: 'Velocidad Sobrenatural',
+                type: 'Poder',
+                text: 'Las Vampiresas Lahmia comienzan con +2 a Iniciativa.'
             }
         ]
     },
     'Strigoi': {
         name: 'Strigoi',
-        title: 'Strigoi Bloodline',
-        description: 'Tragic, bestial outcasts who have degenerated into monstrous Ghoul Kings. They are physically fearsome but reviled by both the living and other undead.',
+        title: 'Linaje Strigoi',
+        description: 'Trágicos parias bestiales que han degenerado en monstruosos Reyes Necrófagos. Son temibles físicamente, pero repudiados tanto por los vivos como por otros no muertos.',
         powers: [
             {
                 name: 'Bestial',
-                type: 'Power', // Has a penalty but counts as power here
-                text: 'Strigoi Vampires start with +1 Attack but cannot use any Items or Equipment.'
+                type: 'Poder',
+                text: 'Los Vampiros Strigoi comienzan con +1 Ataque pero no pueden usar ningún Objeto ni Equipo.'
             },
             {
-                name: 'Hatred',
-                type: 'Power',
-                text: 'Strigoi Vampires suffer Hatred of all living things.'
+                name: 'Odio',
+                type: 'Poder',
+                text: 'Los Vampiros Strigoi sufren Odio hacia todos los seres vivos.'
             },
             {
-                name: 'Ghoul King',
-                type: 'Power',
-                text: 'Strigoi Vampires may hire up to one Ghast at 50 gc (counts as a Ghoul hero that starts with 0 exp.). Ghoul Henchmen cost 5 gc less to hire.'
+                name: 'Rey Necrófago',
+                type: 'Poder',
+                text: 'Los Vampiros Strigoi pueden contratar hasta un Campeón Necrófago por 50 CO (cuenta como un héroe Necrófago que empieza con 0 PX). Los secuaces Necrófagos cuestan 5 CO menos al contratarlos.'
             },
             {
-                name: 'Reviled',
-                type: 'Restriction',
-                text: 'Strigoi Vampires hire Necromancers and Dregs at +10 gc to hire.'
+                name: 'Repudiado',
+                type: 'Restricción',
+                text: 'Los Vampiros Strigoi contratan Nigromantes y Parásitos con un coste adicional de +10 CO.'
             },
             {
-                name: 'Feared',
-                type: 'Restriction',
-                text: 'Strigoi Vampires may not hire any Hired Swords.'
+                name: 'Temido',
+                type: 'Restricción',
+                text: 'Los Vampiros Strigoi no pueden contratar ninguna Espada de Alquiler.'
             }
         ]
     }
@@ -152,7 +152,7 @@ function ensureModalExists() {
             <div class="flex justify-between items-center mb-4 border-b border-slate-600 pb-3 flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <h3 class="text-2xl font-bold text-mordheim-gold uppercase tracking-wide">
-                        Aristocracy of the Night
+                        Aristocracia de la Noche
                     </h3>
                 </div>
                 <button id="close-aristocracy-modal-btn" class="text-slate-400 hover:text-white transition text-xl p-1">
@@ -219,10 +219,10 @@ function renderTabContent(activeKey) {
     const data = BLOODLINE_DATA[normalizedActive] || BLOODLINE_DATA['None'];
 
     let powersHTML = data.powers.map(p => {
-        const isPower = p.type === 'Power';
+        const isPower = p.type === 'Power' || p.type === 'Poder';
         const typeBadge = isPower 
-            ? '<span class="px-2 py-0.5 text-xs font-bold bg-emerald-900/50 text-emerald-400 border border-emerald-800 rounded-full flex items-center gap-1 flex-shrink-0"><i class="fas fa-plus-circle text-[10px]"></i> Power</span>'
-            : '<span class="px-2 py-0.5 text-xs font-bold bg-rose-900/50 text-rose-400 border border-rose-800 rounded-full flex items-center gap-1 flex-shrink-0"><i class="fas fa-minus-circle text-[10px]"></i> Restriction</span>';
+            ? '<span class="px-2 py-0.5 text-xs font-bold bg-emerald-900/50 text-emerald-400 border border-emerald-800 rounded-full flex items-center gap-1 flex-shrink-0"><i class="fas fa-plus-circle text-[10px]"></i> Poder</span>'
+            : '<span class="px-2 py-0.5 text-xs font-bold bg-rose-900/50 text-rose-400 border border-rose-800 rounded-full flex items-center gap-1 flex-shrink-0"><i class="fas fa-minus-circle text-[10px]"></i> Restricción</span>';
 
         const itemBg = isPower 
             ? 'bg-emerald-950/20 border-emerald-900/20' 

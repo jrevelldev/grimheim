@@ -587,14 +587,14 @@ export function hasAnyChanges() {
 
 export async function applyAllAdvancementChanges() {
     if (!currentWarband || !currentWarband.members) {
-        showMessage('No warband loaded.', 'error');
+        showMessage('No hay ninguna banda cargada.', 'error');
         return;
     }
 
     try {
         const summary = getSummaryData();
         if (summary.length === 0) {
-            showMessage('No changes to apply.', 'info');
+            showMessage('No hay cambios para aplicar.', 'info');
             return;
         }
 
@@ -734,7 +734,7 @@ export async function applyAllAdvancementChanges() {
 
                 // Validate treasury has enough funds
                 if (currentWarband.gc_treasury < halfCost) {
-                    showMessage(`Cannot apply Twistkin mutation: Insufficient Gold Crowns. Need ${halfCost} GC but treasury has ${currentWarband.gc_treasury} GC.`, 'error');
+                    showMessage(`No se puede aplicar la mutación Twistkin: Coronas de Oro insuficientes. Se necesitan ${halfCost} CO pero la tesorería tiene ${currentWarband.gc_treasury} CO.`, 'error');
                     return;
                 }
 
@@ -759,7 +759,7 @@ export async function applyAllAdvancementChanges() {
         resetAdvancementState();
         hideModal('advancement-hub-modal');
 
-        showMessage('All advancement changes applied successfully!', 'success');
+        showMessage('¡Todos los avances aplicados con éxito!', 'success');
 
         // Return to warband editor
         showEditorView();
@@ -767,7 +767,7 @@ export async function applyAllAdvancementChanges() {
 
     } catch (error) {
         console.error('Error applying advancement changes:', error);
-        showMessage('Error applying changes: ' + error.message, 'error');
+        showMessage('Error al aplicar los cambios: ' + error.message, 'error');
     }
 }
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # =======================================================
-# Rosterheim Local - Lanzador para macOS
+# Grimheim Local - Lanzador para macOS
 # =======================================================
 
 # Navegar a la carpeta donde reside este script
@@ -14,7 +14,7 @@ xattr -c "$DIR"/*.command 2>/dev/null
 PORT=8080
 
 echo "======================================================="
-echo "   ROSTERHEIM - GESTOR LOCAL DE BANDAS DE MORDHEIM"
+echo "    GRIMHEIM - GESTOR LOCAL DE BANDAS DE MORDHEIM"
 echo "======================================================="
 
 # Abrir el navegador tras 1.2 segundos

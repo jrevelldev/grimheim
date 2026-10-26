@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Venta de Tesoro - Rosterheim</title>
+    <title>Venta de Tesoro - Grimheim</title>
     <meta name="description" content="Tabla de Eficiencia de Piedra Bruja - Calcula las coronas de oro por fragmento individual según el tamaño de la banda">
     <meta name="google-site-verification" content="L2sLb6QHHUNrfBQhDqlBMtDuX11XHfAZUnmJvKW2BW0" />
-    <meta property="og:site_name" content="Rosterheim">
+    <meta property="og:site_name" content="Grimheim">
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Inter font -->
@@ -25,8 +25,8 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Rosterheim",
-      "url": "https://rosterheim.net/",
+      "name": "Grimheim",
+      "url": "https://grimheim.local/",
       "description": "A comprehensive Mordheim warband roster manager app for tabletop gaming"
     }
     </script>
@@ -34,15 +34,31 @@
     <!-- Set Firebase Config -->
     <script>
     window.__firebase_config = JSON.stringify({
-      apiKey: "AIzaSyDhV9n0WBM0gLHq0a-lpGuWOpZK_hlsrw8",
-      //authDomain: "rosterheim.firebaseapp.com",
-      authDomain: "rosterheim.net",
-      projectId: "rosterheim",
-      storageBucket: "rosterheim.firebasestorage.app",
-      messagingSenderId: "125343728273",
-      appId: "1:125343728273:web:2bcfa74ee9836d17c4b530",
-      measurementId: "G-GPF9PBV8JP"
+      apiKey: "AIzaSyCfJcrcw0cEfWhPFJewMkrQk5GN6LCO01I",
+      authDomain: "grimheim-873b4.firebaseapp.com",
+      projectId: "grimheim-873b4",
+      storageBucket: "grimheim-873b4.firebasestorage.app",
+      messagingSenderId: "231606045100",
+      appId: "1:231606045100:web:c71fdff95b479ce000d209"
     });
+    </script>
+    
+    <style>
+      html:not(.auth-verified) body { display: none !important; }
+    </style>
+    <!-- Auth protection -->
+    <script>
+      (function() {
+        var authed = localStorage.getItem('grimheim_firebase_user') || 
+                     localStorage.getItem('grimheim_guest_mode') || 
+                     localStorage.getItem('grimheim_auth_token') || 
+                     localStorage.getItem('rosterheim_auth_token');
+        if (!authed) {
+            window.location.replace('../index.html');
+        } else {
+            document.documentElement.classList.add('auth-verified');
+        }
+      })();
     </script>
     
     <style>
@@ -95,42 +111,51 @@
 
     <div id="app" class="max-w-7xl mx-auto p-4 md:p-8">
         <!-- Header -->
-        <header class="header-bg p-4 rounded-t-xl shadow-lg mb-6 relative">
+        <header class="header-bg p-4 sm:p-5 rounded-2xl shadow-xl mb-6 relative border border-white/10">
             <div class="beta-build">Versión Local</div>
-            <div class="text-center">
-                <h1 class="text-4xl font-extrabold tracking-tight text-mordheim-gold uppercase">
-                    Rosterheim
-                </h1>
-                <p class="text-sm mt-2 text-slate-300">Tabla de Eficiencia de Piedra Bruja</p>
+            <div class="text-center flex flex-col items-center justify-center pt-1 pb-2">
+                <a href="../index.html" class="inline-block hover:brightness-110 transition duration-200" title="Grimheim - Inicio">
+                    <img src="grimheim-logo.svg" alt="Grimheim" class="h-14 sm:h-16 w-auto mx-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
+                </a>
+                <h1 class="sr-only">Grimheim</h1>
+                <p class="text-xs sm:text-sm mt-1 text-slate-400 font-medium tracking-wide">Tabla de Eficiencia de Piedra Bruja</p>
             </div>
             
-            <!-- Desktop Navigation -->
-            <div class="hidden md:flex justify-end items-center space-x-2 mt-3 pt-3 border-t border-mordheim-gold/30">
-                <a href="../index.html" onclick="preserveAuthAndNavigate(event)" class="px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-500 transition">
-                    Home
-                </a>
+            <!-- Navigation Pod -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-white/10">
+                <div class="inline-flex items-center p-1 rounded-xl bg-[#101114] border border-white/10 shadow-sm gap-1">
+                    <a href="../index.html" onclick="preserveAuthAndNavigate(event)" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 text-xs font-semibold uppercase tracking-wider transition" title="Volver a Inicio">
+                        <i class="fas fa-home text-[#dfbc77]"></i> Inicio
+                    </a>
+                    <a href="../exploration.html" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 text-xs font-semibold uppercase tracking-wider transition" title="Exploración">
+                        <i class="fas fa-compass text-[#dfbc77]"></i> Exploración
+                    </a>
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/10 text-white text-xs font-semibold uppercase tracking-wider shadow-sm">
+                        <i class="fas fa-coins text-[#dfbc77]"></i> Vender Piedra Bruja
+                    </span>
+                </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <div class="bg-slate-800 p-6 rounded-xl shadow-2xl">
+        <div class="bg-[#15161a] p-5 sm:p-7 rounded-2xl border border-white/10 shadow-2xl">
             <div class="mb-6">
                 <!-- Chart Title and Description -->
-                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
-                    <h4 id="chart-title" class="text-lg font-bold text-mordheim-gold mb-3">
+                <div class="bg-[#101114] p-5 rounded-xl border border-white/10 shadow-sm mb-5">
+                    <h4 id="chart-title" class="text-base sm:text-lg font-bold text-[#dfbc77] mb-2">
                         Coronas de Oro por Fragmento Individual
                     </h4>
-                    <p id="chart-description" class="text-slate-300 text-sm">
+                    <p id="chart-description" class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                         Esta tabla muestra la eficiencia (Coronas de Oro por Fragmento de Piedra Bruja) al vender tesoro según el número de fragmentos vendidos y el tamaño de tu banda. ¡Valores más altos indican mejor rendimiento por fragmento!
                     </p>
                 </div>
                 
                 <!-- Efficiency Table -->
-                <div class="bg-slate-700 p-4 rounded-lg border border-slate-600 mb-4">
+                <div class="bg-[#101114] p-5 rounded-xl border border-white/10 shadow-sm mb-5">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm" id="efficiency-table">
                             <thead>
-                                <tr class="border-b border-slate-600">
+                                <tr class="border-b border-white/10">
                                     <th class="text-left py-2 px-3 text-slate-400 text-xs font-medium w-32">Número de Guerreros<br/>en la Banda →</th>
                                     <th class="text-center py-2 px-3 text-slate-300 font-bold">1-3</th>
                                     <th class="text-center py-2 px-3 text-slate-300 font-bold">4-6</th>
@@ -139,7 +164,7 @@
                                     <th class="text-center py-2 px-3 text-slate-300 font-bold">13-15</th>
                                     <th class="text-center py-2 px-3 text-slate-300 font-bold">16+</th>
                                 </tr>
-                                <tr class="border-b border-slate-600">
+                                <tr class="border-b border-white/10">
                                     <th class="text-left py-1 px-3 text-slate-300 text-sm w-32">Nº de Fragmentos Vendidos</th>
                                     <th colspan="6" class="text-center py-1 px-3 text-slate-400 text-xs"></th>
                                 </tr>
@@ -151,15 +176,15 @@
                     </div>
                 </div>
                 
-                            </div>
+            </div>
 
-            <div class="flex justify-between">
-                <a href="../index.html" onclick="preserveAuthAndNavigate(event)" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">
+            <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                <a href="../index.html" onclick="preserveAuthAndNavigate(event)" class="py-2 px-4 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg border border-white/10 transition font-semibold text-xs sm:text-sm">
                     <i class="fas fa-arrow-left mr-2"></i>Volver al Inicio
                 </a>
                 <div class="space-x-2">
-                    <button id="toggle-view-btn" class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition font-bold">
-                        <i class="fas fa-exchange-alt mr-2"></i>Mostrar Valor Total
+                    <button id="toggle-view-btn" class="py-2 px-5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg transition font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-2">
+                        <i class="fas fa-exchange-alt"></i> Mostrar Valor Total
                     </button>
                 </div>
             </div>
@@ -268,10 +293,10 @@
             
             if (currentView === 'efficiency') {
                 titleElement.textContent = 'Coronas de Oro por Fragmento Individual';
-                descElement.textContent = 'This chart shows the efficiency (Gold Crowns per Wyrdstone Shard) when selling treasure based on the number of shards sold and the size of your warband. Higher values indicate better efficiency - you get more gold per shard!';
+                descElement.textContent = 'Esta tabla muestra la eficiencia (Coronas de Oro por fragmento de piedra bruja) al vender tesoro según el número de fragmentos vendidos y el tamaño de tu banda. ¡Valores más altos indican mejor rendimiento por fragmento!';
             } else {
                 titleElement.textContent = 'Total de Coronas de Oro por Tesoro Vendido';
-                descElement.textContent = 'This chart shows the total Gold Crowns received when selling treasure based on the number of shards sold and the size of your warband. Higher values indicate more total gold received.';
+                descElement.textContent = 'Esta tabla muestra el total de Coronas de Oro obtenidas al vender tesoro según el número de fragmentos vendidos y el tamaño de tu banda. Valores más altos indican más oro total recibido.';
             }
             
             // Values from selling_treasure.js
@@ -308,11 +333,11 @@
                     if (currentView === 'efficiency') {
                         displayValue = (value / shardCount).toFixed(2);
                         unitText = 'CO/fragmento';
-                        tooltipText = `${shardRange} shard(s) sold, ${warbandSizes[warbandIndex]} warriors: ${displayValue} GC per shard (${value} total/${shardCount} shards)`;
+                        tooltipText = `${shardRange} fragmento(s) vendido(s), ${warbandSizes[warbandIndex]} guerreros: ${displayValue} CO por fragmento (${value} total/${shardCount} fragmentos)`;
                     } else {
                         displayValue = value.toString();
                         unitText = 'CO total';
-                        tooltipText = `${shardRange} shard(s) sold, ${warbandSizes[warbandIndex]} warriors: ${displayValue} GC total (${(displayValue/shardCount).toFixed(2)} per shard)`;
+                        tooltipText = `${shardRange} fragmento(s) vendido(s), ${warbandSizes[warbandIndex]} guerreros: ${displayValue} CO total (${(displayValue/shardCount).toFixed(2)} por fragmento)`;
                     }
                     
                     cell.className = `py-3 px-3 text-center font-bold text-white efficiency-cell ${getEfficiencyClass(currentView === 'efficiency' ? displayValue : (value / shardCount).toFixed(2))} cursor-pointer rounded`;

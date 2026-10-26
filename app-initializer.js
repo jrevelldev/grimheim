@@ -2,6 +2,7 @@ import { initializeFirebase } from './firebase-logic.js';
 import { setUserId, setUseLocalStorage, setIsShieldMeleeIgnored, setIsBlackpowderPreGameDiscountActive, setIsBlackpowder20PercentDiscountActive, setIsArmourShieldHalfCostActive, setIsExcludeStartingXpFromRatingActive, setIsFullyPaintedActive, userId } from './state.js';
 import { listenToWarbands, unsubscribeFromWarbands } from './warband-service.js';
 import { setAnalyticsUser, trackEvent } from './analytics.js';
+import { getStoredUser, updateAuthUI, showBlockingLoginScreen, hideBlockingLoginScreen } from './auth-client.js';
 
 export const initializeAppAndData = async () => {
     // Check if we're returning from exploration page
@@ -18,9 +19,63 @@ export const initializeAppAndData = async () => {
         returningFromExploration = null; // Ensure it's falsy if not set
     }
     
-    setUserId('local');
-    setUseLocalStorage(true);
-    initLocalStorage();
+    try {
+        await initializeFirebase(
+            (user) => {
+                if (user) {
+                    setUserId(user.uid);
+                    setUseLocalStorage(false);
+                    localStorage.setItem('grimheim_firebase_user', user.uid);
+                    localStorage.removeItem('grimheim_guest_mode');
+                    updateAuthUI({
+                        id: user.uid,
+                        username: user.email || user.displayName || 'Usuario Conectado',
+                        email: user.email,
+                        is_superuser: false
+                    });
+                    hideBlockingLoginScreen();
+                } else {
+                    const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
+                    setUserId('local');
+                    setUseLocalStorage(true);
+                    if (isGuest) {
+                        updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
+                        hideBlockingLoginScreen();
+                    } else {
+                        updateAuthUI(null);
+                        showBlockingLoginScreen();
+                    }
+                }
+            },
+            (error) => {
+                console.warn("Firebase inicializado en modo local:", error);
+                const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
+                setUserId('local');
+                setUseLocalStorage(true);
+                if (isGuest) {
+                    updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
+                    hideBlockingLoginScreen();
+                } else {
+                    updateAuthUI(null);
+                    showBlockingLoginScreen();
+                }
+                initLocalStorage();
+            }
+        );
+    } catch (err) {
+        console.warn("Error en initializeFirebase:", err);
+        const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
+        setUserId('local');
+        setUseLocalStorage(true);
+        if (isGuest) {
+            updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
+            hideBlockingLoginScreen();
+        } else {
+            updateAuthUI(null);
+            showBlockingLoginScreen();
+        }
+        initLocalStorage();
+    }
 
     // This part runs regardless of backend
     // Initialize House Rule state from local storage or default (for persistent state across page refreshes)
@@ -80,9 +135,19 @@ export const initializeAppAndData = async () => {
 };
 
 export const initLocalStorage = () => {
-    const userInfo = document.getElementById('user-info');
-    if (userInfo) {
-        userInfo.textContent = 'Modo Local (Datos guardados en tu navegador)';
+    const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
+    const user = getStoredUser();
+    if (user) {
+        updateAuthUI(user);
+        hideBlockingLoginScreen();
+    } else if (isGuest) {
+        updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
+        hideBlockingLoginScreen();
+    } else {
+        const userInfo = document.getElementById('user-info');
+        if (userInfo) {
+            userInfo.textContent = 'Modo Local (Datos guardados en tu navegador)';
+        }
     }
     listenToWarbands();
 };

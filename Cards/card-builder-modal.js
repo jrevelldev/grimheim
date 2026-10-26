@@ -4,7 +4,7 @@
  */
 
 import { currentWarband } from '../state.js';
-import { showMessage } from '../utility.js';
+import { showMessage, normalizeEquipment } from '../utility.js';
 import { FIGHTER_TYPES, AVAILABLE_BLOCKS, getSampleFighter, getBlankFighter } from './card-config.js';
 import { loadLayout, saveLayout, resetLayout, isFighterLayoutLocked, saveFighterLayout, unlockFighterLayout, loadFighterLayout } from './card-storage.js';
 import { renderFighterCard } from './card-renderer.js';
@@ -12,12 +12,15 @@ import { setupCardPreviewDragDrop, setupSidebarListDragDrop } from './card-drag-
 import { openPrintModal } from './card-print.js';
 import {
     getBuilderDeck,
+    saveBuilderDeck,
     addCardToDeck,
     removeCardFromDeck,
     getWarbandCatalog,
     getFightersForWarbandKey,
     createFighterCardFromSelection
 } from './card-deck.js';
+import { translateEquipment } from '../i18n.js';
+import { saveWarband } from '../warband-service.js';
 
 let modalElement = null;
 let activeFighterType = 'Hero';
@@ -63,14 +66,14 @@ function ensureStudioModal() {
                 <!-- Top Header -->
                 <div class="studio-header">
                     <div class="studio-title-group">
-                        <h2><span id="studio-header-title">Crear Cartas de Guerreros</span> <span class="text-xs text-slate-400 font-normal hidden sm:inline">(63mm &times; 88mm Cartulina Estándar)</span></h2>
+                        <h2><span id="studio-header-title">Creador de Cartas de Guerreros</span> <span class="text-xs text-slate-400 font-normal hidden sm:inline">(63mm &times; 88mm Cartulina Estándar)</span></h2>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button id="studio-open-print-btn" class="px-3 py-1.5 bg-green-700 hover:bg-green-600 text-white text-xs sm:text-sm font-semibold rounded-lg shadow transition flex items-center">
-                            <i class="fas fa-print mr-1.5"></i> Imprimir Cartas
+                        <button id="studio-open-print-btn" class="px-3.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs sm:text-sm font-semibold rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fas fa-print"></i> Imprimir Cartas
                         </button>
-                        <button id="studio-close-btn" class="text-slate-400 hover:text-white p-1 transition" title="Cerrar Creador de Cartas">
-                            <i class="fas fa-times text-xl"></i>
+                        <button id="studio-close-btn" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition flex items-center justify-center" title="Cerrar Creador de Cartas">
+                            <i class="fas fa-times text-lg"></i>
                         </button>
                     </div>
                 </div>
@@ -100,24 +103,24 @@ function ensureStudioModal() {
                     <div class="studio-sidebar">
                         <div class="sidebar-scroll custom-scroll">
                             <!-- Global Card Options -->
-                            <div class="mb-4 bg-slate-900 p-3 rounded-lg border border-slate-700">
+                            <div class="mb-4 bg-[#101114] p-3.5 rounded-xl border border-white/10 shadow-sm">
                                 <div class="sidebar-section-title">
                                     <span>Ajustes de la Carta</span>
-                                    <button id="studio-reset-layout-btn" class="text-xs text-amber-400 hover:underline cursor-pointer">
+                                    <button id="studio-reset-layout-btn" class="text-xs text-[#dfbc77] hover:underline cursor-pointer font-medium">
                                         Restablecer
                                     </button>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                     <div>
                                         <label class="block text-slate-400 mb-1">Densidad</label>
-                                        <select id="studio-card-density-select" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-white">
+                                        <select id="studio-card-density-select" class="w-full bg-[#15161a] border border-white/10 rounded-lg p-1.5 text-white text-xs focus:border-[#dfbc77] focus:outline-none transition">
                                             <option value="normal">Normal</option>
                                             <option value="compact">Compacta</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-slate-400 mb-1">Tema Visual</label>
-                                        <select id="studio-card-theme-select" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-white">
+                                        <select id="studio-card-theme-select" class="w-full bg-[#15161a] border border-white/10 rounded-lg p-1.5 text-white text-xs focus:border-[#dfbc77] focus:outline-none transition">
                                             <option value="parchment">Pergamino Grimdark</option>
                                             <option value="clean">Minimalista Limpio</option>
                                         </select>
@@ -148,14 +151,14 @@ function ensureStudioModal() {
                         <div class="workspace-toolbar">
                             <div class="flex items-center space-x-2">
                                 <label class="text-slate-300 text-xs font-semibold">Guerrero:</label>
-                                <select id="studio-fighter-select" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-xs max-w-xs truncate">
+                                <select id="studio-fighter-select" class="bg-[#15161a] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs max-w-xs truncate focus:border-[#dfbc77] focus:outline-none transition">
                                     <!-- Populated dynamically -->
                                 </select>
-                                <button id="studio-add-card-btn" type="button" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-slate-900 rounded text-xs font-bold transition ${studioMode === 'menu' ? 'inline-flex' : 'hidden'} items-center gap-1 shadow" title="Añadir otra carta de guerrero a este mazo">
+                                <button id="studio-add-card-btn" type="button" class="px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded-lg text-xs font-semibold transition ${studioMode === 'menu' ? 'inline-flex' : 'hidden'} items-center gap-1.5 shadow-sm" title="Añadir otra carta de guerrero a este mazo">
                                     <i class="fas fa-plus text-[10px]"></i>
                                     <span>Añadir</span>
                                 </button>
-                                <button id="studio-delete-card-btn" type="button" class="px-2 py-1 bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700/60 rounded text-xs transition hidden items-center gap-1" title="Eliminar esta carta">
+                                <button id="studio-delete-card-btn" type="button" class="px-2.5 py-1.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 rounded-lg text-xs transition hidden items-center gap-1.5" title="Eliminar esta carta">
                                     <i class="fas fa-trash-alt text-[10px]"></i>
                                 </button>
                                 <button id="studio-lock-layout-btn" type="button" class="studio-lock-btn" title="Bloquear diseño para este guerrero">
@@ -168,10 +171,12 @@ function ensureStudioModal() {
                                 </button>
                             </div>
                             <div class="flex items-center space-x-2 text-xs text-slate-400 studio-zoom-controls">
-                                <span>Zoom:</span>
-                                <button class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-white zoom-btn" data-zoom="1.0">100%</button>
-                                <button class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-white zoom-btn" data-zoom="1.35">135%</button>
-                                <button class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-white zoom-btn" data-zoom="1.6">160%</button>
+                                <span class="text-slate-400 font-medium">Zoom:</span>
+                                <div class="studio-zoom-pod">
+                                    <button class="zoom-btn active" data-zoom="1.0">100%</button>
+                                    <button class="zoom-btn" data-zoom="1.35">135%</button>
+                                    <button class="zoom-btn" data-zoom="1.6">160%</button>
+                                </div>
                             </div>
                         </div>
 
@@ -189,37 +194,37 @@ function ensureStudioModal() {
 
                 <!-- Inline Add Card Modal for Studio -->
                 <div id="studio-add-card-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-                    <div class="bg-slate-800 border border-slate-600 rounded-xl p-4 w-full max-w-sm shadow-2xl text-slate-200 space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <div class="bg-[#15161a] border border-white/10 rounded-2xl p-5 w-full max-w-sm shadow-2xl text-slate-200 space-y-3.5">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
                             <h3 id="studio-add-modal-title" class="font-bold text-white text-sm flex items-center gap-1.5">
-                                Add Fighter Card to Deck
+                                Añadir Carta de Guerrero al Mazo
                             </h3>
-                            <button type="button" id="studio-close-add-modal-btn" class="text-slate-400 hover:text-white transition">
+                            <button type="button" id="studio-close-add-modal-btn" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-white/5 transition">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                         <div>
-                            <label id="studio-modal-warband-label" class="block text-xs text-slate-300 font-medium mb-1">1. Select Warband</label>
-                            <select id="studio-modal-warband-select" class="w-full bg-slate-900 border border-slate-600 rounded px-2.5 py-1.5 text-xs text-white">
-                                <option value="">-- Choose Warband --</option>
+                            <label id="studio-modal-warband-label" class="block text-xs text-slate-300 font-medium mb-1">1. Seleccionar Banda</label>
+                            <select id="studio-modal-warband-select" class="w-full bg-[#101114] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
+                                <option value="">-- Elegir Banda --</option>
                             </select>
                         </div>
                         <div>
-                            <label id="studio-modal-fighter-label" class="block text-xs text-slate-300 font-medium mb-1">2. Select Fighter Type / Warrior</label>
-                            <select id="studio-modal-fighter-select" class="w-full bg-slate-900 border border-slate-600 rounded px-2.5 py-1.5 text-xs text-white" disabled>
-                                <option value="">-- Choose Warband First --</option>
+                            <label id="studio-modal-fighter-label" class="block text-xs text-slate-300 font-medium mb-1">2. Seleccionar Tipo de Guerrero / Perfil</label>
+                            <select id="studio-modal-fighter-select" class="w-full bg-[#101114] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition" disabled>
+                                <option value="">-- Elige Primero una Banda --</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-300 font-medium mb-1">Custom Name <span class="text-slate-500 font-normal">(optional)</span></label>
-                            <input type="text" id="studio-modal-custom-name" placeholder="Leave blank to use default name" class="w-full bg-slate-900 border border-slate-600 rounded px-2.5 py-1.5 text-xs text-white">
+                            <label class="block text-xs text-slate-300 font-medium mb-1">Nombre Personalizado <span class="text-slate-500 font-normal">(opcional)</span></label>
+                            <input type="text" id="studio-modal-custom-name" placeholder="Dejar en blanco para usar el nombre por defecto" class="w-full bg-[#101114] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
                         </div>
-                        <div class="flex items-center space-x-2 pt-2 border-t border-slate-700">
-                            <button type="button" id="studio-cancel-add-btn" class="flex-1 py-1.5 px-3 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition">
-                                Cancel
+                        <div class="flex items-center space-x-2 pt-2 border-t border-white/10">
+                            <button type="button" id="studio-cancel-add-btn" class="flex-1 py-1.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition">
+                                Cancelar
                             </button>
-                            <button type="button" id="studio-confirm-add-btn" class="flex-1 py-1.5 px-3 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold rounded text-xs transition flex items-center justify-center gap-1 shadow" disabled>
-                                <i class="fas fa-plus"></i> Add Card
+                            <button type="button" id="studio-confirm-add-btn" class="flex-1 py-1.5 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 disabled:opacity-40 disabled:cursor-not-allowed font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1 shadow-sm" disabled>
+                                <i class="fas fa-plus"></i> Añadir Carta
                             </button>
                         </div>
                     </div>
@@ -250,28 +255,28 @@ function ensureStudioModal() {
 
     const populateFightersForWb = (wbKey) => {
         if (!wbKey) {
-            studioFighterSelect.innerHTML = '<option value="">-- Choose Warband First --</option>';
+            studioFighterSelect.innerHTML = '<option value="">-- Elige primero la banda --</option>';
             studioFighterSelect.disabled = true;
             studioConfirmAddBtn.disabled = true;
             return;
         }
 
-        const typeLabel = activeFighterType || 'Fighter';
+        const typeLabel = FIGHTER_TYPES.find(t => t.id === activeFighterType)?.label || activeFighterType || 'Guerrero';
         const fighters = getFightersForWarbandKey(wbKey, activeFighterType);
         if (fighters.length === 0) {
-            studioFighterSelect.innerHTML = `<option value="">-- No ${typeLabel}s Available for this Warband --</option>`;
+            studioFighterSelect.innerHTML = `<option value="">-- No hay ${typeLabel} disponibles para esta banda --</option>`;
             studioFighterSelect.disabled = true;
             studioConfirmAddBtn.disabled = true;
             return;
         }
 
-        studioFighterSelect.innerHTML = `<option value="">-- Select ${typeLabel} (${fighters.length} available) --</option>`;
+        studioFighterSelect.innerHTML = `<option value="">-- Seleccionar ${typeLabel} (${fighters.length} disponibles) --</option>`;
         fighters.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.id;
             const hasGroupInName = f.groupSize > 1 && new RegExp(`x\\s*${f.groupSize}`, 'i').test(f.name);
             const groupText = (f.groupSize && f.groupSize > 1 && !hasGroupInName) ? ` x${f.groupSize}` : '';
-            opt.textContent = `${f.name} [${f.type}${groupText}]${(f.cost !== undefined && f.cost !== null) ? ` (${f.cost}gc)` : ''}`;
+            opt.textContent = `${f.name} [${f.type}${groupText}]${(f.cost !== undefined && f.cost !== null) ? ` (${f.cost} CO)` : ''}`;
             studioFighterSelect.appendChild(opt);
         });
         studioFighterSelect.disabled = false;
@@ -284,31 +289,31 @@ function ensureStudioModal() {
         const modalTitle = document.getElementById('studio-add-modal-title');
         const wbLabel = document.getElementById('studio-modal-warband-label');
         const fighterLabel = document.getElementById('studio-modal-fighter-label');
-        const typeLabel = activeFighterType || 'Fighter';
+        const typeLabel = FIGHTER_TYPES.find(t => t.id === activeFighterType)?.label || activeFighterType || 'Guerrero';
 
         if (modalTitle) {
-            modalTitle.textContent = `Add ${typeLabel} Card to Deck`;
+            modalTitle.textContent = `Añadir carta de ${typeLabel} a la baraja`;
         }
         if (wbLabel) {
             if (activeFighterType === 'Hired Sword' || activeFighterType === 'Dramatis Personae' || activeFighterType === 'Vehicle') {
-                wbLabel.textContent = '1. Select Hiring Warband';
+                wbLabel.textContent = '1. Seleccionar banda contratante';
             } else {
-                wbLabel.textContent = '1. Select Warband';
+                wbLabel.textContent = '1. Seleccionar banda';
             }
         }
         if (fighterLabel) {
             if (activeFighterType === 'Hired Sword') {
-                fighterLabel.textContent = '2. Select Hired Sword (Available for Warband)';
+                fighterLabel.textContent = '2. Seleccionar Espada de Alquiler (disponible para la banda)';
             } else if (activeFighterType === 'Dramatis Personae') {
-                fighterLabel.textContent = '2. Select Dramatis Personae (Available for Warband)';
+                fighterLabel.textContent = '2. Seleccionar Personaje Ilustre (disponible para la banda)';
             } else if (activeFighterType === 'Vehicle') {
-                fighterLabel.textContent = '2. Select Vehicle (Available for Warband)';
+                fighterLabel.textContent = '2. Seleccionar Vehículo (disponible para la banda)';
             } else {
-                fighterLabel.textContent = `2. Select ${typeLabel}`;
+                fighterLabel.textContent = `2. Seleccionar ${typeLabel}`;
             }
         }
 
-        studioWbSelect.innerHTML = '<option value="">-- Choose Warband --</option>';
+        studioWbSelect.innerHTML = '<option value="">-- Elegir banda --</option>';
         const catalog = getWarbandCatalog(activeFighterType);
         const activeF = getActiveFighter();
         const defaultWbKey = sessionDefaultWarbandKey || (activeF?.warband_key && !activeF.warband_key.startsWith('sample') ? activeF.warband_key : null);
@@ -375,30 +380,30 @@ function ensureStudioModal() {
             selectedFighterId = newCard.id;
             closeAddCardModal();
             switchFighterType(activeFighterType);
-            showMessage(`Added ${newCard.name} to Card Builder deck!`, 'success');
+            showMessage(`¡${newCard.name} añadido a la baraja de Cartas!`, 'success');
         }
     });
 
     studioDeleteCardBtn?.addEventListener('click', () => {
         if (!selectedFighterId || selectedFighterId === 'sample' || selectedFighterId === 'blank') return;
         const fighter = getActiveFighter();
-        const fName = fighter?.name || 'this card';
-        if (confirm(`Remove ${fName} from this deck?`)) {
+        const fName = fighter?.name || 'esta carta';
+        if (confirm(`¿Eliminar ${fName} de esta baraja?`)) {
             removeCardFromDeck(selectedFighterId);
             const deck = getActiveDeck();
             deck.members = deck.members.filter(m => String(m.id) !== String(selectedFighterId));
             selectedFighterId = null;
             populateFighterDropdown();
             updatePreview();
-            showMessage(`Removed ${fName} from deck.`, 'info');
+            showMessage(`${fName} eliminado de la baraja.`, 'info');
         }
     });
 
-    // Listen for real-time warband updates (e.g. when Firestore loads warbands)
-    window.addEventListener('rosterheim:warbands-updated', () => {
+    // Listen for real-time warband updates
+    const handleWarbandsUpdated = () => {
         if (studioAddModal && !studioAddModal.classList.contains('hidden')) {
             const prevWbKey = studioWbSelect.value;
-            studioWbSelect.innerHTML = '<option value="">-- Choose Warband --</option>';
+            studioWbSelect.innerHTML = '<option value="">-- Elegir banda --</option>';
             const catalog = getWarbandCatalog(activeFighterType);
             catalog.forEach(group => {
                 const optgroup = document.createElement('optgroup');
@@ -414,6 +419,16 @@ function ensureStudioModal() {
             const isValid = prevWbKey && Array.from(studioWbSelect.options).some(o => o.value === prevWbKey);
             studioWbSelect.value = isValid ? prevWbKey : '';
             populateFightersForWb(studioWbSelect.value);
+        }
+    };
+    window.addEventListener('grimheim:warbands-updated', handleWarbandsUpdated);
+    window.addEventListener('rosterheim:warbands-updated', handleWarbandsUpdated);
+
+    // Re-render card preview when distance unit changes (inches / cm)
+    window.addEventListener('distance-unit-changed', () => {
+        const studioModal = document.getElementById('card-builder-modal');
+        if (studioModal && !studioModal.classList.contains('hidden')) {
+            updatePreview();
         }
     });
 
@@ -491,13 +506,14 @@ function ensureStudioModal() {
             updateLockButton();
             renderConfigSidebar();
             updatePreview();
-            showMessage(`Unlocked card layout for ${fighterName}. Reverted to ${activeFighterType} group layout.`, 'info');
+            const groupName = activeFighterType === 'Hero' ? 'Héroe' : 'Secuaz';
+            showMessage(`Diseño de carta desbloqueado para ${fighterName}. Se ha restaurado el diseño del grupo ${groupName}.`, 'info');
         } else {
             // Lock
             saveFighterLayout(selectedFighterId, JSON.parse(JSON.stringify(currentLayout)));
             populateFighterDropdown();
             updateLockButton();
-            showMessage(`Locked card layout for ${fighterName}. Modifications will now only apply to this fighter.`, 'success');
+            showMessage(`Diseño de carta bloqueado para ${fighterName}. Las modificaciones ahora solo se aplicarán a este guerrero.`, 'success');
         }
     });
 
@@ -517,8 +533,9 @@ function ensureStudioModal() {
     // Reset button
     document.getElementById('studio-reset-layout-btn').addEventListener('click', () => {
         const isLocked = selectedFighterId && selectedFighterId !== 'sample' && selectedFighterId !== 'blank' && isFighterLayoutLocked(selectedFighterId);
-        const targetDesc = isLocked ? `the locked card layout for ${getActiveFighter()?.name || 'this fighter'}` : `the card layout for ${activeFighterType}`;
-        if (confirm(`Reset ${targetDesc} to defaults?`)) {
+        const typeLabel = FIGHTER_TYPES.find(t => t.id === activeFighterType)?.label || activeFighterType;
+        const targetDesc = isLocked ? `el diseño de carta bloqueado para ${getActiveFighter()?.name || 'este guerrero'}` : `el diseño de carta para ${typeLabel}`;
+        if (confirm(`¿Restablecer ${targetDesc} a los valores predeterminados?`)) {
             if (isLocked) {
                 unlockFighterLayout(selectedFighterId);
                 populateFighterDropdown();
@@ -557,6 +574,10 @@ function applyZoom() {
     if (wrapper) {
         wrapper.style.transform = `scale(${currentZoom})`;
     }
+    document.querySelectorAll('.zoom-btn').forEach(btn => {
+        const z = parseFloat(btn.dataset.zoom) || 1.0;
+        btn.classList.toggle('active', Math.abs(z - currentZoom) < 0.05);
+    });
 }
 
 /**
@@ -584,10 +605,10 @@ function updateLockButton() {
         lockBtn.disabled = true;
         lockBtn.classList.add('opacity-50', 'cursor-not-allowed');
         lockBtn.classList.remove('is-locked');
-        lockBtn.innerHTML = '<i class="fas fa-lock-open text-xs"></i><span>Lock</span>';
+        lockBtn.innerHTML = '<i class="fas fa-lock-open text-xs"></i><span>Bloquear</span>';
         lockBtn.title = selectedFighterId === 'blank'
-            ? 'Blank template cards share the group layout'
-            : 'Cannot lock layout for sample fighter';
+            ? 'Las cartas de plantilla en blanco comparten el diseño del grupo'
+            : 'No se puede bloquear el diseño de un guerrero de ejemplo';
         return;
     }
 
@@ -597,12 +618,12 @@ function updateLockButton() {
     const locked = isFighterLayoutLocked(selectedFighterId);
     if (locked) {
         lockBtn.classList.add('is-locked');
-        lockBtn.innerHTML = '<i class="fas fa-lock text-xs"></i><span>Locked</span>';
-        lockBtn.title = 'Card layout is locked specifically for this fighter. Click to unlock and revert to group layout.';
+        lockBtn.innerHTML = '<i class="fas fa-lock text-xs"></i><span>Bloqueado</span>';
+        lockBtn.title = 'El diseño de la carta está bloqueado específicamente para este guerrero. Haz clic para desbloquear y volver al diseño de grupo.';
     } else {
         lockBtn.classList.remove('is-locked');
-        lockBtn.innerHTML = '<i class="fas fa-lock-open text-xs"></i><span>Lock</span>';
-        lockBtn.title = 'Lock layout for this fighter to customize independently from the group';
+        lockBtn.innerHTML = '<i class="fas fa-lock-open text-xs"></i><span>Bloquear</span>';
+        lockBtn.title = 'Bloquear el diseño para este guerrero para personalizarlo independientemente del grupo';
     }
 }
 
@@ -700,9 +721,9 @@ function updateStudioModeUI() {
     const headerTitle = document.getElementById('studio-header-title');
     if (headerTitle) {
         if (studioMode === 'warband' && currentWarband?.name) {
-            headerTitle.textContent = `Build Fighter Cards (${currentWarband.name})`;
+            headerTitle.textContent = `Cartas de Guerreros (${currentWarband.name})`;
         } else {
-            headerTitle.textContent = 'Build Fighter Cards';
+            headerTitle.textContent = 'Creador de Cartas de Guerreros';
         }
     }
 
@@ -744,7 +765,7 @@ function populateFighterDropdown() {
             opt.value = f.id;
             const locked = isFighterLayoutLocked(f.id);
             const extra = (studioMode === 'menu' && f.warband_name) ? ` - ${f.warband_name}` : '';
-            opt.textContent = `${f.name} (${f.warrior_choice || f.type}${extra})${locked ? ' [Locked]' : ''}`;
+            opt.textContent = `${f.name} (${f.warrior_choice || f.type}${extra})${locked ? ' [Bloqueado]' : ''}`;
             select.appendChild(opt);
         });
 
@@ -756,7 +777,8 @@ function populateFighterDropdown() {
         // Fallback sample fighter
         const opt = document.createElement('option');
         opt.value = 'sample';
-        opt.textContent = `[Sample ${activeFighterType} Fighter]`;
+        const typeLabel = FIGHTER_TYPES.find(t => t.id === activeFighterType)?.label || activeFighterType;
+        opt.textContent = `[Ejemplo de ${typeLabel}]`;
         select.appendChild(opt);
         if (selectedFighterId !== 'blank') {
             selectedFighterId = 'sample';
@@ -766,7 +788,8 @@ function populateFighterDropdown() {
     // Always add the Blank Card option for this section
     const blankOpt = document.createElement('option');
     blankOpt.value = 'blank';
-    blankOpt.textContent = `[Blank ${activeFighterType} Card]`;
+    const currentTypeLabel = FIGHTER_TYPES.find(t => t.id === activeFighterType)?.label || activeFighterType;
+    blankOpt.textContent = `[Carta de ${currentTypeLabel} en blanco]`;
     select.appendChild(blankOpt);
 
     select.value = selectedFighterId;
@@ -820,25 +843,129 @@ function renderConfigSidebar() {
         if (blockConfig.id === 'blank_lines') {
             const lineCount = blockConfig.options?.lineCount || 3;
             optionsHtml = `
-                <div class="config-item-options flex items-center space-x-2 mt-1.5 pt-1 border-t border-slate-700/60 text-xs text-slate-300">
-                    <span class="text-slate-400">Lines:</span>
-                    <select class="blank-lines-count-select bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-xs text-white">
-                        <option value="2" ${lineCount === 2 ? 'selected' : ''}>2 lines</option>
-                        <option value="3" ${lineCount === 3 ? 'selected' : ''}>3 lines</option>
-                        <option value="4" ${lineCount === 4 ? 'selected' : ''}>4 lines</option>
-                        <option value="5" ${lineCount === 5 ? 'selected' : ''}>5 lines</option>
-                        <option value="6" ${lineCount === 6 ? 'selected' : ''}>6 lines</option>
+                <div class="config-item-options flex items-center space-x-2 mt-1.5 pt-1.5 border-t border-white/10 text-xs text-slate-300">
+                    <span class="text-slate-400">Líneas:</span>
+                    <select class="blank-lines-count-select bg-[#15161a] border border-white/10 rounded-lg px-2 py-0.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
+                        <option value="2" ${lineCount === 2 ? 'selected' : ''}>2 líneas</option>
+                        <option value="3" ${lineCount === 3 ? 'selected' : ''}>3 líneas</option>
+                        <option value="4" ${lineCount === 4 ? 'selected' : ''}>4 líneas</option>
+                        <option value="5" ${lineCount === 5 ? 'selected' : ''}>5 líneas</option>
+                        <option value="6" ${lineCount === 6 ? 'selected' : ''}>6 líneas</option>
                     </select>
                 </div>
             `;
         } else if (blockConfig.id === 'header') {
             const showCost = blockConfig.options?.showCost !== false;
             optionsHtml = `
-                <div class="config-item-options flex items-center space-x-2 mt-1.5 pt-1 border-t border-slate-700/60 text-xs text-slate-300">
+                <div class="config-item-options flex items-center space-x-2 mt-1.5 pt-1.5 border-t border-white/10 text-xs text-slate-300">
                     <label class="flex items-center space-x-1.5 cursor-pointer">
-                        <input type="checkbox" class="header-show-cost-checkbox rounded text-mordheim-gold focus:ring-mordheim-gold" ${showCost ? 'checked' : ''}>
-                        <span class="text-slate-300 font-medium">Show Cost</span>
+                        <input type="checkbox" class="header-show-cost-checkbox rounded text-[#dfbc77] accent-[#dfbc77] focus:ring-[#dfbc77]" ${showCost ? 'checked' : ''}>
+                        <span class="text-slate-300 font-medium">Mostrar Coste</span>
                     </label>
+                </div>
+            `;
+        } else if (blockConfig.id === 'equipment') {
+            const showWeaponRules = blockConfig.options?.showWeaponRules !== false;
+            const format = blockConfig.options?.format || 'tags';
+            const fighter = getActiveFighter();
+            const equipList = (fighter && Array.isArray(fighter.equipment)) ? fighter.equipment : [];
+
+            let reorderItemsHtml = '';
+            if (equipList.length >= 2) {
+                reorderItemsHtml = `
+                    <div class="mt-2 pt-2 border-t border-white/10">
+                        <div class="text-[11px] font-semibold text-[#dfbc77] mb-1 flex items-center justify-between">
+                            <span>Ordenar armas en la carta:</span>
+                            <span class="text-[10px] text-slate-400 font-normal">(${equipList.length} objetos)</span>
+                        </div>
+                        <div class="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1 custom-scroll">
+                            ${equipList.map((eq, eqIdx) => {
+                                const norm = typeof eq === 'string' ? { name: eq } : (normalizeEquipment(eq) || eq);
+                                const rawName = norm?.name || eq?.name || 'Desconocido';
+                                const esName = translateEquipment(rawName);
+                                const isFirst = eqIdx === 0;
+                                const isLast = eqIdx === equipList.length - 1;
+                                return `
+                                    <div class="flex items-center justify-between bg-[#15161a] px-2 py-1 rounded-lg text-xs border border-white/10 hover:border-white/20 transition">
+                                        <span class="truncate pr-1 text-slate-200" title="${esName}">
+                                            <span class="text-[#dfbc77] font-semibold">${eqIdx + 1}.</span> ${esName}
+                                        </span>
+                                        <div class="flex items-center gap-0.5 flex-shrink-0">
+                                            <button type="button" class="btn-card-move-equip-up p-1 text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed" data-index="${eqIdx}" title="Subir" ${isFirst ? 'disabled' : ''}>
+                                                <i class="fas fa-chevron-up text-[10px]"></i>
+                                            </button>
+                                            <button type="button" class="btn-card-move-equip-down p-1 text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed" data-index="${eqIdx}" title="Bajar" ${isLast ? 'disabled' : ''}>
+                                                <i class="fas fa-chevron-down text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            optionsHtml = `
+                <div class="config-item-options flex flex-col gap-1.5 mt-1.5 pt-1.5 border-t border-white/10 text-xs text-slate-300">
+                    <label class="flex items-center space-x-1.5 cursor-pointer" title="Muestra efectos como Parada, Alcance de proyectiles, modificadores, etc.">
+                        <input type="checkbox" class="equip-show-rules-checkbox rounded text-[#dfbc77] accent-[#dfbc77] focus:ring-[#dfbc77]" ${showWeaponRules ? 'checked' : ''}>
+                        <span class="text-slate-300 font-medium">Mostrar reglas de armas (Parada, Alcance...)</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-slate-400">Formato:</span>
+                        <select class="equip-format-select bg-[#15161a] border border-white/10 rounded-lg px-2 py-0.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
+                            <option value="tags" ${format === 'tags' ? 'selected' : ''}>Etiquetas (Compacto)</option>
+                            <option value="list" ${format === 'list' ? 'selected' : ''}>Lista detallada</option>
+                        </select>
+                    </div>
+                    ${reorderItemsHtml}
+                </div>
+            `;
+        } else if (blockConfig.id === 'special_rules') {
+            const showReminders = blockConfig.options?.showDescriptions !== false;
+            const format = blockConfig.options?.format || 'tags';
+            optionsHtml = `
+                <div class="config-item-options flex flex-col gap-1.5 mt-1.5 pt-1.5 border-t border-white/10 text-xs text-slate-300">
+                    <label class="flex items-center space-x-1.5 cursor-pointer" title="Muestra recordatorio de qué hace la regla (ej: Sin Dolor: Aturdido = Derribado, Inmune...)">
+                        <input type="checkbox" class="special-rules-show-reminders-checkbox rounded text-[#dfbc77] accent-[#dfbc77] focus:ring-[#dfbc77]" ${showReminders ? 'checked' : ''}>
+                        <span class="text-slate-300 font-medium">Recordatorio de reglas (Sin Dolor, Inmune...)</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-slate-400">Formato:</span>
+                        <select class="special-rules-format-select bg-[#15161a] border border-white/10 rounded-lg px-2 py-0.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
+                            <option value="tags" ${format === 'tags' ? 'selected' : ''}>Etiquetas (Compacto)</option>
+                            <option value="list" ${format === 'list' ? 'selected' : ''}>Lista detallada</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        } else if (blockConfig.id === 'spacer' || blockConfig.id === 'divider') {
+            const height = blockConfig.options?.height || (blockConfig.id === 'spacer' ? 'medium' : 'small');
+            const style = blockConfig.options?.style || (blockConfig.id === 'spacer' ? 'space' : 'line');
+            optionsHtml = `
+                <div class="config-item-options flex flex-col gap-1.5 mt-1.5 pt-1.5 border-t border-white/10 text-xs text-slate-300">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-slate-400">Altura:</span>
+                        <select class="spacer-height-select bg-[#15161a] border border-white/10 rounded-lg px-2 py-0.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
+                            <option value="xsmall" ${height === 'xsmall' ? 'selected' : ''}>Mínimo (2 mm)</option>
+                            <option value="small" ${height === 'small' ? 'selected' : ''}>Pequeño (4 mm)</option>
+                            <option value="medium" ${height === 'medium' ? 'selected' : ''}>Mediano (7 mm)</option>
+                            <option value="large" ${height === 'large' ? 'selected' : ''}>Grande (12 mm)</option>
+                            <option value="xlarge" ${height === 'xlarge' ? 'selected' : ''}>Muy grande (18 mm)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-slate-400">Estilo:</span>
+                        <select class="spacer-style-select bg-[#15161a] border border-white/10 rounded-lg px-2 py-0.5 text-xs text-white focus:border-[#dfbc77] focus:outline-none transition">
+                            <option value="space" ${style === 'space' ? 'selected' : ''}>Solo espacio (Sin línea)</option>
+                            <option value="line" ${style === 'line' ? 'selected' : ''}>Línea fina sutil</option>
+                            <option value="gold" ${style === 'gold' ? 'selected' : ''}>Línea dorada Mordheim</option>
+                            <option value="dashed" ${style === 'dashed' ? 'selected' : ''}>Línea discontinua</option>
+                            <option value="double" ${style === 'double' ? 'selected' : ''}>Línea doble</option>
+                            <option value="ornament" ${style === 'ornament' ? 'selected' : ''}>Línea con adorno gótico (♦)</option>
+                        </select>
+                    </div>
                 </div>
             `;
         }
@@ -846,7 +973,7 @@ function renderConfigSidebar() {
         item.innerHTML = `
             <div class="config-item-header">
                 <div class="config-item-left">
-                    <span class="config-drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>
+                    <span class="config-drag-handle" title="Arrastrar para reordenar"><i class="fas fa-grip-vertical"></i></span>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input type="checkbox" class="block-toggle-checkbox rounded text-mordheim-gold focus:ring-mordheim-gold" ${blockConfig.enabled ? 'checked' : ''}>
                         <span class="config-item-title">${blockDef.name}</span>
@@ -854,11 +981,11 @@ function renderConfigSidebar() {
                 </div>
                 <div class="config-item-actions">
                     <div class="config-placement-toggle">
-                        <button type="button" class="btn-placement btn-place-top ${!isBottom ? 'active' : ''}" title="Flow at Top">Top</button>
-                        <button type="button" class="btn-placement btn-place-bottom ${isBottom ? 'active' : ''}" title="Align to Bottom of Card">Bottom</button>
+                        <button type="button" class="btn-placement btn-place-top ${!isBottom ? 'active' : ''}" title="Flujo arriba (Top)">Top</button>
+                        <button type="button" class="btn-placement btn-place-bottom ${isBottom ? 'active' : ''}" title="Alinear abajo (Bottom)">Bottom</button>
                     </div>
-                    <button class="config-btn-move btn-move-up" title="Move Up" ${idx === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>
-                    <button class="config-btn-move btn-move-down" title="Move Down" ${idx === currentLayout.blocks.length - 1 ? 'disabled' : ''}><i class="fas fa-arrow-down"></i></button>
+                    <button class="config-btn-move btn-move-up" title="Subir" ${idx === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>
+                    <button class="config-btn-move btn-move-down" title="Bajar" ${idx === currentLayout.blocks.length - 1 ? 'disabled' : ''}><i class="fas fa-arrow-down"></i></button>
                 </div>
             </div>
             <div class="config-item-desc">${blockDef.description}</div>
@@ -882,6 +1009,87 @@ function renderConfigSidebar() {
             showCostCheckbox.addEventListener('change', () => {
                 if (!blockConfig.options) blockConfig.options = {};
                 blockConfig.options.showCost = showCostCheckbox.checked;
+                persistCurrentLayout();
+                updatePreview();
+            });
+        }
+
+        // Equipment show weapon rules and format handlers
+        const equipRulesCheckbox = item.querySelector('.equip-show-rules-checkbox');
+        if (equipRulesCheckbox) {
+            equipRulesCheckbox.addEventListener('change', () => {
+                if (!blockConfig.options) blockConfig.options = {};
+                blockConfig.options.showWeaponRules = equipRulesCheckbox.checked;
+                persistCurrentLayout();
+                updatePreview();
+            });
+        }
+        const equipFormatSelect = item.querySelector('.equip-format-select');
+        if (equipFormatSelect) {
+            equipFormatSelect.addEventListener('change', (e) => {
+                if (!blockConfig.options) blockConfig.options = {};
+                blockConfig.options.format = e.target.value;
+                persistCurrentLayout();
+                updatePreview();
+            });
+        }
+
+        // Equipment reorder move up/down handlers
+        item.querySelectorAll('.btn-card-move-equip-up').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.index);
+                if (idx > 0) {
+                    await moveCardEquipment(idx, idx - 1);
+                }
+            });
+        });
+        item.querySelectorAll('.btn-card-move-equip-down').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.index);
+                const fighter = getActiveFighter();
+                if (fighter && Array.isArray(fighter.equipment) && idx < fighter.equipment.length - 1) {
+                    await moveCardEquipment(idx, idx + 1);
+                }
+            });
+        });
+
+        // Special rules show reminders and format handlers
+        const rulesRemindersCheckbox = item.querySelector('.special-rules-show-reminders-checkbox');
+        if (rulesRemindersCheckbox) {
+            rulesRemindersCheckbox.addEventListener('change', () => {
+                if (!blockConfig.options) blockConfig.options = {};
+                blockConfig.options.showDescriptions = rulesRemindersCheckbox.checked;
+                persistCurrentLayout();
+                updatePreview();
+            });
+        }
+        const rulesFormatSelect = item.querySelector('.special-rules-format-select');
+        if (rulesFormatSelect) {
+            rulesFormatSelect.addEventListener('change', (e) => {
+                if (!blockConfig.options) blockConfig.options = {};
+                blockConfig.options.format = e.target.value;
+                persistCurrentLayout();
+                updatePreview();
+            });
+        }
+
+        // Spacer / Divider change handlers
+        const spacerHeightSelect = item.querySelector('.spacer-height-select');
+        if (spacerHeightSelect) {
+            spacerHeightSelect.addEventListener('change', (e) => {
+                if (!blockConfig.options) blockConfig.options = {};
+                blockConfig.options.height = e.target.value;
+                persistCurrentLayout();
+                updatePreview();
+            });
+        }
+        const spacerStyleSelect = item.querySelector('.spacer-style-select');
+        if (spacerStyleSelect) {
+            spacerStyleSelect.addEventListener('change', (e) => {
+                if (!blockConfig.options) blockConfig.options = {};
+                blockConfig.options.style = e.target.value;
                 persistCurrentLayout();
                 updatePreview();
             });
@@ -938,6 +1146,61 @@ function renderConfigSidebar() {
 }
 
 /**
+ * Reorders equipment for the active fighter directly from the card builder
+ */
+async function moveCardEquipment(fromIdx, toIdx) {
+    const fighter = getActiveFighter();
+    if (!fighter || !Array.isArray(fighter.equipment)) return;
+    if (fromIdx < 0 || toIdx < 0 || fromIdx >= fighter.equipment.length || toIdx >= fighter.equipment.length) return;
+
+    const [item] = fighter.equipment.splice(fromIdx, 1);
+    fighter.equipment.splice(toIdx, 0, item);
+
+    // Keep first dagger free cost logic intact
+    const isDagger = (it) => {
+        const norm = typeof it === 'string' ? { name: it } : (normalizeEquipment(it) || it);
+        return norm?.name === 'Dagger';
+    };
+    let daggerCount = 0;
+    fighter.equipment = fighter.equipment.map(it => {
+        if (typeof it === 'object' && it !== null && isDagger(it)) {
+            daggerCount++;
+            return { ...it, cost: daggerCount === 1 ? 0 : (it.baseCost || 2) };
+        }
+        return it;
+    });
+
+    // If this fighter is currently in the Edit Fighter modal in the background, keep that in sync too
+    const fIdInput = document.getElementById('fighter-id');
+    const fEquipJson = document.getElementById('f-equipment-json');
+    if (fIdInput && fEquipJson && String(fIdInput.value) === String(fighter.id)) {
+        fEquipJson.value = JSON.stringify(fighter.equipment);
+        try {
+            const { renderSelectedEquipment } = await import('../equipment-management.js');
+            if (typeof renderSelectedEquipment === 'function') {
+                renderSelectedEquipment();
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    // Persist changes to storage
+    const deck = getActiveDeck();
+    if (currentWarband && deck === currentWarband) {
+        try {
+            await saveWarband();
+        } catch (err) {
+            console.error('Error saving warband equipment order:', err);
+        }
+    } else if (deck && !deck.id) {
+        saveBuilderDeck(deck);
+    }
+
+    // Refresh live preview and sidebar
+    updatePreview();
+    renderConfigSidebar();
+}
+
+/**
  * Sets the active view on mobile devices ('preview' or 'components')
  */
 export function setMobileView(view) {
@@ -985,10 +1248,10 @@ function updatePreview() {
             const isOverflowing = cardInner.scrollHeight > cardInner.clientHeight + 2;
             if (isOverflowing) {
                 overflowEl.className = 'card-overflow-badge';
-                overflowEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Content exceeds 88mm height (use Compact mode or hide some blocks)';
+                overflowEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> El contenido supera los 88mm de altura (usa la vista compacta u oculta componentes)';
             } else {
                 overflowEl.className = 'card-fits-badge';
-                overflowEl.innerHTML = '<i class="fas fa-check-circle"></i> Fits within 63mm &times; 88mm boundary';
+                overflowEl.innerHTML = '<i class="fas fa-check-circle"></i> Se ajusta al tamaño de 63mm &times; 88mm';
             }
         }
     }, 50);
@@ -1071,7 +1334,7 @@ export function openCardBuilderModal(overrideWarband = null, initialSelectedFigh
         }
     } catch (err) {
         console.error('Card Builder Studio failed to populate:', err);
-        showMessage('Card Builder error: ' + (err?.message || err), 'error');
+        showMessage('Error del Creador de Cartas: ' + (err?.message || err), 'error');
     }
 }
 

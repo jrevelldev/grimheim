@@ -5,7 +5,7 @@ import { renderArmorSave } from './equipment-management.js';
 import { getOriginalName } from './get-original-name.js';
 import { shouldBypassElfBowVariableCost } from './equiprules/wood-elves.js';
 import { trackScreenView } from './analytics.js';
-import { translateFighterType, translateRace, translateWarrior } from './i18n.js';
+import { translateFighterType, translateRace, translateWarrior, translateEquipment } from './i18n.js';
 
 export { getOriginalName };
 
@@ -877,14 +877,14 @@ export const checkGroupRetrievalConstraint = () => {
      const alreadyHasItem = targetFighter.equipment.some(e => e.name === item.name);
 
      if (alreadyHasItem) {
-         warningDiv.textContent = `Group already has ${item.name}. Cannot equip duplicate item.`;
+         warningDiv.textContent = `El grupo ya tiene ${translateEquipment(item.name)}. No se puede equipar un objeto duplicado.`;
          warningDiv.classList.remove('hidden');
          return;
      }
 
      if (totalItemInstancesInStorage < needed) {
          const missing = needed - totalItemInstancesInStorage;
-         warningDiv.textContent = `Group Size (${needed}) requires ${needed} instances of ${item.name}. Only ${totalItemInstancesInStorage} are in storage. Missing ${missing}.`;
+         warningDiv.textContent = `El tamaño del grupo (${needed}) requiere ${needed} unidades de ${translateEquipment(item.name)}. Solo hay ${totalItemInstancesInStorage} en el almacén. Faltan ${missing}.`;
          warningDiv.classList.remove('hidden');
      } else {
          warningDiv.classList.add('hidden');

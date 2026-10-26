@@ -43,13 +43,13 @@ export const confirmReduceGroupSize = async () => {
     const currentGroupSize = parseInt(document.getElementById('f-group-size').value) || 1;
 
     if (currentGroupSize <= 1) {
-        showMessage("Group size cannot be reduced below 1.", 'error');
+        showMessage("El tamaño del grupo no se puede reducir por debajo de 1.", 'error');
         return;
     }
 
     hideModal('manage-group-modal');
 
-    showConfirmationModal(`Are you sure you want to reduce the group size of ${fighterName} by 1 (casualty)? This will not refund any GC.`, async () => {
+    showConfirmationModal(`¿Seguro que quieres reducir el tamaño del grupo de ${fighterName} en 1 (baja)? Esto no reembolsará ninguna CO.`, async () => {
         document.getElementById('f-group-size').value = currentGroupSize - 1;
         await _saveFighter(0, true, _saveWarband); // Pass 0 for gcDeltaFromSale and true for isCasualty
     });
@@ -72,16 +72,16 @@ export const showAddHenchmenModal = () => {
     // Calculate costs
     const baseCost = fighter.cost || 0;
     const equipmentCost = calculateEquipmentCost(adjustEquipmentCosts(fighter.equipment || []));
-    const experienceCost = (fighter.xp || 0) * 2; // 2 GC per experience point
+    const experienceCost = (fighter.xp || 0) * 2; // 2 CO per experience point
     const perFighterCost = baseCost + equipmentCost + experienceCost;
 
     // Update modal with cost breakdown
-    document.getElementById('add-henchmen-base-cost').textContent = `${baseCost} GC`;
-    document.getElementById('add-henchmen-equipment-cost').textContent = `${equipmentCost} GC`;
+    document.getElementById('add-henchmen-base-cost').textContent = `${baseCost} CO`;
+    document.getElementById('add-henchmen-equipment-cost').textContent = `${equipmentCost} CO`;
     document.getElementById('add-henchmen-xp-amount').textContent = fighter.xp || 0;
-    document.getElementById('add-henchmen-experience-cost').textContent = `${experienceCost} GC`;
-    document.getElementById('add-henchmen-per-fighter-cost').textContent = `${perFighterCost} GC`;
-    document.getElementById('add-henchmen-treasury').textContent = `${currentWarband.gc_treasury} GC`;
+    document.getElementById('add-henchmen-experience-cost').textContent = `${experienceCost} CO`;
+    document.getElementById('add-henchmen-per-fighter-cost').textContent = `${perFighterCost} CO`;
+    document.getElementById('add-henchmen-treasury').textContent = `${currentWarband.gc_treasury} CO`;
 
     // Reset input and update total
     document.getElementById('add-henchmen-count').value = 1;
@@ -105,7 +105,7 @@ export const updateAddHenchmenTotalCost = () => {
     const perFighterCost = baseCost + equipmentCost + experienceCost;
     const totalCost = perFighterCost * count;
 
-    document.getElementById('add-henchmen-total-cost').textContent = `${totalCost} GC`;
+    document.getElementById('add-henchmen-total-cost').textContent = `${totalCost} CO`;
 
     // Enable/disable confirm button based on treasury
     const confirmBtn = document.getElementById('confirm-add-henchmen-btn');
@@ -135,7 +135,7 @@ export const addHenchmenToGroup = () => {
 
     // Check treasury
     if (totalCost > currentWarband.gc_treasury) {
-        showMessage('Insufficient Gold Crowns for this purchase.', 'error');
+        showMessage('Coronas de Oro insuficientes para esta compra.', 'error');
         return;
     }
 
@@ -153,5 +153,5 @@ export const addHenchmenToGroup = () => {
     hideModal('add-henchmen-modal');
 
     // Show success message (but note that changes are pending save)
-    showMessage(`Ready to add ${countToAdd} fighter(s) to ${fighter.name}. New group size will be: ${newSize}. Cost: ${totalCost} GC (will be deducted when saved)`, 'success');
+    showMessage(`Listo para añadir ${countToAdd} guerrero(s) a ${fighter.name}. El nuevo tamaño del grupo será: ${newSize}. Coste: ${totalCost} CO (se deducirá al guardar).`, 'success');
 };

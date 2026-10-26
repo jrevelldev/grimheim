@@ -9,7 +9,7 @@ import { STATS_FIELDS, HERO_XP_THRESHOLDS, STANDARD_XP_THRESHOLDS } from './conf
 import { getWarbandData, calculateWarbandRating, calculateEquipmentCost, adjustEquipmentCosts, countItemInStorage, calculateArmorSave, showMessage, displayModal, hideModal, showConfirmationModal, showEditorView, showNewWarbandModal, saveHouseRuleState, handleHouseRuleChange, checkGroupRetrievalConstraint, parseCostString, generateUUID, normalizeEquipment, isV2Warband, serializeEquipment } from './utility.js'; 
 import { renderHeroXPBar, renderXPBar } from './advancement.js';
 import { renderWarbandList, showListView, renderWarbandEditor, toggleGroupSize, updateGroupSizeDisplay, renderRacialMaximums, renderStatInputs, renderRaceOptions, populateWarbandTypes, populateWarriorChoices, updateFighterDataFromSelection, populateDramatisPersonaeChoices, updateFighterDataFromDramatisPersonaeSelection, populateHiredSwordChoices, updateFighterDataFromHiredSwordSelection, populateVehicleChoices, updateFighterDataFromVehicleSelection, showInjurySelectionModal, renderSelectedInjuries, addInjury, removeInjury, toggleExperienceVisibility, toggleSkillsLayout, showSkillOverrideModal, finalizeHiredSwordCost, showStatsOverrideModal, submitStatsOverride, showSkillAccessOverrideModal, submitSkillAccessOverride, resetSkillAccessOverride } from './ui.js';
-import { renderEquipmentSelector, renderEquipmentOptions, renderSelectedEquipment, updateStatModifiers, showAddToStorageModal, updateSellPrice, renderStorageEquipmentOptions, showSellFromStorageModal, showRetrieveModal, renderArmorSave, addEquipment, removeEquipment, removeSkillsFromEquipment, removeSpecialRulesFromEquipment } from './equipment-management.js';
+import { renderEquipmentSelector, renderEquipmentOptions, renderSelectedEquipment, moveEquipmentItem, updateStatModifiers, showAddToStorageModal, updateSellPrice, renderStorageEquipmentOptions, showSellFromStorageModal, showRetrieveModal, renderArmorSave, addEquipment, removeEquipment, removeSkillsFromEquipment, removeSpecialRulesFromEquipment } from './equipment-management.js';
 import { applyDwarfTreasureHuntersEquipmentRules } from './equiprules/dwarf-treasure-hunters.js';
 import { applyMountStats, validateMountEquipmentRules } from './equiprules/mounts.js';
 import { applySistersOfSigmarEquipmentRules } from './equiprules/sisters-of-sigmar.js';
@@ -17,6 +17,7 @@ import { validateProfanePleasuresMutations } from './equiprules/profane-pleasure
 import { handleChosenOfChaosSkillChange } from './equiprules/marauders-of-chaos.js';
 import { recordEquipmentPurchase, recordEquipmentSale, recordHireFee, recordHireFeeTreasure, linkEquipmentToHire, recordFighterRefund } from './Treasury/ledger.js';
 import { useLocalStorage, userId, currentWarband, warbands, tempItemToRemove, tempItemToRetrieve, tempItemToAdd, tempHiredSwordToAdd, currentFighterBaseStats, currentFighterMultiStats, setUseLocalStorage, setUserId, setCurrentWarband, setWarbands, setTempItemToRemove, setTempItemToRetrieve, setTempItemToAdd, setTempHiredSwordToAdd, setCurrentFighterBaseStats, setCurrentFighterMultiStats, setIsShieldMeleeIgnored, setAvailableSkillCategories, getAvailableSkillCategories, isLuckyItemsLimited, isIgnoreRacialMaximumsActive, setRestrictedSkillCategories } from './state.js';
+import { translateEquipment, translateSkill, translateSpecialRule, translateInjury, translateInjuryDescription, getSpecialRuleSummary } from './i18n.js';
 
 // --- Fighter Management (CRUD) ---
 
@@ -111,18 +112,18 @@ const buildEquipmentChangesModal = () => {
     // Purchased items section
     if (pendingPurchases.length > 0) {
         contentHtml += `<div class="bg-slate-800 p-3 rounded-lg">
-            <h4 class="text-sm font-semibold text-green-400 mb-2"><i class="fas fa-plus-circle mr-1"></i>Equipment Purchased</h4>`;
+            <h4 class="text-sm font-semibold text-green-400 mb-2"><i class="fas fa-plus-circle mr-1"></i>Equipo Comprado</h4>`;
         pendingPurchases.forEach((p, i) => {
             const totalItemCost = Math.round(p.cost * groupSize);
             contentHtml += `<div class="flex justify-between items-center text-sm py-1">
                 <div class="flex items-center gap-2">
-                    <button class="undo-change-btn text-slate-500 hover:text-red-400 transition" data-action="purchase" data-index="${i}" title="Undo purchase"><i class="fas fa-times-circle pointer-events-none"></i></button>
-                    <span class="text-slate-300">${groupSize > 1 ? groupSize + 'x ' : ''}${p.name}</span>
+                    <button class="undo-change-btn text-slate-500 hover:text-red-400 transition" data-action="purchase" data-index="${i}" title="Deshacer compra"><i class="fas fa-times-circle pointer-events-none"></i></button>
+                    <span class="text-slate-300">${groupSize > 1 ? groupSize + 'x ' : ''}${translateEquipment(p.name)}</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="text-red-400 text-xs">-</span>
                     <input type="number" class="edit-cost-input w-16 bg-slate-700 border border-slate-600 rounded px-2 py-0.5 text-red-400 text-right text-sm focus:border-mordheim-gold focus:outline-none" value="${totalItemCost}" min="0" data-action="purchase" data-index="${i}" />
-                    <span class="text-red-400 text-xs">GC</span>
+                    <span class="text-red-400 text-xs">CO</span>
                 </div>
             </div>`;
         });
@@ -132,17 +133,17 @@ const buildEquipmentChangesModal = () => {
     // Sold items section
     if (pendingSells.length > 0) {
         contentHtml += `<div class="bg-slate-800 p-3 rounded-lg">
-            <h4 class="text-sm font-semibold text-yellow-400 mb-2"><i class="fas fa-coins mr-1"></i>Equipment Sold</h4>`;
+            <h4 class="text-sm font-semibold text-yellow-400 mb-2"><i class="fas fa-coins mr-1"></i>Equipo Vendido</h4>`;
         pendingSells.forEach((s, i) => {
             contentHtml += `<div class="flex justify-between items-center text-sm py-1">
                 <div class="flex items-center gap-2">
-                    <button class="undo-change-btn text-slate-500 hover:text-red-400 transition" data-action="sell" data-index="${i}" title="Undo sale"><i class="fas fa-times-circle pointer-events-none"></i></button>
-                    <span class="text-slate-300">${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${s.itemName}</span>
+                    <button class="undo-change-btn text-slate-500 hover:text-red-400 transition" data-action="sell" data-index="${i}" title="Deshacer venta"><i class="fas fa-times-circle pointer-events-none"></i></button>
+                    <span class="text-slate-300">${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${translateEquipment(s.itemName)}</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="text-green-400 text-xs">+</span>
                     <input type="number" class="edit-cost-input w-16 bg-slate-700 border border-slate-600 rounded px-2 py-0.5 text-green-400 text-right text-sm focus:border-mordheim-gold focus:outline-none" value="${s.sellPrice}" min="0" data-action="sell" data-index="${i}" />
-                    <span class="text-green-400 text-xs">GC</span>
+                    <span class="text-green-400 text-xs">CO</span>
                 </div>
             </div>`;
         });
@@ -152,14 +153,14 @@ const buildEquipmentChangesModal = () => {
     // Stored items section
     if (pendingStores.length > 0) {
         contentHtml += `<div class="bg-slate-800 p-3 rounded-lg">
-            <h4 class="text-sm font-semibold text-blue-400 mb-2"><i class="fas fa-warehouse mr-1"></i>Equipment Stored</h4>`;
+            <h4 class="text-sm font-semibold text-blue-400 mb-2"><i class="fas fa-warehouse mr-1"></i>Equipo Almacenado</h4>`;
         pendingStores.forEach((s, i) => {
             contentHtml += `<div class="flex justify-between items-center text-sm py-1">
                 <div class="flex items-center gap-2">
-                    <button class="undo-change-btn text-slate-500 hover:text-red-400 transition" data-action="store" data-index="${i}" title="Undo store"><i class="fas fa-times-circle pointer-events-none"></i></button>
-                    <span class="text-slate-300">${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${s.name}</span>
+                    <button class="undo-change-btn text-slate-500 hover:text-red-400 transition" data-action="store" data-index="${i}" title="Deshacer almacenamiento"><i class="fas fa-times-circle pointer-events-none"></i></button>
+                    <span class="text-slate-300">${s.groupSize > 1 ? s.groupSize + 'x ' : ''}${translateEquipment(s.name)}</span>
                 </div>
-                <span class="text-slate-400">To Storage</span>
+                <span class="text-slate-400">Al Almacén</span>
             </div>`;
         });
         contentHtml += `</div>`;
@@ -188,10 +189,10 @@ const updateEquipmentChangesSummary = () => {
     const netSign = netGcChange >= 0 ? '+' : '';
     document.getElementById('equipment-changes-summary').innerHTML = `
         <div class="flex justify-between items-center">
-            <span class="text-slate-300 font-semibold">Net Treasury Change</span>
-            <span class="${netColor} font-bold text-lg">${netSign}${netGcChange} GC</span>
+            <span class="text-slate-300 font-semibold">Cambio Neto en Tesorería</span>
+            <span class="${netColor} font-bold text-lg">${netSign}${netGcChange} CO</span>
         </div>
-        <div class="text-xs text-slate-400 mt-1">Current Treasury: ${currentWarband.gc_treasury} GC → ${currentWarband.gc_treasury + netGcChange} GC</div>
+        <div class="text-xs text-slate-400 mt-1">Tesorería Actual: ${currentWarband.gc_treasury} CO → ${currentWarband.gc_treasury + netGcChange} CO</div>
     `;
 };
 
@@ -239,7 +240,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     const fighterId = document.getElementById('fighter-id').value;
     const name = document.getElementById('f-name').value.trim();
     if (!name) {
-        showMessage("Fighter name is required.", 'error');
+        showMessage("El nombre del guerrero es obligatorio.", 'error');
         return;
     }
     const notes = document.getElementById('f-notes').value.trim();
@@ -248,12 +249,12 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     const warriorChoice = document.getElementById('f-warrior-choice').value.trim();
 
     if (role === 'Hero' && !warriorChoice) {
-        showMessage("You must select a Warrior Choice for a Hero.", 'error');
+        showMessage("Debes seleccionar un Tipo de Guerrero para un Héroe.", 'error');
         return;
     }
 
     if (role === 'Henchman' && !warriorChoice) {
-        showMessage("You must select a Warrior Choice for a Henchman.", 'error');
+        showMessage("Debes seleccionar un Tipo de Guerrero para un Secuaz.", 'error');
         return;
     }
 
@@ -271,7 +272,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
                     if (existingFighter && (existingFighter.warrior_choice || existingFighter.name) !== warriorChoice) {
                         // Changing to a different warrior type
                         if (currentCount >= maxAllowed) {
-                            showMessage(`Cannot change to ${warriorChoice}; the warband already has the maximum allowed (${maxAllowed}).`, 'error');
+                            showMessage(`No se puede cambiar a ${warriorChoice}; la banda ya tiene el máximo permitido (${maxAllowed}).`, 'error');
                             return;
                         }
                     }
@@ -286,13 +287,13 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
         if (warriorChoice === 'Jungle Shadow') {
             const hasWizard = currentWarband.members.some(m => (m.warrior_choice || m.name) === 'Jungle Shadow Wizard');
             if (hasWizard) {
-                showMessage('Cannot add Jungle Shadow; the warband already has a Jungle Shadow Wizard. You may only have one or the other.', 'error');
+                showMessage('No se puede añadir Sombra de la Selva; la banda ya dispone de un Hechicero Sombra de la Selva. Solo puedes tener uno u otro.', 'error');
                 return;
             }
         } else if (warriorChoice === 'Jungle Shadow Wizard') {
             const hasShadow = currentWarband.members.some(m => (m.warrior_choice || m.name) === 'Jungle Shadow');
             if (hasShadow) {
-                showMessage('Cannot add Jungle Shadow Wizard; the warband already has a Jungle Shadow. You may only have one or the other.', 'error');
+                showMessage('No se puede añadir Hechicero Sombra de la Selva; la banda ya dispone de un Sombra de la Selva. Solo puedes tener uno u otro.', 'error');
                 return;
             }
         }
@@ -302,9 +303,9 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     if (role === 'Hero') {
         let heroCount = currentWarband.members.filter(m => m.type === 'Hero').length;
 
-        const existingFighter = currentWarband.members.find(m => m.id === fighterId);
+        const existingFighter = currentWarband.members.find(f => f.id === fighterId);
         if (existingFighter && existingFighter.type !== 'Hero' && heroCount >= 6) {
-            showMessage("Cannot change this fighter to a Hero; the warband already has 6 heroes.", 'error');
+            showMessage("No se puede cambiar este guerrero a Héroe; la banda ya tiene 6 héroes.", 'error');
             return;
         }
     }
@@ -320,7 +321,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
                 m.special_rules.includes('Leader')
             );
             if (existingLeaders.length > 0) {
-                showMessage("Cannot assign leader: another Hero is already the leader. Only one leader allowed per warband.", 'error');
+                showMessage("No se puede asignar como líder: otro Héroe ya es el líder. Solo se permite un líder por banda.", 'error');
                 return;
             }
         }
@@ -329,11 +330,11 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     const groupSize = parseInt(document.getElementById('f-group-size').value) || 1;
     
     if (role === 'Henchman' && groupSize < 1) {
-        showMessage("Henchman Group Size must be 1 or greater.", 'error');
+        showMessage("El tamaño del grupo de secuaces debe ser 1 o mayor.", 'error');
         return;
     }
     if (groupSize < 1) {
-         showMessage("Group Size cannot be less than 1.", 'error');
+         showMessage("El tamaño del grupo no puede ser menor que 1.", 'error');
         return;
     }
 
@@ -370,13 +371,13 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     });
 
     if (exceedsHenchmanLimit) {
-        showMessage("Henchman advancement limit exceeded: Henchmen can only increase any characteristic by +1 from their starting profile.", 'error');
+        showMessage("Límite de avances de secuaz excedido: los secuaces solo pueden aumentar cualquier atributo en +1 respecto a su perfil inicial.", 'error');
         return; // Block save
     }
     
     if (exceedsMax) {
         // Warning message for the user, but allow save as this may be a deliberate override
-        showMessage("Warning: Fighter stats exceed the maximums for their race!", 'error');
+        showMessage("Aviso: ¡Los atributos del guerrero superan los máximos de su raza!", 'error');
     }
 
 
@@ -453,13 +454,13 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
         
         // Validate gold crowns
         if (currentWarband.gc_treasury < totalGoldCost) {
-            showMessage(`Insufficient Gold Crowns. Purchase requires ${totalGoldCost} GC (for ${groupSize} models), but treasury only has ${currentWarband.gc_treasury} GC.`, 'error');
+            showMessage(`Coronas de Oro insuficientes. La compra requiere ${totalGoldCost} CO (para ${groupSize} miniaturas), pero la tesorería solo dispone de ${currentWarband.gc_treasury} CO.`, 'error');
             return; // Block purchase
         }
         
         // Validate treasure if needed
         if (isTreasureCost && currentWarband.treasure < totalTreasureCost) {
-            showMessage(`Insufficient Treasure. Purchase requires ${totalTreasureCost} Treasure (for ${groupSize} models), but treasury only has ${currentWarband.treasure} Treasure.`, 'error');
+            showMessage(`Tesoro insuficiente. La compra requiere ${totalTreasureCost} Tesoro (para ${groupSize} miniaturas), pero la tesorería solo dispone de ${currentWarband.treasure} Tesoro.`, 'error');
             return; // Block purchase
         }
         
@@ -519,7 +520,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
         if (!isCasualty && pendingGroupSizeIncrease === 0) {
             const existingFighter = currentWarband.members.find(f => f.id === fighterId);
             if (existingFighter && groupSize > (existingFighter.group_size || 1)) {
-                showMessage('Group size changes must be done through the Manage Group Size dialog.', 'error');
+                showMessage('Los cambios en el tamaño del grupo deben realizarse mediante el diálogo Gestionar Tamaño del Grupo.', 'error');
                 return;
             }
         }
@@ -559,7 +560,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
 
             // Validate treasury can afford the net cost
             if (netGcChange < 0 && currentWarband.gc_treasury < Math.abs(netGcChange)) {
-                showMessage(`Insufficient Gold Crowns. Need ${Math.abs(netGcChange)} GC but treasury has ${currentWarband.gc_treasury} GC.`, 'error');
+                showMessage(`Coronas de Oro insuficientes. Se necesitan ${Math.abs(netGcChange)} CO pero la tesorería tiene ${currentWarband.gc_treasury} CO.`, 'error');
                 return;
             }
 
@@ -616,7 +617,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     if (currentWarband.type === "Ogre Hunting Party" && warriorChoice === "Trapper") {
         const trapperSkillSelect = document.getElementById('f-trapper-skill-choice');
         if (!trapperSkillSelect || trapperSkillSelect.value === '') {
-            showMessage("You must select a starting skill for the Trapper.", 'error');
+            showMessage("Debes seleccionar una habilidad inicial para el Trampero.", 'error');
             return;
         }
         // Ensure the selected skill is in skills
@@ -790,22 +791,22 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     let isUpdate = !isNew;
     if (isNew) {
         currentWarband.members.push(newFighterData);
-        showMessage(`${name} recruited (${groupSize} models) for ${newTotalGroupCost} GC!`);
+        showMessage(`¡${name} reclutado (${groupSize} miniaturas) por ${newTotalGroupCost} CO!`);
     } else {
         currentWarband.members = currentWarband.members.map(f =>
             f.id === fighterId ? newFighterData : f
         );
         
         if(isCasualty) {
-             showMessage(`${name} group size reduced to ${groupSize} due to casualty. No refund issued.`, 'error');
+             showMessage(`Tamaño del grupo de ${name} reducido a ${groupSize} por baja. No se emite reembolso.`, 'error');
         } else {
              const finalGc = currentWarband ? currentWarband.gc_treasury : 0;
              const finalTreasure = currentWarband ? currentWarband.treasure : 0;
              const treasuryChanged = (finalGc !== initialGc) || (finalTreasure !== initialTreasure);
              if (treasuryChanged) {
-                 showMessage(`${name} updated! Treasury adjusted.`);
+                 showMessage(`¡${name} actualizado! Tesorería ajustada.`);
              } else {
-                 showMessage(`${name} updated!`);
+                 showMessage(`¡${name} actualizado!`);
              }
         }
     }
@@ -822,7 +823,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
     if (['Court of the Profane Pleasures', 'Lustrian Reavers'].includes(currentWarband.type) && role === 'Hero') {
         const hasLeader = currentWarband.members.some(m => m.type === 'Hero' && m.special_rules && m.special_rules.includes('Leader'));
         if (!hasLeader) {
-            showConfirmationModal(`No hero in the warband has the Leader rule. Would you like to add it to ${name}?`, async () => {
+            showConfirmationModal(`Ningún héroe de la banda tiene la regla Líder. ¿Te gustaría añadírsela a ${name}?`, async () => {
                 const fighter = currentWarband.members.find(f => f.id === actualFighterId);
                 if (fighter) {
                     if (!fighter.special_rules) {
@@ -831,7 +832,7 @@ const saveFighter = async function(gcDeltaFromSale = 0, isCasualty = false, save
                         fighter.special_rules += '; Leader';
                     }
                     await saveWarband();
-                    showMessage(`Leader rule added to ${name}.`, 'success');
+                    showMessage(`Regla Líder añadida a ${name}.`, 'success');
                 }
             });
         }
@@ -863,7 +864,7 @@ const deleteFighter = async (saveWarband) => {
      const isPreGame = currentWarband && currentWarband.pre_game !== false;
 
      // Set up the confirmation message
-     document.getElementById('confirmation-message').textContent = `Are you sure you want to delete ${fighterName}?`;
+     document.getElementById('confirmation-message').textContent = `¿Seguro que quieres eliminar a ${fighterName}?`;
 
      // Standard delete (no refund) callback
      const confirmBtn = document.getElementById('confirm-action-btn');
@@ -872,7 +873,7 @@ const deleteFighter = async (saveWarband) => {
          hideModal('confirmation-modal');
          hideModal('fighter-modal');
          await saveWarband();
-         showMessage(`${fighterName} has been removed from the roster.`);
+         showMessage(`${fighterName} ha sido eliminado de la banda.`);
      };
 
      // Show/hide refund button based on pre-game state
@@ -914,12 +915,12 @@ const showRefundBreakdownModal = (fighterId, fighterName, saveWarband) => {
             equipmentTotal += cost;
             equipmentRowsHtml += `
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-slate-300">${item.name}</span>
-                    <span class="text-yellow-200">${cost} GC</span>
+                    <span class="text-slate-300">${translateEquipment(item.name)}</span>
+                    <span class="text-yellow-200">${cost} CO</span>
                 </div>`;
         });
     } else {
-        equipmentRowsHtml = `<div class="text-sm text-slate-500">No equipment</div>`;
+        equipmentRowsHtml = `<div class="text-sm text-slate-500">Sin equipo</div>`;
     }
 
     const perFighterTotal = baseCost + equipmentTotal;
@@ -941,17 +942,17 @@ const showRefundBreakdownModal = (fighterId, fighterName, saveWarband) => {
         <div class="bg-slate-800 p-3 rounded-lg">
             <div class="flex justify-between items-center">
                 <span class="text-slate-300 font-medium">${fighter.name}</span>
-                <span class="text-mordheim-gold font-bold">${baseCost} ${costType === 'Treasure' ? 'Treasure' : 'GC'}</span>
+                <span class="text-mordheim-gold font-bold">${baseCost} ${costType === 'Treasure' ? 'Tesoro' : 'CO'}</span>
             </div>
         </div>
 
         <!-- Equipment Costs -->
         <div class="bg-slate-800 p-3 rounded-lg">
-            <div class="text-sm font-medium text-slate-400 mb-2">Equipment</div>
+            <div class="text-sm font-medium text-slate-400 mb-2">Equipo</div>
             ${equipmentRowsHtml}
             <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-600 text-sm">
-                <span class="text-slate-400">Equipment Subtotal</span>
-                <span class="text-yellow-200 font-medium">${equipmentTotal} GC</span>
+                <span class="text-slate-400">Subtotal de Equipo</span>
+                <span class="text-yellow-200 font-medium">${equipmentTotal} CO</span>
             </div>
         </div>`;
 
@@ -960,11 +961,11 @@ const showRefundBreakdownModal = (fighterId, fighterName, saveWarband) => {
         html += `
         <div class="bg-slate-800 p-3 rounded-lg">
             <div class="flex justify-between items-center text-sm">
-                <span class="text-slate-300">Cost per fighter</span>
-                <span class="text-yellow-200">${perFighterTotal} ${costType === 'Treasure' ? 'Treasure + GC' : 'GC'}</span>
+                <span class="text-slate-300">Coste por guerrero</span>
+                <span class="text-yellow-200">${perFighterTotal} ${costType === 'Treasure' ? 'Tesoro + CO' : 'CO'}</span>
             </div>
             <div class="flex justify-between items-center text-sm mt-1">
-                <span class="text-slate-300">Group size</span>
+                <span class="text-slate-300">Tamaño del grupo</span>
                 <span class="text-yellow-200">&times; ${groupSize}</span>
             </div>
         </div>`;
@@ -973,19 +974,19 @@ const showRefundBreakdownModal = (fighterId, fighterName, saveWarband) => {
     // Refund totals
     html += `
         <div class="bg-slate-900 p-3 rounded-lg border border-mordheim-gold">
-            <div class="text-sm font-medium text-green-400 mb-2"><i class="fas fa-coins mr-1"></i>Refund to Treasury</div>`;
+            <div class="text-sm font-medium text-green-400 mb-2"><i class="fas fa-coins mr-1"></i>Reembolso a la Tesorería</div>`;
     if (gcRefund > 0) {
         html += `
             <div class="flex justify-between items-center">
-                <span class="text-mordheim-gold font-bold text-lg">Gold Crowns</span>
-                <span class="text-green-400 font-bold text-lg">+${gcRefund} GC</span>
+                <span class="text-mordheim-gold font-bold text-lg">Coronas de Oro</span>
+                <span class="text-green-400 font-bold text-lg">+${gcRefund} CO</span>
             </div>`;
     }
     if (treasureRefund > 0) {
         html += `
             <div class="flex justify-between items-center mt-1">
-                <span class="text-mordheim-gold font-bold text-lg">Treasure</span>
-                <span class="text-green-400 font-bold text-lg">+${treasureRefund} Treasure</span>
+                <span class="text-mordheim-gold font-bold text-lg">Tesoro</span>
+                <span class="text-green-400 font-bold text-lg">+${treasureRefund} Tesoro</span>
             </div>`;
     }
     html += `</div>`;
@@ -1016,9 +1017,9 @@ const showRefundBreakdownModal = (fighterId, fighterName, saveWarband) => {
         await saveWarband();
 
         // Success message
-        let refundMsg = `${fighterName} deleted. Refunded ${gcRefund} GC`;
+        let refundMsg = `${fighterName} eliminado. Se reembolsaron ${gcRefund} CO`;
         if (treasureRefund > 0) {
-            refundMsg += ` and ${treasureRefund} Treasure`;
+            refundMsg += ` y ${treasureRefund} Tesoro`;
         }
         showMessage(refundMsg);
     };
@@ -1043,7 +1044,7 @@ const transferStoredItem = async function(saveWarband) {
     const targetFighterIndex = currentWarband.members.findIndex(f => f.id === selectedFighterId);
     
     if (targetFighterIndex === -1) {
-        showMessage('Fighter not found.', 'error');
+        showMessage('Guerrero no encontrado.', 'error');
         return;
     }
     
@@ -1057,7 +1058,7 @@ const transferStoredItem = async function(saveWarband) {
             fighter.equipment && fighter.equipment.some(eq => eq.name === item.name)
         );
         if (hasItemAlready) {
-            showMessage(`House Rule: Lucky items are limited to one each per warband. ${item.name} is already assigned to another fighter.`, 'error');
+            showMessage(`Regla de la Casa: Los objetos de suerte están limitados a uno por banda. ${translateEquipment(item.name)} ya está asignado a otro guerrero.`, 'error');
             return;
         }
     }
@@ -1071,12 +1072,12 @@ const transferStoredItem = async function(saveWarband) {
         const alreadyHasItem = targetFighter.equipment.some(e => e.name === item.name);
 
         if (alreadyHasItem) {
-            showMessage(`Transfer blocked: Henchman Group must be uniformly equipped. ${targetFighter.name} already has ${item.name}.`, 'error');
+            showMessage(`Transferencia bloqueada: El grupo de secuaces debe estar equipado uniformemente. ${targetFighter.name} ya tiene ${translateEquipment(item.name)}.`, 'error');
             return;
         }
         
         if (totalItemInstancesInStorage < needed) {
-            showMessage(`Transfer blocked: ${targetFighter.name} group (size ${needed}) needs ${needed} instances of ${item.name}, but only ${totalItemInstancesInStorage} are in storage.`, 'error');
+            showMessage(`Transferencia bloqueada: El grupo de ${targetFighter.name} (tamaño ${needed}) necesita ${needed} copias de ${translateEquipment(item.name)}, pero solo hay ${totalItemInstancesInStorage} en el almacén.`, 'error');
             return;
         }
         
@@ -1110,7 +1111,7 @@ const transferStoredItem = async function(saveWarband) {
         // Only allow one instance for non-Henchman Groups (to prevent accidental duplication)
         const alreadyHasItem = targetFighter.equipment.some(e => e.name === item.name);
         if (alreadyHasItem) {
-            showMessage(`Transfer blocked: ${targetFighter.name} already has a ${item.name}.`, 'error');
+            showMessage(`Transferencia bloqueada: ${targetFighter.name} ya tiene ${translateEquipment(item.name)}.`, 'error');
             // Refresh UI to ensure storage display is consistent
             renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
             return;
@@ -1130,7 +1131,7 @@ const transferStoredItem = async function(saveWarband) {
     hideModal('retrieve-modal');
     await saveWarband();
 
-    showMessage(`Successfully transferred ${item.name} to ${targetFighter.name}.`, 'success');
+    showMessage(`${translateEquipment(item.name)} transferido con éxito a ${targetFighter.name}.`, 'success');
 }
 
 /** Finalizes the removal of equipment from a fighter (sell or store) - deferred to save time */
@@ -1177,7 +1178,7 @@ const finalizeEquipmentRemoval = async (saveWarband) => {
         pendingSells.push({ itemName: item.name, sellPrice, groupSize, itemCost: originalCost, itemRules: item.rules });
         fighterModal.dataset.pendingSells = JSON.stringify(pendingSells);
 
-        showMessage(`${item.name} marked for sale at ${sellPrice} GC. Changes apply when you save.`, 'info');
+        showMessage(`${translateEquipment(item.name)} marcado para la venta por ${sellPrice} CO. Los cambios se aplicarán al guardar.`, 'info');
     } else if (action === 'store') {
         // Track items to store for confirmation modal and save-time processing
         let pendingStores = [];
@@ -1185,7 +1186,7 @@ const finalizeEquipmentRemoval = async (saveWarband) => {
         pendingStores.push({ name: item.name, cost: originalCost, rules: item.rules, groupSize });
         fighterModal.dataset.pendingStores = JSON.stringify(pendingStores);
 
-        showMessage(`${item.name} marked for storage. Changes apply when you save.`, 'info');
+        showMessage(`${translateEquipment(item.name)} marcado para almacenar. Los cambios se aplicarán al guardar.`, 'info');
     }
 
     hideModal('sell-store-modal');
@@ -1246,11 +1247,11 @@ const addEquipmentToStorage = async (itemId, saveWarband) => {
     if (parsedCost.isVariable) {
         // For variable costs, we need user input
         setTempItemToAdd({ item: item, parsedCost: parsedCost, isStorage: true });
-        document.getElementById('dice-roll-item-name').textContent = item.name;
+        document.getElementById('dice-roll-item-name').textContent = translateEquipment(item.name);
         const diceDescription = parsedCost.multiplier > 1 ?
             `${parsedCost.diceCount}D6 × ${parsedCost.multiplier}` :
             `${parsedCost.diceCount}D6`;
-        document.getElementById('dice-roll-base-cost').textContent = `Base: ${parsedCost.base} GC + (result of ${diceDescription})`;
+        document.getElementById('dice-roll-base-cost').textContent = `Base: ${parsedCost.base} CO + (resultado de ${diceDescription})`;
         document.getElementById('dice-roll-value').value = ''; // Clear previous value
         displayModal('dice-roll-modal'); // Updated call
         return;
@@ -1271,7 +1272,7 @@ const addEquipmentToStorage = async (itemId, saveWarband) => {
     }
 
     if (subtractCost && currentWarband.gc_treasury < itemCost) {
-        showMessage(`Insufficient Gold Crowns. Purchase requires ${itemCost} GC, but treasury only has ${currentWarband.gc_treasury} GC.`, 'error');
+        showMessage(`Coronas de Oro insuficientes. La compra requiere ${itemCost} CO, pero la tesorería solo dispone de ${currentWarband.gc_treasury} CO.`, 'error');
         return;
     }
 
@@ -1290,7 +1291,7 @@ const addEquipmentToStorage = async (itemId, saveWarband) => {
     const normalizedItem = normalizeEquipment({ id: item.id, name: item.name, cost: itemCost, rules: item.rules });
     currentWarband.stored_equipment.push(serializeEquipment(normalizedItem, isV2Warband(currentWarband)));
 
-    showMessage(`${item.name} added to storage. ${subtractCost ? `Spent ${itemCost} GC.` : ''}`, 'success');
+    showMessage(`${translateEquipment(item.name)} añadido al almacén. ${subtractCost ? `Se gastaron ${itemCost} CO.` : ''}`, 'success');
 
     await saveWarband();
 };
@@ -1303,17 +1304,17 @@ const sellFromStorage = async (saveWarband) => {
     const originalCost = parseInt(document.getElementById('sell-storage-item-cost').textContent);
 
     if (isNaN(quantityToSell) || quantityToSell <= 0) {
-        showMessage("Please enter a valid quantity to sell.", 'error');
+        showMessage("Por favor, introduce una cantidad válida para vender.", 'error');
         return;
     }
 
     if (isNaN(pricePerItem) || pricePerItem < 0) {
-        showMessage("Please enter a valid sell price.", 'error');
+        showMessage("Por favor, introduce un precio de venta válido.", 'error');
         return;
     }
     
     if (pricePerItem > originalCost) {
-        showMessage(`Sale blocked: Cannot sell item for more than its original purchase price (${originalCost} GC).`, 'error');
+        showMessage(`Venta bloqueada: No se puede vender un objeto por más de su precio de compra original (${originalCost} CO).`, 'error');
         return;
     }
 
@@ -1322,7 +1323,7 @@ const sellFromStorage = async (saveWarband) => {
     const itemsInStorage = normalizedStorage.filter(item => item.name === name).length;
 
     if (quantityToSell > itemsInStorage) {
-        showMessage(`Cannot sell ${quantityToSell} items. Only ${itemsInStorage} in storage.`, 'error');
+        showMessage(`No se pueden vender ${quantityToSell} objetos. Solo hay ${itemsInStorage} en el almacén.`, 'error');
         return;
     }
 
@@ -1345,7 +1346,7 @@ const sellFromStorage = async (saveWarband) => {
     await recordEquipmentSale(name, pricePerItem, quantityToSell);
 
     hideModal('sell-from-storage-modal');
-    showMessage(`Sold ${quantityToSell} x ${name} for ${totalGain} GC.`, 'success');
+    showMessage(`Vendidos ${quantityToSell} x ${translateEquipment(name)} por ${totalGain} CO.`, 'success');
     await saveWarband();
 };
 
@@ -1355,7 +1356,7 @@ const finalizeEquipmentAdd = async (saveWarband) => {
 
     const userInputValue = parseInt(document.getElementById('dice-roll-value').value);
     if (isNaN(userInputValue) || userInputValue < 0) {
-        showMessage("Please enter a valid value (0 or higher).", 'error');
+        showMessage("Por favor, introduce un valor válido (0 o superior).", 'error');
         return;
     }
 
@@ -1391,7 +1392,7 @@ const finalizeEquipmentAdd = async (saveWarband) => {
         const subtractCost = document.getElementById('storage-cost-toggle').checked;
 
         if (subtractCost && currentWarband.gc_treasury < item.cost) {
-            showMessage(`Insufficient Gold Crowns. Purchase requires ${item.cost} GC, but treasury only has ${currentWarband.gc_treasury} GC.`, 'error');
+            showMessage(`Coronas de Oro insuficientes. La compra requiere ${item.cost} CO, pero la tesorería solo dispone de ${currentWarband.gc_treasury} CO.`, 'error');
             return;
         }
 
@@ -1410,7 +1411,7 @@ const finalizeEquipmentAdd = async (saveWarband) => {
         const normalizedItem = normalizeEquipment({ name: item.name, cost: item.cost, rules: item.rules });
         currentWarband.stored_equipment.push(serializeEquipment(normalizedItem, isV2Warband(currentWarband)));
 
-        showMessage(`${item.name} added to storage. ${subtractCost ? `Spent ${item.cost} GC.` : ''}`, 'success');
+        showMessage(`${translateEquipment(item.name)} añadido al almacén. ${subtractCost ? `Se gastaron ${item.cost} CO.` : ''}`, 'success');
         await saveWarband();
     } else {
         // Adding to fighter equipment
@@ -1435,7 +1436,7 @@ const finalizeEquipmentAdd = async (saveWarband) => {
         }
 
         renderSelectedEquipment(); // Re-render to show the new item
-        showMessage(`${item.name} added with a cost of ${item.cost} GC.`, 'success');
+        showMessage(`${translateEquipment(item.name)} añadido con un coste de ${item.cost} CO.`, 'success');
         // saveWarband(); // No need to save here, saveFighter will handle it.
     }
 
@@ -1471,8 +1472,8 @@ const initFighterManagement = (saveWarband) => {
         
         // Clear skills and warrior special rules when role changes
         document.getElementById('f-skills-hidden').value = '[]';
-        document.getElementById('f-skills').textContent = 'None';
-        document.getElementById('warrior-rules-display').textContent = 'None';
+        document.getElementById('f-skills').textContent = 'Ninguna';
+        document.getElementById('warrior-rules-display').textContent = 'Ninguna';
         document.getElementById('f-special-rules').value = '';
         
         // Hide packmaster beast handling selection when role changes
@@ -1670,7 +1671,7 @@ const initFighterManagement = (saveWarband) => {
             delete fighterModal.dataset.pendingGroupSizeIncrease;
             delete fighterModal.dataset.pendingCostDeduction;
             
-            showMessage('Cancelled adding fighters. Group size reverted.', 'info');
+            showMessage('Adición de guerreros cancelada. Tamaño del grupo restaurado.', 'info');
         }
         
         // Clear pending equipment changes
@@ -1781,7 +1782,7 @@ const initFighterManagement = (saveWarband) => {
 
         // Re-render the confirmation modal content (or close if empty)
         if (!buildEquipmentChangesModal()) {
-            showMessage('All equipment changes undone.', 'info');
+            showMessage('Todos los cambios de equipo han sido deshechos.', 'info');
         }
     });
 
@@ -1905,14 +1906,18 @@ const initFighterManagement = (saveWarband) => {
             }
             
             if (spell) {
-                document.getElementById('rule-details-title').textContent = spell.name;
-                const difficultyText = spell.difficulty === "Auto" ? "Automatic" : `Difficulty ${spell.difficulty}`;
+                const spanishName = translateSkill(spell.name);
+                const titleText = (spanishName && spanishName.toLowerCase() !== spell.name.toLowerCase())
+                    ? `${spanishName} (${spell.name})`
+                    : (spanishName || spell.name);
+                document.getElementById('rule-details-title').textContent = titleText;
+                const difficultyText = spell.difficulty === "Auto" ? "Automática" : `Dificultad ${spell.difficulty}`;
                 document.getElementById('rule-details-content').innerHTML = `
                     <div class="mb-2">
-                        <strong>Difficulty:</strong> ${difficultyText}
+                        <strong>Dificultad:</strong> ${difficultyText}
                     </div>
                     <div>
-                        <strong>Description:</strong> ${spell.description}
+                        <strong>Descripción:</strong> ${spell.description}
                     </div>
                 `;
                 displayModal('rule-details-modal');
@@ -1928,8 +1933,13 @@ const initFighterManagement = (saveWarband) => {
             const fighter = fighterId && currentWarband ? currentWarband.members.find(f => f.id === fighterId) : null;
             const skillDetails = findSkillForWarbandCI(skillName, null, fighter);
             if (skillDetails) {
-                document.getElementById('rule-details-title').textContent = skillName;
-                document.getElementById('rule-details-content').innerHTML = skillDetails.rules;
+                const spanishName = translateSkill(skillName);
+                const titleText = (spanishName && spanishName.toLowerCase() !== skillName.toLowerCase())
+                    ? `${spanishName} (${skillName})`
+                    : (spanishName || skillName);
+                document.getElementById('rule-details-title').textContent = titleText;
+                const summary = getSpecialRuleSummary(skillName);
+                document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : skillDetails.rules;
                 displayModal('rule-details-modal');
             }
             e.stopPropagation();
@@ -1941,8 +1951,13 @@ const initFighterManagement = (saveWarband) => {
             const ruleName = ruleSpan.dataset.rule;
             const ruleDetails = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
             if (ruleDetails) {
-                document.getElementById('rule-details-title').textContent = ruleName;
-                document.getElementById('rule-details-content').innerHTML = ruleDetails.rules;
+                const spanishName = translateSpecialRule(ruleName);
+                const titleText = (spanishName && spanishName.toLowerCase() !== ruleName.toLowerCase())
+                    ? `${spanishName} (${ruleName})`
+                    : (spanishName || ruleName);
+                document.getElementById('rule-details-title').textContent = titleText;
+                const summary = getSpecialRuleSummary(ruleName);
+                document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : ruleDetails.rules;
                 displayModal('rule-details-modal');
             }
             e.stopPropagation();
@@ -1954,8 +1969,12 @@ const initFighterManagement = (saveWarband) => {
             const injuryName = injurySpan.dataset.injury;
             const injuryData = MASTER_INJURY_LIST.find(i => i.name === injuryName);
             if (injuryData) {
-                document.getElementById('rule-details-title').textContent = injuryName;
-                document.getElementById('rule-details-content').innerHTML = injuryData.description;
+                const spanishName = translateInjury(injuryName);
+                const titleText = (spanishName && spanishName.toLowerCase() !== injuryName.toLowerCase())
+                    ? `${spanishName} (${injuryName})`
+                    : (spanishName || injuryName);
+                document.getElementById('rule-details-title').textContent = titleText;
+                document.getElementById('rule-details-content').innerHTML = translateInjuryDescription(injuryName, injuryData.description);
                 displayModal('rule-details-modal');
             }
             e.stopPropagation();
@@ -1981,6 +2000,10 @@ const initFighterManagement = (saveWarband) => {
                 addEquipment(parseInt(itemId));
             } else if (action === 'remove-equipment') {
                 removeEquipment(parseInt(itemIndex), itemName, parseInt(itemCost), itemRules);
+            } else if (action === 'move-equipment-up') {
+                moveEquipmentItem(parseInt(itemIndex), parseInt(itemIndex) - 1);
+            } else if (action === 'move-equipment-down') {
+                moveEquipmentItem(parseInt(itemIndex), parseInt(itemIndex) + 1);
             } else if (action === 'remove-injury') {
                 removeInjury(parseInt(injuryIndex));
             } else if (button.id === 'select-injury-btn') {
@@ -1995,8 +2018,13 @@ const initFighterManagement = (saveWarband) => {
             const ruleName = ruleSpan.dataset.rule;
             const ruleDetails = SPECIAL_RULES_DETAILS.find(r => r.name.toLowerCase() === ruleName.toLowerCase())?.rules;
             if (ruleDetails) {
-                document.getElementById('rule-details-title').textContent = ruleName;
-                document.getElementById('rule-details-content').innerHTML = ruleDetails;
+                const spanishName = translateSpecialRule(ruleName);
+                const titleText = (spanishName && spanishName.toLowerCase() !== ruleName.toLowerCase())
+                    ? `${spanishName} (${ruleName})`
+                    : (spanishName || ruleName);
+                document.getElementById('rule-details-title').textContent = titleText;
+                const summary = getSpecialRuleSummary(ruleName);
+                document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : ruleDetails;
                 displayModal('rule-details-modal'); // Updated call
             }
         }
@@ -2006,8 +2034,12 @@ const initFighterManagement = (saveWarband) => {
             const injuryName = injurySpan.dataset.injuryName;
             const injuryData = MASTER_INJURY_LIST.find(i => i.name === injuryName);
             if (injuryData) {
-                document.getElementById('rule-details-title').textContent = injuryName;
-                document.getElementById('rule-details-content').innerHTML = injuryData.description;
+                const spanishName = translateInjury(injuryName);
+                const titleText = (spanishName && spanishName.toLowerCase() !== injuryName.toLowerCase())
+                    ? `${spanishName} (${injuryName})`
+                    : (spanishName || injuryName);
+                document.getElementById('rule-details-title').textContent = titleText;
+                document.getElementById('rule-details-content').innerHTML = translateInjuryDescription(injuryName, injuryData.description);
                 displayModal('rule-details-modal'); // Reuse the rule details modal for injuries
             }
         }
@@ -2032,14 +2064,18 @@ const initFighterManagement = (saveWarband) => {
             }
             
             if (spell) {
-                document.getElementById('rule-details-title').textContent = spell.name;
-                const difficultyText = spell.difficulty === "Auto" ? "Automatic" : `Difficulty ${spell.difficulty}`;
+                const spanishName = translateSkill(spell.name);
+                const titleText = (spanishName && spanishName.toLowerCase() !== spell.name.toLowerCase())
+                    ? `${spanishName} (${spell.name})`
+                    : (spanishName || spell.name);
+                document.getElementById('rule-details-title').textContent = titleText;
+                const difficultyText = spell.difficulty === "Auto" ? "Automática" : `Dificultad ${spell.difficulty}`;
                 document.getElementById('rule-details-content').innerHTML = `
                     <div class="mb-2">
-                        <strong>Difficulty:</strong> ${difficultyText}
+                        <strong>Dificultad:</strong> ${difficultyText}
                     </div>
                     <div>
-                        <strong>Description:</strong> ${spell.description}
+                        <strong>Descripción:</strong> ${spell.description}
                     </div>
                 `;
                 displayModal('rule-details-modal');
@@ -2054,8 +2090,13 @@ const initFighterManagement = (saveWarband) => {
             const fighter = fighterId && currentWarband ? currentWarband.members.find(f => f.id === fighterId) : null;
             const skillDetails = findSkillForWarbandCI(skillName, null, fighter);
             if (skillDetails) {
-                document.getElementById('rule-details-title').textContent = skillName;
-                document.getElementById('rule-details-content').innerHTML = skillDetails.rules;
+                const spanishName = translateSkill(skillName);
+                const titleText = (spanishName && spanishName.toLowerCase() !== skillName.toLowerCase())
+                    ? `${spanishName} (${skillName})`
+                    : (spanishName || skillName);
+                document.getElementById('rule-details-title').textContent = titleText;
+                const summary = getSpecialRuleSummary(skillName);
+                document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : skillDetails.rules;
                 displayModal('rule-details-modal');
             }
             e.stopPropagation(); // Prevent other click handlers

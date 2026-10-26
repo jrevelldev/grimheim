@@ -1,6 +1,6 @@
-# Rosterheim Local (Español)
+# Grimheim Local (Español)
 
-Versión local, completamente funcional offline y traducida al castellano de **Rosterheim** (el gestor y creador de bandas para *Mordheim: La Ciudad de los Condenados*).
+Versión local, completamente funcional offline y traducida al castellano de **Grimheim** (el gestor y creador de bandas para *Mordheim: La Ciudad de los Condenados*).
 
 ---
 
@@ -18,9 +18,29 @@ Se abrirá automáticamente una ventana de Terminal y tu navegador habitual en `
 ### Opción 2: Desde el Terminal
 Abre el Terminal en esta carpeta y ejecuta:
 ```bash
-python3 -m http.server 8080
+node server.js
 ```
-Y luego abre en tu navegador web: [http://localhost:8080](http://localhost:8080)
+*(O también `npm start`)* y abre en tu navegador web: [http://localhost:8080](http://localhost:8080)
+
+---
+
+## 🔐 Sistema de Usuarios y Contraseñas (SQLite Local)
+
+La aplicación cuenta con un sistema de autenticación y gestión de usuarios totalmente local, seguro y ligero:
+
+- **Pantalla de Acceso Obligatoria:** Al abrir la aplicación, se solicita usuario y contraseña antes de permitir el acceso al gestor.
+- **Base de Datos SQLite (`users.db`):** Se guarda en un archivo SQLite local mediante el soporte nativo de Node.js (`node:sqlite`), sin dependencias de terceros ni servicios externos.
+- **Contraseñas Cifradas:** Las contraseñas se almacenan mediante un hash derivado con algoritmo **`scrypt`** más una semilla aleatoria (*salt* de 16 bytes), garantizando protección contra ataques de fuerza bruta y diccionarios. Nunca se guardan contraseñas en texto plano.
+- **Superusuario Inicial:**
+  - **Usuario:** `admin`
+  - **Contraseña:** `admin`
+  *(Nota: Se recomienda cambiar la contraseña o crear tu propio superusuario desde el panel).*
+- **Panel de Gestión de Usuarios (Sólo Superusuario):**
+  - Los usuarios con rol de **Superusuario** tienen acceso al botón **"Usuarios"** en la barra superior.
+  - **Crear nuevos usuarios:** Asignando nombre, contraseña cifrada y si tendrá privilegios de superusuario.
+  - **Modificar usuarios:** Cambiar nombre de usuario, reasignar/cambiar contraseña y modificar rol.
+  - **Eliminar usuarios:** Con confirmación y protección contra la eliminación del último superusuario.
+- **Sesión Segura y Cierre:** Tokens de sesión de 7 días generados con aleatoriedad criptográfica, con botón **"Salir"** para cerrar sesión y volver a la pantalla de bloqueo.
 
 ---
 

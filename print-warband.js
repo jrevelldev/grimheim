@@ -5,13 +5,12 @@ import { STATS_FIELDS } from './config.js';
 import { getWarbandData, calculateWarbandRating, showMessage, calculateArmorSave, normalizeEquipment } from './utility.js';
 import { formatXPDisplay } from './slow-witted.js';
 import { currentWarband, isShieldMeleeIgnored } from './state.js';
-import { trackEvent } from './analytics.js';
-import { getStatLabel, translateFighterType, translateWarband, translateWarrior } from './i18n.js';
+import { getStatLabel, translateFighterType, translateWarband, translateWarrior, translateSkill, translateSpecialRule, translateEquipment, translateInjury, translateWarriorRole, formatMovementStat, getDistanceUnit } from './i18n.js';
 
 /** Generates and prints a print-friendly version of the warband */
 export const printWarband = (includeNotes = true, includeSkills = true, includeWarbandNotes = true) => {
     if (!currentWarband) {
-        showMessage("No warband loaded to print", 'error');
+        showMessage("No hay ninguna banda cargada para imprimir.", 'error');
         return;
     }
 
@@ -129,14 +128,17 @@ const generatePrintContent = (warband, includeNotes, includeSkills, includeWarba
     }
     
     return `
-        <div class="print-header">
-            <h1>${warband.name}</h1>
-            <div class="warband-info">
-                <strong>Tipo:</strong> ${translateWarband(warband.type)} | 
-                <strong>Valoración:</strong> ${warband.rating} | 
-                <strong>Tesorería:</strong> ${warband.gc_treasury || 0} CO | 
-                <strong>Guerreros:</strong> ${totalMemberCount}
+        <div class="print-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
+            <div>
+                <h1 style="margin: 0; font-size: 20pt;">${warband.name}</h1>
+                <div class="warband-info" style="margin-top: 5px; font-size: 10pt;">
+                    <strong>Tipo:</strong> ${translateWarband(warband.type)} | 
+                    <strong>Valoración:</strong> ${warband.rating} | 
+                    <strong>Tesorería:</strong> ${warband.gc_treasury || 0} CO | 
+                    <strong>Guerreros:</strong> ${totalMemberCount}
+                </div>
             </div>
+            <img src="grimheim-logo.svg" alt="Grimheim" style="height: 42px; width: auto; max-width: 150px; object-fit: contain;">
         </div>
         
         <div class="print-warband-summary">
@@ -155,7 +157,7 @@ const generatePrintContent = (warband, includeNotes, includeSkills, includeWarba
         ${warbandNotesHTML}
         
         <div class="print-footer" style="margin-top: 30px; text-align: center; font-size: 10pt; color: #666;">
-            Generado el ${new Date().toLocaleDateString()} por Rosterheim - Gestor de Bandas de Mordheim
+            Generado el ${new Date().toLocaleDateString()} por Grimheim - Gestor de Bandas de Mordheim
         </div>
     `;
 };
@@ -212,7 +214,7 @@ const generateExperienceBoxes = (fighter) => {
         const heroMilestones = [2, 4, 6, 8, 11, 14, 17, 20, 24, 28, 32, 36, 41, 46, 51, 57, 63, 69, 76, 83, 90];
         const isMilestone = isHero ? heroMilestones.includes(boxNumber) : henchmenMilestones.includes(boxNumber);
         boxesHTML += `
-            <div class="print-xp-box ${isChecked ? 'print-xp-box-checked' : ''} ${isMilestone ? 'print-xp-box-milestone' : ''}" title="XP: ${boxNumber}">${isChecked ? xpXMarkSVG : ''}</div>
+            <div class="print-xp-box ${isChecked ? 'print-xp-box-checked' : ''} ${isMilestone ? 'print-xp-box-milestone' : ''}" title="PX: ${boxNumber}">${isChecked ? xpXMarkSVG : ''}</div>
         `;
     }
     
@@ -236,12 +238,12 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
     // Equipment - normalize to handle both V1 and V2 formats
     const equipmentHTML = (fighter.equipment || []).map(e => {
         const normalized = normalizeEquipment(e);
-        return `<span class="print-equipment-item">${normalized.name || 'Unknown Item'}</span>`;
+        return `<span class="print-equipment-item">${translateEquipment(normalized.name) || 'Objeto desconocido'}</span>`;
     }).join(' ');
     
     // Skills
     const skillsHTML = (fighter.skills || []).map(skill => 
-        `<span class="print-skill">${skill}</span>`
+        `<span class="print-skill">${translateSkill(skill)}</span>`
     ).join(' ');
     
     // Special Rules - handle both string and array formats
@@ -249,7 +251,7 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
         ? fighter.special_rules 
         : (fighter.special_rules ? [fighter.special_rules] : []);
     const specialRulesHTML = specialRulesArray.map(rule => 
-        `<span class="print-special-rule">${rule}</span>`
+        `<span class="print-special-rule">${translateSpecialRule(rule)}</span>`
     ).join(' ');
     
     // Check for multi-stat fighters
@@ -264,7 +266,7 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
         
         statLineKeys.forEach(statLineKey => {
             const statLineStats = fighter.stats[statLineKey];
-            statsHTML += `<div class="print-stat-line-name">${statLineKey}</div>`;
+            statsHTML += `<div class="print-stat-line-name">${translateWarriorRole(statLineKey)}</div>`;
             statsHTML += '<div class="print-stats">';
             
             STATS_FIELDS.forEach(stat => {
@@ -320,10 +322,12 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
                     statValue = paviseResult.value;
                 }
                 
+                const displayVal = stat === 'M' ? formatMovementStat(statValue) : statValue;
+                const statLabel = (stat === 'M' && getDistanceUnit() === 'cm') ? 'M(cm)' : getStatLabel(stat);
                 statsHTML += `
                     <div class="print-stat">
-                        <div class="print-stat-name">${stat}</div>
-                        <div class="print-stat-value">${statValue}</div>
+                        <div class="print-stat-name">${statLabel}</div>
+                        <div class="print-stat-value">${displayVal}</div>
                     </div>
                 `;
             });
@@ -386,10 +390,12 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
             const paviseResult = applyPaviseMovementPenalty(stat, statValue, fighter.equipment);
             statValue = paviseResult.value;
             
+            const displayVal = stat === 'M' ? formatMovementStat(statValue) : statValue;
+            const statLabel = (stat === 'M' && getDistanceUnit() === 'cm') ? 'M(cm)' : getStatLabel(stat);
             statsHTML += `
                 <div class="print-stat">
-                    <div class="print-stat-name">${getStatLabel(stat)}</div>
-                    <div class="print-stat-value">${statValue}</div>
+                    <div class="print-stat-name">${statLabel}</div>
+                    <div class="print-stat-value">${displayVal}</div>
                 </div>
             `;
         });
@@ -408,7 +414,7 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
             ${generateArmorSaveDisplay(fighter)}
             ${equipmentHTML ? `<div class="print-equipment"><strong>Equipo:</strong> ${equipmentHTML}</div>` : ''}
             ${skillsHTML ? `<div class="print-skills"><strong>Habilidades:</strong> ${skillsHTML}</div>` : ''}
-            ${(fighter.injuries && fighter.injuries.length > 0) ? `<div class="print-injuries"><strong>Heridas Graves:</strong> ${fighter.injuries.map(i => `<span class="print-injury">${i}</span>`).join(' ')}</div>` : ''}
+            ${(fighter.injuries && fighter.injuries.length > 0) ? `<div class="print-injuries"><strong>Heridas Graves:</strong> ${fighter.injuries.map(i => `<span class="print-injury">${translateInjury(i)}</span>`).join(' ')}</div>` : ''}
             ${specialRulesHTML ? `<div class="print-special-rules"><strong>Reglas Especiales:</strong> ${specialRulesHTML}</div>` : ''}
             ${(fighter.type === 'Hero' || fighter.type === 'Henchman' || fighter.type === 'Hired Sword') ? generateExperienceBoxes(fighter) : ''}
             ${(includeNotes && fighter.notes) ? `<div class="print-fighter-notes" style="margin-top: 5px; font-style: italic; font-size: 0.85rem; color: #475569;"><strong>Notas:</strong> ${fighter.notes.replace(/\n/g, '<br>')}</div>` : ''}
@@ -444,12 +450,12 @@ const generateSkillsReference = (warband) => {
         if (skill) {
             skillEntries.push({
                 name: skill.name,
-                rules: stripHtmlTags(skill.rules || 'No description available.')
+                rules: stripHtmlTags(skill.rules || 'No hay descripción disponible.')
             });
         } else {
             skillEntries.push({
                 name: skillName,
-                rules: 'No description available.'
+                rules: 'No hay descripción disponible.'
             });
         }
     });
@@ -459,14 +465,14 @@ const generateSkillsReference = (warband) => {
 
     const entriesHTML = skillEntries.map(entry => `
         <div class="print-skill-entry">
-            <strong>${entry.name}</strong>
+            <strong>${translateSkill(entry.name)}</strong>
             <p>${entry.rules}</p>
         </div>
     `).join('');
 
     return `
         <div class="print-skills-reference" style="page-break-before: always;">
-            <h2>Skills</h2>
+            <h2>Habilidades</h2>
             ${entriesHTML}
         </div>
     `;
@@ -488,7 +494,7 @@ const generateWarbandNotesPage = (warband) => {
 
     return `
         <div class="print-warband-notes-page" style="page-break-before: always;">
-            <h2>Warband Notes</h2>
+            <h2>Notas de la Banda</h2>
             <div class="print-warband-notes-body">${escapeHtml(raw)}</div>
         </div>
     `;
