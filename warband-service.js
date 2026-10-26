@@ -58,15 +58,18 @@ export const listenToWarbands = () => {
         if (error) {
             console.error("Error listening to warbands:", error);
             showMessage("Error al cargar las bandas.", 'error');
+            showListView(warbands || []);
             return;
         }
-        setWarbands(updatedWarbands);
+        setWarbands(updatedWarbands || []);
         renderWarbandList(warbands);
         if (currentWarband && !warbands.find(w => w.id === currentWarband.id)) {
             setCurrentWarband(showListView(warbands));
         } else if (currentWarband) {
             setCurrentWarband(warbands.find(w => w.id === currentWarband.id) || currentWarband);
             renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+        } else {
+            showListView(warbands);
         }
     });
 };

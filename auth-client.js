@@ -4,8 +4,9 @@ import {
     loginWithGoogle,
     logout as firebaseLogout
 } from './firebase.js';
-import { setUserId, setUseLocalStorage } from './state.js';
+import { setUserId, setUseLocalStorage, getWarbands } from './state.js';
 import { listenToWarbands, unsubscribeFromWarbands } from './warband-service.js';
+import { showListView } from './ui.js';
 
 const TOKEN_KEY = 'grimheim_auth_token';
 const USER_KEY = 'grimheim_auth_user';
@@ -285,6 +286,11 @@ export function showBlockingLoginScreen(errorMessage = '') {
         overlay.classList.remove('hidden');
         overlay.style.display = 'flex';
     }
+    const app = document.getElementById('app');
+    if (app) {
+        app.classList.add('hidden');
+        app.style.display = 'none';
+    }
     document.body.style.overflow = 'hidden';
 
     const errorDiv = document.getElementById('system-login-error');
@@ -313,6 +319,11 @@ export function hideBlockingLoginScreen() {
     if (overlay) {
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
+    }
+    const app = document.getElementById('app');
+    if (app) {
+        app.classList.remove('hidden');
+        app.style.display = 'block';
     }
     document.body.style.overflow = '';
 
@@ -343,6 +354,7 @@ export async function initSystemAuth() {
     if (firebaseUid) {
         // Firebase is restoring session asynchronously, keep auth-verified
         document.documentElement.classList.add('auth-verified');
+        hideBlockingLoginScreen();
         return;
     }
 
@@ -665,6 +677,7 @@ function setupAuthEventListeners() {
                     });
                     if (passwordInput) passwordInput.value = '';
                     listenToWarbands();
+                    showListView(getWarbands());
                     window.dispatchEvent(new CustomEvent('grimheim:auth-success', { detail: { uid: userRecord.uid, email: userRecord.email } }));
                 }
             } catch (err) {
@@ -675,6 +688,8 @@ function setupAuthEventListeners() {
                         hideBlockingLoginScreen();
                         updateAuthUI(nodeResult.user);
                         if (passwordInput) passwordInput.value = '';
+                        listenToWarbands();
+                        showListView(getWarbands());
                         window.dispatchEvent(new CustomEvent('grimheim:auth-success', { detail: nodeResult.user }));
                         return;
                     } catch (nodeErr) {
@@ -716,6 +731,7 @@ function setupAuthEventListeners() {
                         is_superuser: false
                     });
                     listenToWarbands();
+                    showListView(getWarbands());
                     window.dispatchEvent(new CustomEvent('grimheim:auth-success', { detail: { uid: res.user.uid, email: res.user.email } }));
                 }
             } catch (err) {
@@ -745,6 +761,7 @@ function setupAuthEventListeners() {
                 is_guest: true
             });
             listenToWarbands();
+            showListView(getWarbands());
         });
     }
 

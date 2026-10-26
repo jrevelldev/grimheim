@@ -261,6 +261,11 @@ export const setupEventListeners = () => {
             }
         });
 
+        // Ensure warbands list is shown when auth succeeds
+        window.addEventListener('grimheim:auth-success', () => {
+            showListView(getWarbands());
+        });
+
         // Initial layout setup
         if (!isMobile()) {
             resetDesktopLayout();
