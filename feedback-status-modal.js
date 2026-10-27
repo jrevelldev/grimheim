@@ -206,7 +206,7 @@ class FeedbackStatusModal {
             feedbackList.innerHTML = `
                 <div class="text-center py-8 text-slate-400">
                     <i class="fas fa-comments text-4xl mb-4"></i>
-                    <p>No feedback entries found matching your filters.</p>
+                    <p>No se encontraron comentarios que coincidan con los filtros.</p>
                 </div>
             `;
             return;
@@ -238,17 +238,17 @@ class FeedbackStatusModal {
                     <div class="p-4 space-y-3">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span class="text-slate-400">Date Submitted:</span>
+                                <span class="text-slate-400">Fecha de Envío:</span>
                                 <span class="text-white ml-2">${formatFeedbackDate(entry.dateSubmitted)}</span>
                             </div>
                             <div>
-                                <span class="text-slate-400">Status:</span>
+                                <span class="text-slate-400">Estado:</span>
                                 <span class="text-white ml-2">${statusStyling.name}</span>
                             </div>
                         </div>
                         
                         <div>
-                            <span class="text-slate-400 text-sm">Message:</span>
+                            <span class="text-slate-400 text-sm">Mensaje:</span>
                             <div class="mt-2 p-3 bg-slate-900 rounded text-slate-200 text-sm leading-relaxed">
                                 ${entry.message}
                             </div>
@@ -256,7 +256,7 @@ class FeedbackStatusModal {
                         
                         ${entry.notes ? `
                         <div>
-                            <span class="text-slate-400 text-sm">Notes:</span>
+                            <span class="text-slate-400 text-sm">Notas:</span>
                             <div class="mt-2 p-3 bg-slate-800 rounded text-slate-300 text-sm leading-relaxed border border-slate-600">
                                 ${entry.notes.replace(/\n/g, '<br>')}
                             </div>
@@ -268,7 +268,7 @@ class FeedbackStatusModal {
                                 ID: ${entry.id}
                             </div>
                             <div class="text-xs text-slate-500">
-                                Click subject to ${isExpanded ? 'collapse' : 'expand'}
+                                Haz clic en el asunto para ${isExpanded ? 'contraer' : 'desplegar'}
                             </div>
                         </div>
                     </div>

@@ -6,7 +6,7 @@ import { SKILLS } from './data/skills.js';
 import { findSkillForWarband } from './skill-lookup.js';
 import { SPECIAL_RULES_DETAILS } from './data/special_rules.js';
 import { displayModal, hideModal } from './utility.js';
-import { translateEquipment, translateSkill, translateSpecialRule } from './i18n.js';
+import { translateEquipment, translateSkill, translateSpecialRule, translateWarband, translateGrade } from './i18n.js';
 
 class CharacterReviewModal {
     constructor() {
@@ -87,7 +87,7 @@ class CharacterReviewModal {
         this.warbandList.forEach(warbandName => {
             const option = document.createElement('option');
             option.value = warbandName;
-            option.textContent = warbandName;
+            option.textContent = translateWarband(warbandName);
             warbandFilter.appendChild(option);
         });
     }
@@ -152,7 +152,7 @@ class CharacterReviewModal {
         this.gradeList.sort().forEach(grade => {
             const option = document.createElement('option');
             option.value = grade;
-            option.textContent = grade;
+            option.textContent = translateGrade(grade);
             gradeFilter.appendChild(option);
         });
     }
@@ -230,7 +230,7 @@ class CharacterReviewModal {
             const gradeSection = document.createElement('div');
             gradeSection.className = 'mb-6';
             gradeSection.innerHTML = `
-                <h4 class="text-xl font-semibold text-mordheim-gold mb-3 border-b border-slate-600 pb-2">${grade}</h4>
+                <h4 class="text-xl font-semibold text-mordheim-gold mb-3 border-b border-slate-600 pb-2">${translateGrade(grade)}</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     ${charactersByGrade[grade].map(character => this.createCharacterCard(character)).join('')}
                 </div>

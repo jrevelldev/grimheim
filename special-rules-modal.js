@@ -1,6 +1,6 @@
 import { SPECIAL_RULES_DETAILS } from './data/special_rules.js';
 import { WARBANDS } from './data/warbands.js';
-import { translateSpecialRule, getSpecialRuleSummary } from './i18n.js';
+import { translateSpecialRule, getSpecialRuleSummary, translateWarband, translateGrade } from './i18n.js';
 import { showListView } from './ui.js';
 import { trackScreenView } from './analytics.js';
 import { getWarbands, setCurrentWarband } from './state.js';
@@ -203,7 +203,7 @@ class SpecialRulesModal {
             const gradeHeader = document.createElement('div');
             gradeHeader.className = 'grade-header';
             gradeHeader.innerHTML = `
-                <span>${grade.grade}</span>
+                <span>${translateGrade(grade.grade)}</span>
                 <i class="fas fa-chevron-right chevron"></i>
             `;
 
@@ -218,7 +218,7 @@ class SpecialRulesModal {
                     // Add main warband as non-clickable header
                     const mainWarband = document.createElement('div');
                     mainWarband.className = 'warband-option';
-                    mainWarband.textContent = warband.name;
+                    mainWarband.textContent = translateWarband(warband.name);
                     mainWarband.style.fontWeight = '600';
                     mainWarband.style.cursor = 'default';
                     gradeContent.appendChild(mainWarband);
@@ -227,20 +227,20 @@ class SpecialRulesModal {
                     warband.sublist.forEach(sub => {
                         const subOption = document.createElement('div');
                         subOption.className = 'warband-option sub-warband';
-                        subOption.textContent = sub;
+                        subOption.textContent = translateWarband(`${warband.name}: ${sub}`);
                         subOption.dataset.value = `${warband.name}: ${sub}`;
                         subOption.addEventListener('click', () => {
-                            this.selectWarband(`${warband.name}: ${sub}`, sub);
+                            this.selectWarband(`${warband.name}: ${sub}`, translateWarband(`${warband.name}: ${sub}`));
                         });
                         gradeContent.appendChild(subOption);
                     });
                 } else {
                     const warbandOption = document.createElement('div');
                     warbandOption.className = 'warband-option';
-                    warbandOption.textContent = warband.name;
+                    warbandOption.textContent = translateWarband(warband.name);
                     warbandOption.dataset.value = warband.name;
                     warbandOption.addEventListener('click', () => {
-                        this.selectWarband(warband.name, warband.name);
+                        this.selectWarband(warband.name, translateWarband(warband.name));
                     });
                     gradeContent.appendChild(warbandOption);
                 }

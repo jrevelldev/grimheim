@@ -17,7 +17,7 @@ import { removeEquipment, showEquipmentSelectionModal } from './equipment-manage
 import { showEquipmentReorderModal } from './equipment-reorder-modal.js';
 import { editFighter } from './edit-fighter-modal.js';
 import { saveFighter } from './fighter-management.js';
-import { translateEquipment } from './i18n.js';
+import { translateEquipment, translateWarriorRole } from './i18n.js';
 
 const MODAL_ID = 'fighter-gear-modal';
 let gearSaveWarband = null;
@@ -225,7 +225,7 @@ export const openGearModal = (fighterId, saveWarband) => {
 
     const groupSize = fighter.type === 'Henchman' ? (fighter.group_size || 1) : 1;
     document.getElementById('gear-modal-title').textContent = `Equipo – ${fighter.name}`;
-    const roleDisplay = fighter.warrior_choice || (fighter.type === 'Hero' ? 'Héroe' : 'Secuaz');
+    const roleDisplay = translateWarriorRole(fighter.warrior_choice) || (fighter.type === 'Hero' ? 'Héroe' : 'Secuaz');
     document.getElementById('gear-modal-subtitle').textContent =
         `${roleDisplay}${groupSize > 1 ? ` x${groupSize} (los costes se aplican a cada miniatura)` : ''}`;
 

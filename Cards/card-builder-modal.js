@@ -19,7 +19,7 @@ import {
     getFightersForWarbandKey,
     createFighterCardFromSelection
 } from './card-deck.js';
-import { translateEquipment } from '../i18n.js';
+import { translateEquipment, translateFighterType, translateWarriorRole } from '../i18n.js';
 import { saveWarband } from '../warband-service.js';
 
 let modalElement = null;
@@ -276,7 +276,7 @@ function ensureStudioModal() {
             opt.value = f.id;
             const hasGroupInName = f.groupSize > 1 && new RegExp(`x\\s*${f.groupSize}`, 'i').test(f.name);
             const groupText = (f.groupSize && f.groupSize > 1 && !hasGroupInName) ? ` x${f.groupSize}` : '';
-            opt.textContent = `${f.name} [${f.type}${groupText}]${(f.cost !== undefined && f.cost !== null) ? ` (${f.cost} CO)` : ''}`;
+            opt.textContent = `${translateWarriorRole(f.name) || f.name} [${translateFighterType(f.type)}${groupText}]${(f.cost !== undefined && f.cost !== null) ? ` (${f.cost} CO)` : ''}`;
             studioFighterSelect.appendChild(opt);
         });
         studioFighterSelect.disabled = false;
@@ -765,7 +765,7 @@ function populateFighterDropdown() {
             opt.value = f.id;
             const locked = isFighterLayoutLocked(f.id);
             const extra = (studioMode === 'menu' && f.warband_name) ? ` - ${f.warband_name}` : '';
-            opt.textContent = `${f.name} (${f.warrior_choice || f.type}${extra})${locked ? ' [Bloqueado]' : ''}`;
+            opt.textContent = `${f.name} (${translateWarriorRole(f.warrior_choice) || translateFighterType(f.type)}${extra})${locked ? ' [Bloqueado]' : ''}`;
             select.appendChild(opt);
         });
 

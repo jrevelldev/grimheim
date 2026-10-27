@@ -11,7 +11,7 @@ import { useLocalStorage, userId, currentWarband, warbands, tempItemToRemove, te
 import { isSlowWitted, isElemental, hasHalfXPRate, formatXPDisplay } from './slow-witted.js';
 import { handleChosenOfChaosSkillChange } from './equiprules/marauders-of-chaos.js';
 import { applyMountStats } from './equiprules/mounts.js';
-import { translateEquipment, translateSkill } from './i18n.js';
+import { translateEquipment, translateSkill, translateWarriorRole } from './i18n.js';
 
 
 /** Updates the race display in the edit fighter modal when race changes */
@@ -215,7 +215,7 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
         if (!existingOptions.includes(fighter.warrior_choice)) {
             const option = document.createElement('option');
             option.value = fighter.warrior_choice;
-            option.textContent = fighter.warrior_choice;
+            option.textContent = translateWarriorRole(fighter.warrior_choice) || fighter.warrior_choice;
             warriorChoiceSelect.appendChild(option);
         }
     }

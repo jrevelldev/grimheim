@@ -9,6 +9,7 @@ import { canHireCharacter } from '../hiring-validation.js';
 import { getWarbandData } from '../utility.js';
 import { calculateFighterOrGroupTotalCost } from './card-renderer.js';
 import { getWarbands, currentWarband } from '../state.js';
+import { translateWarband, translateWarriorRole, translateGrade, translateFighterType } from '../i18n.js';
 
 const DECK_STORAGE_KEY = 'grimheim_builder_custom_cards';
 const LEGACY_DECK_STORAGE_KEY = 'rosterheim_builder_custom_cards';
@@ -262,15 +263,13 @@ export function getWarbandCatalog(fighterType = null) {
     WARBANDS.forEach(category => {
         const warbands = category.warbands || [];
         if (warbands.length > 0) {
-            const groupName = category.grade && category.grade.toLowerCase().includes('core')
-                ? 'Core Warbands'
-                : (category.grade || 'Official Warbands');
+            const groupName = translateGrade(category.grade) || category.grade || 'Bandas Oficiales';
 
             groups.push({
                 group: groupName,
                 items: warbands.map(wb => ({
                     key: `wb_${wb.name}`,
-                    name: wb.name,
+                    name: translateWarband(wb.name),
                     type: 'official',
                     raw: wb
                 }))
@@ -289,10 +288,10 @@ export function getWarbandCatalog(fighterType = null) {
 
         if (filteredSaved.length > 0) {
             groups.push({
-                group: 'Your Saved Warbands',
+                group: 'Tus Bandas Guardadas',
                 items: filteredSaved.map(w => ({
                     key: `saved_${w.id}`,
-                    name: `${w.name} (${w.type || 'Warband'})`,
+                    name: `${w.name} (${translateWarband(w.type) || 'Banda'})`,
                     type: 'saved',
                     raw: w
                 }))
@@ -303,33 +302,33 @@ export function getWarbandCatalog(fighterType = null) {
     // Auxiliary / Unrestricted Categories based on fighterType
     if (fighterType === 'Hired Sword') {
         groups.push({
-            group: 'Auxiliary & Freelance',
+            group: 'Auxiliares y Mercenarios',
             items: [
-                { key: 'all_hired_swords', name: 'Show All Hired Swords (Unrestricted)', type: 'special' }
+                { key: 'all_hired_swords', name: 'Mostrar todas las Espadas de Alquiler (Sin restricciones)', type: 'special' }
             ]
         });
     } else if (fighterType === 'Dramatis Personae') {
         groups.push({
-            group: 'Auxiliary & Freelance',
+            group: 'Auxiliares y Mercenarios',
             items: [
-                { key: 'all_dramatis_personae', name: 'Show All Dramatis Personae (Unrestricted)', type: 'special' }
+                { key: 'all_dramatis_personae', name: 'Mostrar todos los Personajes Ilustres (Sin restricciones)', type: 'special' }
             ]
         });
     } else if (fighterType === 'Vehicle') {
         groups.push({
-            group: 'Auxiliary & Freelance',
+            group: 'Auxiliares y Mercenarios',
             items: [
-                { key: 'all_vehicles', name: 'Show All Vehicles (Unrestricted)', type: 'special' }
+                { key: 'all_vehicles', name: 'Mostrar todos los Vehículos (Sin restricciones)', type: 'special' }
             ]
         });
     } else if (!fighterType) {
         // Fallback when fighterType is not provided
         groups.push({
-            group: 'Auxiliary & Freelance',
+            group: 'Auxiliares y Mercenarios',
             items: [
-                { key: 'hired_swords', name: 'Hired Swords (All)', type: 'special' },
-                { key: 'dramatis_personae', name: 'Dramatis Personae (All)', type: 'special' },
-                { key: 'vehicles', name: 'Vehicles & Mounts', type: 'special' }
+                { key: 'hired_swords', name: 'Espadas de Alquiler (Todas)', type: 'special' },
+                { key: 'dramatis_personae', name: 'Personajes Ilustres (Todos)', type: 'special' },
+                { key: 'vehicles', name: 'Vehículos y Monturas', type: 'special' }
             ]
         });
     }
@@ -400,10 +399,10 @@ export function getFightersForWarbandKey(warbandKey, fighterType = null) {
                 const groupLabel = groupSize > 1 ? ` x${groupSize}` : '';
                 return {
                     id: `saved_m_${m.id}`,
-                    name: m.name || 'Unnamed Fighter',
+                    name: m.name || 'Guerrero sin nombre',
                     type: m.type || fighterType || 'Hero',
                     groupSize,
-                    subtitle: `${m.warrior_choice || m.type}${groupLabel} (XP: ${m.xp || 0})`,
+                    subtitle: `${translateWarriorRole(m.warrior_choice) || translateFighterType(m.type)}${groupLabel} (XP: ${m.xp || 0})`,
                     cost: totalCost,
                     raw: m,
                     warbandName: foundWarband.name
@@ -430,9 +429,9 @@ export function getFightersForWarbandKey(warbandKey, fighterType = null) {
                 if (validation.canHire) {
                     available.push({
                         id: `hs_${char.name}`,
-                        name: char.name,
+                        name: translateWarriorRole(char.name) || char.name,
                         type: 'Hired Sword',
-                        subtitle: `Grade: ${grade.grade || 'Hired Sword'} | Fee: ${char.data?.hire_fee || 0}gc`,
+                        subtitle: `${translateGrade(grade.grade || 'Hired Sword')} | Coste: ${char.data?.hire_fee || 0} co`,
                         cost: parseInt(char.data?.hire_fee) || 0,
                         raw: char,
                         warbandName: wbCtx.name
@@ -462,7 +461,7 @@ export function getFightersForWarbandKey(warbandKey, fighterType = null) {
                         id: `dp_${char.name}`,
                         name: char.name,
                         type: 'Dramatis Personae',
-                        subtitle: `Fee: ${char.data?.hire_fee || 0}gc`,
+                        subtitle: `Coste: ${char.data?.hire_fee || 0} co`,
                         cost: parseInt(char.data?.hire_fee) || 0,
                         raw: char,
                         warbandName: wbCtx.name
@@ -490,9 +489,9 @@ export function getFightersForWarbandKey(warbandKey, fighterType = null) {
                 if (canBeHired) {
                     available.push({
                         id: `veh_${char.name}`,
-                        name: char.name,
+                        name: translateWarriorRole(char.name) || char.name,
                         type: 'Vehicle',
-                        subtitle: `Cost: ${char.data?.hire_fee || 0}gc`,
+                        subtitle: `Coste: ${char.data?.hire_fee || 0} co`,
                         cost: parseInt(char.data?.hire_fee) || 0,
                         raw: char,
                         warbandName: wbCtx.name
@@ -519,9 +518,9 @@ export function getFightersForWarbandKey(warbandKey, fighterType = null) {
                 const isHero = (w.type || '').toLowerCase() === 'hero';
                 return {
                     id: `warrior_${w.name}`,
-                    name: w.name,
+                    name: translateWarriorRole(w.name) || w.name,
                     type: isHero ? 'Hero' : 'Henchman',
-                    subtitle: `${isHero ? 'Hero' : 'Henchman'} | Cost: ${w.hire_fee || 0}gc`,
+                    subtitle: `${isHero ? 'Héroe' : 'Secuaz'} | Coste: ${w.hire_fee || 0} co`,
                     cost: parseInt(w.hire_fee) || 0,
                     raw: w,
                     warbandName: found.name,

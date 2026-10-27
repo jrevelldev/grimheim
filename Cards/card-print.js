@@ -6,6 +6,7 @@
 import { renderFighterCard } from './card-renderer.js';
 import { loadLayout, loadFighterLayout, isFighterLayoutLocked } from './card-storage.js';
 import { FIGHTER_TYPES, getBlankFighter } from './card-config.js';
+import { translateWarriorRole } from '../i18n.js';
 
 let printModalElement = null;
 
@@ -126,7 +127,7 @@ export function openPrintModal(warband) {
             item.innerHTML = `
                 <input type="checkbox" class="fighter-print-checkbox rounded text-[#dfbc77] accent-[#dfbc77] focus:ring-[#dfbc77]" data-fighter-id="${fighter.id || ''}" data-fighter-index="${idx}" checked>
                 <span class="font-medium text-white">${fighter.name || 'Guerrero sin nombre'}</span>
-                <span class="text-xs text-slate-400">(${roleName}${fighter.warrior_choice ? ` - ${fighter.warrior_choice}` : ''})</span>
+                <span class="text-xs text-slate-400">(${roleName}${fighter.warrior_choice ? ` - ${translateWarriorRole(fighter.warrior_choice) || fighter.warrior_choice}` : ''})</span>
                 ${isLocked ? '<span class="text-xs text-[#dfbc77] font-medium ml-auto flex items-center gap-1"><i class="fas fa-lock text-[10px]"></i> Diseño Bloqueado</span>' : ''}
             `;
             listContainer.appendChild(item);

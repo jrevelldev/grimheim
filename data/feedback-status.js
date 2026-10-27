@@ -572,11 +572,11 @@ export const FEEDBACK_ENTRIES = [
 
 // Status options for feedback entries
 export const FEEDBACK_STATUS_OPTIONS = [
-    { id: 'new', name: 'New', color: 'yellow', bgColor: 'bg-yellow-600' },
-    { id: 'in-progress', name: 'In Progress', color: 'blue', bgColor: 'bg-blue-600' },
-    { id: 'completed', name: 'Completed', color: 'green', bgColor: 'bg-green-600' },
-    { id: 'rejected', name: 'Rejected', color: 'red', bgColor: 'bg-red-600' },
-    { id: 'on-hold', name: 'On-Hold', color: 'orange', bgColor: 'bg-orange-600' }
+    { id: 'new', name: 'Nuevo', color: 'yellow', bgColor: 'bg-yellow-600' },
+    { id: 'in-progress', name: 'En Progreso', color: 'blue', bgColor: 'bg-blue-600' },
+    { id: 'completed', name: 'Completado', color: 'green', bgColor: 'bg-green-600' },
+    { id: 'rejected', name: 'Descartado', color: 'red', bgColor: 'bg-red-600' },
+    { id: 'on-hold', name: 'En Espera', color: 'orange', bgColor: 'bg-orange-600' }
 ];
 
 // Helper function to format dates
@@ -591,7 +591,7 @@ export const formatFeedbackDate = (dateString) => {
 // Helper function to get status styling
 export const getStatusStyling = (statusId) => {
     const status = FEEDBACK_STATUS_OPTIONS.find(s => s.id === statusId);
-    return status || { id: 'new', name: 'New', color: 'yellow', bgColor: 'bg-yellow-600' };
+    return status || { id: 'new', name: 'Nuevo', color: 'yellow', bgColor: 'bg-yellow-600' };
 };
 
 // Helper function to get entries by status

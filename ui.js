@@ -43,6 +43,7 @@ import {
     translateInjuryDescription,
     getSpecialRuleSummary,
     translateWarriorRole,
+    translateGrade,
     formatMovementStat,
     getMovementTooltip,
     getDistanceUnit
@@ -1054,12 +1055,7 @@ export const populateWarbandTypes = () => {
         const gradeSection = document.createElement('div');
         gradeSection.className = 'grade-section';
 
-        let gradeTitle = grade.grade;
-        if (gradeTitle === 'Core Warband') gradeTitle = 'Bandas Principales (Reglamento)';
-        else if (gradeTitle === 'Grade 1a') gradeTitle = 'Bandas Grado 1a (Oficiales GW)';
-        else if (gradeTitle === 'Grade 1b') gradeTitle = 'Bandas Grado 1b (Ampliaciones)';
-        else if (gradeTitle === 'Grade 1c') gradeTitle = 'Bandas Grado 1c';
-        else if (gradeTitle === 'Grade 2') gradeTitle = 'Bandas Grado 2 (Town Cryer / Fanatic)';
+        const gradeTitle = translateGrade(grade.grade);
 
         // Create grade header
         const gradeHeader = document.createElement('div');
@@ -1545,9 +1541,9 @@ export const updateFighterDataFromSelection = () => {
         // We consider the name "custom" if it's non-empty AND doesn't match any warrior type name.
         const currentNameInput = document.getElementById('f-name');
         const currentName = currentNameInput.value.trim();
-        const isNameCustom = currentName !== '' && !warbandData.warriors.some(w => w.name === currentName);
+        const isNameCustom = currentName !== '' && !warbandData.warriors.some(w => w.name === currentName || translateWarrior(w.name) === currentName);
         if (!isNameCustom) {
-            currentNameInput.value = selectedWarrior.name;
+            currentNameInput.value = translateWarrior(selectedWarrior.name);
         }
         document.getElementById('f-type').value = selectedWarrior.type === 'hero' ? 'Hero' : 'Henchman';
         document.getElementById('f-cost').value = parseInt(selectedWarrior.hire_fee) || 0;
@@ -2094,7 +2090,7 @@ export const populateDramatisPersonaeChoices = () => {
     
     DRAMATIS_PERSONAE.forEach(grade => {
         const optgroup = document.createElement('optgroup');
-        optgroup.label = grade.grade;
+        optgroup.label = translateGrade(grade.grade);
         
         // Filter characters based on hiring restrictions
         const filteredCharacters = filterCharactersByHiringRestrictions(grade.characters, warbandData, isUniversalHiringAccessActive, currentWarband.members || [], additionalWarbandIdentities);
@@ -2283,7 +2279,7 @@ export const populateHiredSwordChoices = () => {
     
     HIRED_SWORDS.forEach(grade => {
         const optgroup = document.createElement('optgroup');
-        optgroup.label = grade.grade;
+        optgroup.label = translateGrade(grade.grade);
         
         // Filter characters based on hiring restrictions
         const filteredCharacters = filterCharactersByHiringRestrictions(grade.characters, warbandData, isUniversalHiringAccessActive, currentWarband.members || [], additionalWarbandIdentities);
@@ -2295,13 +2291,13 @@ export const populateHiredSwordChoices = () => {
                 availableCount++;
                 const option = document.createElement('option');
                 option.value = character.name;
-                option.textContent = character.name;
+                option.textContent = translateWarriorRole(character.name) || character.name;
                 optgroup.appendChild(option);
             } else {
                 // Add disabled option with tooltip explaining why it's not available
                 const option = document.createElement('option');
                 option.value = character.name;
-                option.textContent = `${character.name} (No disponible)`;
+                option.textContent = `${translateWarriorRole(character.name) || character.name} (No disponible)`;
                 option.disabled = true;
                 option.title = reason; // Show reason as tooltip
                 option.style.color = '#999';
@@ -2767,7 +2763,7 @@ export const populateVehicleChoices = () => {
     vehicleSelect.innerHTML = '<option value="">-- Seleccionar un Vehículo --</option>';
     VEHICLES.forEach(grade => {
         const optgroup = document.createElement('optgroup');
-        optgroup.label = grade.grade;
+        optgroup.label = translateGrade(grade.grade);
         grade.vehicles.forEach(vehicle => {
             // Check if vehicle has hiring restrictions
             const mayBeHired = vehicle.data.may_be_hired;
@@ -2783,7 +2779,7 @@ export const populateVehicleChoices = () => {
             if (canBeHired) {
                 const option = document.createElement('option');
                 option.value = vehicle.name;
-                option.textContent = vehicle.name;
+                option.textContent = translateWarriorRole(vehicle.name) || vehicle.name;
                 optgroup.appendChild(option);
             }
         });
