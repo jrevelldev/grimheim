@@ -229,7 +229,7 @@ function renderMultiLoreSelection(availableGroups, fighterSkills, fighter) {
     });
     
     // Update title to indicate multiple schools
-    magicGroupTitle.textContent = 'Multiple Magic Schools';
+    magicGroupTitle.textContent = 'Múltiples Escuelas de Magia';
 }
 
 /**

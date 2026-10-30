@@ -361,9 +361,10 @@ export const renderEquipmentSelector = (selectedEquipment = []) => {
         if (categories.includes('Close Combat')) {
             categorySelect.value = 'Close Combat';
         }
-        setAvailableEquipmentFilterIds(null); // Clear filter when modal is opened
         renderEquipmentOptions();
     }
+
+    setAvailableEquipmentFilterIds(null); // Clear filter when modal is opened
 
     // Store selected items in the hidden input as JSON string
     document.getElementById('f-equipment-json').value = JSON.stringify(selectedEquipment);
@@ -2931,15 +2932,15 @@ export const renderModalEquipmentSelector = () => {
         categorySelect.parentNode.insertBefore(searchInput, categorySelect.nextSibling);
     }
     searchInput.value = ''; // Clear search when modal opens
-    searchInput.addEventListener('input', () => {
+    searchInput.oninput = () => {
         renderModalEquipmentOptions();
-    });
+    };
 
-    // Add event listener for category changes to update grade checkboxes
-    categorySelect.addEventListener('change', () => {
+    // Set event handler for category changes to update grade checkboxes (use onchange to prevent stacking)
+    categorySelect.onchange = () => {
         renderGradeFilterCheckboxes(categorySelect.value);
         renderModalEquipmentOptions();
-    });
+    };
 
     // Render grade filter checkboxes
     renderGradeFilterCheckboxes(categorySelect.value);

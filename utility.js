@@ -644,8 +644,8 @@ export const showRenameWarbandModal = (warbandId, currentName) => {
         }
     };
     
-    // Add input event listener
-    nameInput.addEventListener('input', checkRenameButtonState);
+    // Set input event handler (use oninput to avoid stacking listeners)
+    nameInput.oninput = checkRenameButtonState;
     
     // Initial check
     checkRenameButtonState();

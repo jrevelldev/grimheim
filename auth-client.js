@@ -681,10 +681,13 @@ function setupAuthEventListeners() {
                     window.dispatchEvent(new CustomEvent('grimheim:auth-success', { detail: { uid: userRecord.uid, email: userRecord.email } }));
                 }
             } catch (err) {
-                // If on local node backend without firebase connection, fallback to local node apiLogin
-                if (currentAuthMode === 'login' && (!err.code || err.code === 'auth/network-request-failed')) {
+                // Fallback to local Node backend login (supports usernames like 'admin' as well as offline/local accounts)
+                if (currentAuthMode === 'login') {
                     try {
                         const nodeResult = await apiLogin(email, password);
+                        localStorage.removeItem('grimheim_guest_mode');
+                        setUserId('local');
+                        setUseLocalStorage(true);
                         hideBlockingLoginScreen();
                         updateAuthUI(nodeResult.user);
                         if (passwordInput) passwordInput.value = '';
@@ -693,7 +696,10 @@ function setupAuthEventListeners() {
                         window.dispatchEvent(new CustomEvent('grimheim:auth-success', { detail: nodeResult.user }));
                         return;
                     } catch (nodeErr) {
-                        // ignore and display formatted error
+                        if (!email.includes('@') && nodeErr.message && !nodeErr.message.includes('Servidor Node no activo')) {
+                            showBlockingLoginScreen(nodeErr.message);
+                            return;
+                        }
                     }
                 }
                 showBlockingLoginScreen(formatAuthError(err));

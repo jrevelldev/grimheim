@@ -713,22 +713,40 @@ export const exportAllWarbandsJSON = () => {
 /** Import one or multiple warbands from a JSON file */
 export const importWarbandJSON = (file) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
         try {
             const data = JSON.parse(e.target.result);
             const toImport = Array.isArray(data) ? data : [data];
+            const currentUserId = useLocalStorage ? 'local' : (auth.currentUser ? auth.currentUser.uid : userId);
             let count = 0;
-            toImport.forEach(wb => {
+
+            for (const wb of toImport) {
                 if (wb && wb.name && wb.type) {
                     wb.id = generateUUID();
                     wb._isV2 = true;
-                    wb._storageLocation = 'Browser Cache';
-                    warbands.push(wb);
+                    wb.player_id = currentUserId;
+
+                    if (useLocalStorage) {
+                        wb._storageLocation = 'Browser Cache';
+                        warbands.push(wb);
+                    } else {
+                        await firebaseCreateNewWarband(wb);
+                        wb._storageLocation = 'Cloud Firestore';
+                        const existingIdx = warbands.findIndex(w => w.id === wb.id);
+                        if (existingIdx !== -1) {
+                            warbands[existingIdx] = wb;
+                        } else {
+                            warbands.push(wb);
+                        }
+                    }
                     count++;
                 }
-            });
+            }
+
             if (count > 0) {
-                localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
+                if (useLocalStorage) {
+                    localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
+                }
                 renderWarbandList(warbands);
                 showMessage(`¡Se han importado ${count} banda(s) con éxito!`);
             } else {

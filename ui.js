@@ -3665,7 +3665,7 @@ export const resetSkillAccessOverride = () => {
     // We need to get the fighter data to recalculate
     const fighterNameEl = document.getElementById('f-name');
     const fighterName = fighterNameEl ? fighterNameEl.value : '';
-    const fighterId = document.getElementById('f-id')?.value;
+    const fighterId = (document.getElementById('fighter-id') || document.getElementById('f-id'))?.value;
 
     let originalBaseCats = [];
     if (currentWarband && currentWarband.members) {

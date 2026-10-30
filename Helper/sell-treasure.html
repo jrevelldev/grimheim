@@ -27,11 +27,26 @@
 
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'mordheim-gold': '#c5a059',
+                        'mordheim-gold-light': '#dfbc77',
+                        'mordheim-dark': '#0b0c0e',
+                        'mordheim-card': '#131519',
+                    }
+                }
+            }
+        };
+    </script>
     <!-- Load Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Load Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../styles.css?v=1.0.4">
+    <script src="../version-checker.js?v=1.0.4"></script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../favicon.ico">

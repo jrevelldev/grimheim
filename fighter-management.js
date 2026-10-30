@@ -1880,19 +1880,6 @@ const initFighterManagement = (saveWarband) => {
 
     // Roster and Stored Equipment Clicks
     document.getElementById('warband-editor-view').addEventListener('click', (e) => {
-        const button = e.target.closest('button');
-        if (button) {
-            const { action, fighterId, itemIndex, itemName, itemCost, itemQuantity } = button.dataset;
-
-            if (action === 'edit-fighter') {
-                editFighter(fighterId, saveWarband);
-            } else if (action === 'take-from-storage') {
-                takeFromStorage(parseInt(itemIndex));
-            } else if (action === 'sell-from-storage') {
-                showSellFromStorageModal(itemName, parseInt(itemCost), parseInt(itemQuantity));
-            }
-        }
-
         // Handle spell, skill, and rule clicks in warband members screen
         const spellSpan = e.target.closest('[data-spell]');
         if (spellSpan) {
@@ -2013,22 +2000,6 @@ const initFighterManagement = (saveWarband) => {
             }
         }
 
-        const ruleSpan = e.target.closest('[data-rule]');
-        if (ruleSpan) {
-            const ruleName = ruleSpan.dataset.rule;
-            const ruleDetails = SPECIAL_RULES_DETAILS.find(r => r.name.toLowerCase() === ruleName.toLowerCase())?.rules;
-            if (ruleDetails) {
-                const spanishName = translateSpecialRule(ruleName);
-                const titleText = (spanishName && spanishName.toLowerCase() !== ruleName.toLowerCase())
-                    ? `${spanishName} (${ruleName})`
-                    : (spanishName || ruleName);
-                document.getElementById('rule-details-title').textContent = titleText;
-                const summary = getSpecialRuleSummary(ruleName);
-                document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : ruleDetails;
-                displayModal('rule-details-modal'); // Updated call
-            }
-        }
-
         const injurySpan = e.target.closest('.injury-name');
         if (injurySpan) {
             const injuryName = injurySpan.dataset.injuryName;
@@ -2078,25 +2049,6 @@ const initFighterManagement = (saveWarband) => {
                         <strong>Descripción:</strong> ${spell.description}
                     </div>
                 `;
-                displayModal('rule-details-modal');
-            }
-            e.stopPropagation(); // Prevent other click handlers
-        }
-
-        const skillSpan = e.target.closest('[data-skill]');
-        if (skillSpan) {
-            const skillName = skillSpan.dataset.skill;
-            const fighterId = skillSpan.dataset.fighterId;
-            const fighter = fighterId && currentWarband ? currentWarband.members.find(f => f.id === fighterId) : null;
-            const skillDetails = findSkillForWarbandCI(skillName, null, fighter);
-            if (skillDetails) {
-                const spanishName = translateSkill(skillName);
-                const titleText = (spanishName && spanishName.toLowerCase() !== skillName.toLowerCase())
-                    ? `${spanishName} (${skillName})`
-                    : (spanishName || skillName);
-                document.getElementById('rule-details-title').textContent = titleText;
-                const summary = getSpecialRuleSummary(skillName);
-                document.getElementById('rule-details-content').innerHTML = (summary && summary.full) ? summary.full : skillDetails.rules;
                 displayModal('rule-details-modal');
             }
             e.stopPropagation(); // Prevent other click handlers

@@ -426,7 +426,7 @@ function ensureStudioModal() {
 
     // Re-render card preview when distance unit changes (inches / cm)
     window.addEventListener('distance-unit-changed', () => {
-        const studioModal = document.getElementById('card-builder-modal');
+        const studioModal = document.getElementById('card-builder-studio-modal') || document.getElementById('card-builder-modal');
         if (studioModal && !studioModal.classList.contains('hidden')) {
             updatePreview();
         }

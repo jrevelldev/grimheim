@@ -125,8 +125,12 @@ export function authenticateUser(username, password) {
  * Creates a session token for a given user.
  */
 export function createSession(userId, durationHours = 24 * 7) {
+    const now = Date.now();
+    // Purge expired sessions
+    db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(now);
+
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = Date.now() + durationHours * 60 * 60 * 1000;
+    const expiresAt = now + durationHours * 60 * 60 * 1000;
 
     const stmt = db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)');
     stmt.run(token, Number(userId), expiresAt);

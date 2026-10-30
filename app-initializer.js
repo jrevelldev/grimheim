@@ -2,7 +2,25 @@ import { initializeFirebase } from './firebase-logic.js';
 import { setUserId, setUseLocalStorage, setIsShieldMeleeIgnored, setIsBlackpowderPreGameDiscountActive, setIsBlackpowder20PercentDiscountActive, setIsArmourShieldHalfCostActive, setIsExcludeStartingXpFromRatingActive, setIsFullyPaintedActive, userId } from './state.js';
 import { listenToWarbands, unsubscribeFromWarbands } from './warband-service.js';
 import { setAnalyticsUser, trackEvent } from './analytics.js';
-import { getStoredUser, updateAuthUI, showBlockingLoginScreen, hideBlockingLoginScreen } from './auth-client.js';
+import { getStoredToken, getStoredUser, updateAuthUI, showBlockingLoginScreen, hideBlockingLoginScreen } from './auth-client.js';
+
+const applyLocalOrGuestAuthFallback = () => {
+    const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
+    const storedUser = getStoredUser();
+    const storedToken = getStoredToken();
+    setUserId('local');
+    setUseLocalStorage(true);
+    if (storedUser && storedToken) {
+        updateAuthUI(storedUser);
+        hideBlockingLoginScreen();
+    } else if (isGuest) {
+        updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
+        hideBlockingLoginScreen();
+    } else {
+        updateAuthUI(null);
+        showBlockingLoginScreen();
+    }
+};
 
 export const initializeAppAndData = async () => {
     // Check if we're returning from exploration page
@@ -35,45 +53,18 @@ export const initializeAppAndData = async () => {
                     });
                     hideBlockingLoginScreen();
                 } else {
-                    const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
-                    setUserId('local');
-                    setUseLocalStorage(true);
-                    if (isGuest) {
-                        updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
-                        hideBlockingLoginScreen();
-                    } else {
-                        updateAuthUI(null);
-                        showBlockingLoginScreen();
-                    }
+                    applyLocalOrGuestAuthFallback();
                 }
             },
             (error) => {
                 console.warn("Firebase inicializado en modo local:", error);
-                const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
-                setUserId('local');
-                setUseLocalStorage(true);
-                if (isGuest) {
-                    updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
-                    hideBlockingLoginScreen();
-                } else {
-                    updateAuthUI(null);
-                    showBlockingLoginScreen();
-                }
+                applyLocalOrGuestAuthFallback();
                 initLocalStorage();
             }
         );
     } catch (err) {
         console.warn("Error en initializeFirebase:", err);
-        const isGuest = localStorage.getItem('grimheim_guest_mode') === 'true';
-        setUserId('local');
-        setUseLocalStorage(true);
-        if (isGuest) {
-            updateAuthUI({ id: 'guest', username: 'Invitado (Local)', is_guest: true });
-            hideBlockingLoginScreen();
-        } else {
-            updateAuthUI(null);
-            showBlockingLoginScreen();
-        }
+        applyLocalOrGuestAuthFallback();
         initLocalStorage();
     }
 

@@ -297,10 +297,10 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
     
     document.getElementById('f-skills-hidden').value = JSON.stringify(skillsToShow);
 
-    // Add real-time monitoring of skill changes for race updates
+    // Add real-time monitoring of skill changes for race updates (use onchange to avoid listener stacking)
     const skillsInput = document.getElementById('f-skills-hidden');
-    if (skillsInput && currentWarband.type.includes('Marauders of Chaos')) {
-        skillsInput.addEventListener('change', (e) => {
+    if (skillsInput) {
+        skillsInput.onchange = currentWarband.type.includes('Marauders of Chaos') ? (e) => {
             const newSkills = JSON.parse(e.target.value || '[]');
             const currentRace = document.getElementById('f-race').value;
             const raceChangeResult = handleChosenOfChaosSkillChange(newSkills, currentRace);
@@ -310,7 +310,7 @@ const editFighter = (fighterId, saveWarband, { silent = false } = {}) => {
                 // Update the modal display
                 updateRaceDisplayInModal(raceChangeResult.race);
             }
-        });
+        } : null;
     }
 
     const skillsDisplay = document.getElementById('f-skills');

@@ -309,8 +309,8 @@ const showNewFighterModal = () => {
     const startingSpells = warriorData ? getStartingSpells(warriorData) : [];
     renderMagicSelection({ special_rules: '' }, startingSpells); // New fighter, no special rules yet
 
-    // Add event listener for role change to show/hide leader checkbox
-    document.getElementById('f-type').addEventListener('change', (e) => {
+    // Set event handler for role change to show/hide leader checkbox (use onchange to prevent stacking)
+    document.getElementById('f-type').onchange = (e) => {
         const role = e.target.value;
         const leaderWrapper = document.getElementById('leader-checkbox-wrapper');
         if (role === 'Hero') {
@@ -338,17 +338,7 @@ const showNewFighterModal = () => {
         
         // Hide equipment selection dropdown when role changes
         document.getElementById('hired-sword-equipment-selection-wrapper').classList.add('hidden');
-    });
-
-    // Add event listener for hired sword selection
-    document.getElementById('f-hired-sword-choice').addEventListener('change', updateFighterDataFromHiredSwordSelection);
-    
-    // Add event listener for warrior selection
-    document.getElementById('f-warrior-choice').addEventListener('change', () => {
-        // Hide equipment selection dropdown when warrior choice changes
-        document.getElementById('hired-sword-equipment-selection-wrapper').classList.add('hidden');
-        updateFighterDataFromSelection();
-    });
+    };
 
     displayModal('fighter-modal'); // Updated call
 

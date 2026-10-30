@@ -5,6 +5,7 @@ import { STATS_FIELDS } from './config.js';
 import { getWarbandData, calculateWarbandRating, showMessage, calculateArmorSave, normalizeEquipment } from './utility.js';
 import { formatXPDisplay } from './slow-witted.js';
 import { currentWarband, isShieldMeleeIgnored } from './state.js';
+import { trackEvent } from './analytics.js';
 import { getStatLabel, translateFighterType, translateWarband, translateWarrior, translateSkill, translateSpecialRule, translateEquipment, translateInjury, translateWarriorRole, formatMovementStat, getDistanceUnit } from './i18n.js';
 
 /** Generates and prints a print-friendly version of the warband */
@@ -130,9 +131,9 @@ const generatePrintContent = (warband, includeNotes, includeSkills, includeWarba
     return `
         <div class="print-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
             <div>
-                <h1 style="margin: 0; font-size: 20pt;">${warband.name}</h1>
+                <h1 style="margin: 0; font-size: 20pt;">${escapeHtml(warband.name)}</h1>
                 <div class="warband-info" style="margin-top: 5px; font-size: 10pt;">
-                    <strong>Tipo:</strong> ${translateWarband(warband.type)} | 
+                    <strong>Tipo:</strong> ${escapeHtml(translateWarband(warband.type))} | 
                     <strong>Valoración:</strong> ${warband.rating} | 
                     <strong>Tesorería:</strong> ${warband.gc_treasury || 0} CO | 
                     <strong>Guerreros:</strong> ${totalMemberCount}
@@ -405,7 +406,7 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
     return `
         <div class="print-fighter">
             <div class="print-fighter-header">
-                ${fighter.name} - ${translateFighterType(fighter.type)}
+                ${escapeHtml(fighter.name)} - ${escapeHtml(translateFighterType(fighter.type))}
                 ${isHenchman ? ` (x${effectiveSize}${casualties > 0 ? ` - ${casualties} bajas` : ''})` : ''}
             </div>
             
@@ -417,7 +418,7 @@ const generateFighterPrintHTML = (fighter, includeNotes) => {
             ${(fighter.injuries && fighter.injuries.length > 0) ? `<div class="print-injuries"><strong>Heridas Graves:</strong> ${fighter.injuries.map(i => `<span class="print-injury">${translateInjury(i)}</span>`).join(' ')}</div>` : ''}
             ${specialRulesHTML ? `<div class="print-special-rules"><strong>Reglas Especiales:</strong> ${specialRulesHTML}</div>` : ''}
             ${(fighter.type === 'Hero' || fighter.type === 'Henchman' || fighter.type === 'Hired Sword') ? generateExperienceBoxes(fighter) : ''}
-            ${(includeNotes && fighter.notes) ? `<div class="print-fighter-notes" style="margin-top: 5px; font-style: italic; font-size: 0.85rem; color: #475569;"><strong>Notas:</strong> ${fighter.notes.replace(/\n/g, '<br>')}</div>` : ''}
+            ${(includeNotes && fighter.notes) ? `<div class="print-fighter-notes" style="margin-top: 5px; font-style: italic; font-size: 0.85rem; color: #475569;"><strong>Notas:</strong> ${escapeHtml(fighter.notes).replace(/\n/g, '<br>')}</div>` : ''}
         </div>
     `;
 };

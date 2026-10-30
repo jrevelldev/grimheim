@@ -1,4 +1,4 @@
-import { showListView, populateWarbandTypes, showOstermarkSkillSetModal, showTurnOrderTrackerView, renderTurnOrderTracker, renderWarbandEditor, showAuthModal, hideAuthModal, switchToLoginTab, switchToRegisterTab, showAuthError, showEquipmentDetailsModal, showResetPasswordForm, showLoginForm, showBattleView, trackKill, nextPhase, prevPhase, setCurrentPhase, showBattleSkillDetails, showBattleSpellDetails, showBattleEquipmentDetails, showBattleAbilityDetails, toggleAbilityDetails, resetBattleCasualties, applyCasualty, undoCasualty, handleTrapperSkillSelection, handlePackmasterBeastHandlingSelection, handleHiredSwordEquipmentSelection, showExplorationModal, showTreasureExplorationModal, handleTreasureCalculation, applyTreasureToWarband, toggleDiceInputMode, updateCalculatedTotal, useRabbitsFoot, generateAdvancedDiceInputs, toggleAdvancedLocked, maximizeTotalDice, selectDiceForResult } from './ui.js';
+import { showListView, populateWarbandTypes, showOstermarkSkillSetModal, showTurnOrderTrackerView, renderTurnOrderTracker, renderWarbandEditor, showAuthModal, hideAuthModal, switchToLoginTab, switchToRegisterTab, showAuthError, showEquipmentDetailsModal, showResetPasswordForm, showLoginForm, showBattleView, trackKill, removeKill, toggleFighterCard, showCasualtyModal, nextPhase, prevPhase, setCurrentPhase, showBattleSkillDetails, showBattleSpellDetails, showBattleEquipmentDetails, showBattleAbilityDetails, toggleAbilityDetails, resetBattleCasualties, applyCasualty, undoCasualty, handleTrapperSkillSelection, handlePackmasterBeastHandlingSelection, handleHiredSwordEquipmentSelection, showExplorationModal, showTreasureExplorationModal, handleTreasureCalculation, applyTreasureToWarband, toggleDiceInputMode, updateCalculatedTotal, useRabbitsFoot, generateAdvancedDiceInputs, toggleAdvancedLocked, maximizeTotalDice, selectDiceForResult } from './ui.js';
 import { showEndBattleModal, setBattleResult, processBattleEnd, renderExperienceSection, updateUnderdogRatingDisplay, updateCasualtyResolution } from './End Battle/end_battle.js';
 import { showEndBattleHub } from './End Battle/end-battle-hub.js';
 import { showAdvancementHub } from './Advancement/advancement-hub.js';
@@ -844,7 +844,7 @@ export const setupEventListeners = () => {
                 e.preventDefault(); // Prevent the change
                 e.target.checked = true; // Keep it checked
                 showConfirmationModal(
-                    "Are you done building the warband? Doing so will put the roster out of pre game build phase",
+                    "¿Has terminado de crear la banda? Al confirmar, la banda saldrá de la fase de creación inicial (Pre-Partida).",
                     async () => {
                         // User confirmed - turn off Pre-Game mode
                         currentWarband.pre_game = false;
@@ -852,7 +852,7 @@ export const setupEventListeners = () => {
                         await saveWarband();
                         // Update UI
                         const statusText = document.getElementById('pre-game-status');
-                        statusText.textContent = 'Pre-Game build phase completed';
+                        statusText.textContent = 'Fase de creación inicial completada';
                         // Re-render to update alignment display mode
                         renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
                     }
@@ -862,7 +862,7 @@ export const setupEventListeners = () => {
                 e.preventDefault(); // Prevent the change
                 e.target.checked = false; // Keep it unchecked
                 showConfirmationModal(
-                    "Warning, chaning back to Pre-Game Mode will enable some rules that are intended to only be used during pre-game mode, for example reduced cost of items during roster builiding",
+                    "Atención: volver al modo Pre-Partida activará reglas pensadas únicamente para la creación inicial de la banda (por ejemplo, costes reducidos de equipo o tiradas gratuitas).",
                     async () => {
                         // User confirmed - turn on Pre-Game mode
                         currentWarband.pre_game = true;
@@ -870,7 +870,7 @@ export const setupEventListeners = () => {
                         await saveWarband();
                         // Update UI
                         const statusText = document.getElementById('pre-game-status');
-                        statusText.textContent = 'Currently in Pre-Game build phase';
+                        statusText.textContent = 'Actualmente en fase de creación Pre-Partida';
                         // Re-render to update alignment display mode
                         renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
                     }
@@ -1095,7 +1095,7 @@ export const setupEventListeners = () => {
             const password = document.getElementById('login-password').value.trim();
 
             if (!email || !password) {
-                showAuthError('login', 'Please fill in all fields.');
+                showAuthError('login', 'Por favor, rellena todos los campos.');
                 return;
             }
 
@@ -1103,7 +1103,7 @@ export const setupEventListeners = () => {
                 await loginWithEmailPassword(email, password);
                 hideAuthModal();
             } catch (error) {
-                showAuthError('login', error.message || 'Login failed.');
+                showAuthError('login', error.message || 'Error al iniciar sesión.');
             }
         });
 
@@ -1114,7 +1114,7 @@ export const setupEventListeners = () => {
             const password = document.getElementById('register-password').value.trim();
 
             if (!email || !password) {
-                showAuthError('register', 'Please fill in all fields.');
+                showAuthError('register', 'Por favor, rellena todos los campos.');
                 return;
             }
 
@@ -1122,7 +1122,7 @@ export const setupEventListeners = () => {
                 await registerWithEmailPassword(email, password);
                 hideAuthModal();
             } catch (error) {
-                showAuthError('register', error.message || 'Registration failed.');
+                showAuthError('register', error.message || 'Error al registrarse.');
             }
         });
 
@@ -1132,7 +1132,7 @@ export const setupEventListeners = () => {
                 await loginWithGoogle();
                 hideAuthModal();
             } catch (error) {
-                showAuthError('login', error.message || 'Google login failed.');
+                showAuthError('login', error.message || 'Error al iniciar sesión con Google.');
             }
         });
 
@@ -1210,20 +1210,6 @@ export const setupEventListeners = () => {
 
         // Roster and Stored Equipment Clicks
         document.getElementById('warband-editor-view').addEventListener('click', (e) => {
-            const ruleSpan = e.target.closest('[data-rule]');
-            if (ruleSpan) {
-                const ruleName = ruleSpan.dataset.rule;
-                const ruleData = SPECIAL_RULES_DETAILS.find(r => r.name === ruleName);
-
-                if (ruleData) {
-                    const spanishSummary = getSpecialRuleSummary(ruleData.name);
-                    document.getElementById('rule-details-title').textContent = translateSpecialRule(ruleData.name);
-                    document.getElementById('rule-details-content').innerHTML = spanishSummary?.full || ruleData.rules;
-                    displayModal('rule-details-modal');
-                }
-                return;
-            }
-
             const equipmentSpan = e.target.closest('[data-equipment-name]');
             if (equipmentSpan) {
                 const equipmentName = equipmentSpan.dataset.equipmentName;
@@ -1363,17 +1349,11 @@ export const setupEventListeners = () => {
             }
         });
 
-        // Modal equipment category select change handler
-        document.getElementById('modal-equipment-category-select').addEventListener('change', renderModalEquipmentOptions);
-
         // Equipment Details Modal Close Button
         document.getElementById('close-equipment-details-btn').addEventListener('click', () => hideModal('equipment-details-modal'));
 
         // House Rules Modal Close Button
         document.getElementById('close-house-rules-btn').addEventListener('click', () => hideModal('house-rules-modal'));
-
-        // Confirmation Modal Cancel Button
-        document.getElementById('cancel-confirmation-btn').addEventListener('click', () => hideModal('confirmation-modal'));
 
         // Blog Link and Modal
         document.getElementById('blog-link')?.addEventListener('click', () => {
@@ -1680,39 +1660,42 @@ export const setupEventListeners = () => {
         });
 
         // Experience Options Event Handlers
+        const isBattleResultSelected = (text) =>
+            Boolean(text && text !== 'Select battle result to continue' && text !== 'Selecciona el resultado de la batalla para continuar');
+
         document.getElementById('xp-survival').addEventListener('change', () => {
-            const battleResultText = document.getElementById('battle-result-text').textContent;
-            if (battleResultText && battleResultText !== 'Select battle result to continue') {
+            const battleResultText = document.getElementById('battle-result-text').textContent.trim();
+            if (isBattleResultSelected(battleResultText)) {
                 renderExperienceSection();
             }
         });
         
         document.getElementById('xp-winning-leader').addEventListener('change', () => {
-            const battleResultText = document.getElementById('battle-result-text').textContent;
-            if (battleResultText && battleResultText !== 'Select battle result to continue') {
+            const battleResultText = document.getElementById('battle-result-text').textContent.trim();
+            if (isBattleResultSelected(battleResultText)) {
                 renderExperienceSection();
             }
         });
         
         document.getElementById('xp-per-enemy').addEventListener('change', () => {
-            const battleResultText = document.getElementById('battle-result-text').textContent;
-            if (battleResultText && battleResultText !== 'Select battle result to continue') {
+            const battleResultText = document.getElementById('battle-result-text').textContent.trim();
+            if (isBattleResultSelected(battleResultText)) {
                 renderExperienceSection();
             }
         });
         
         document.getElementById('xp-underdog').addEventListener('change', () => {
             updateUnderdogRatingDisplay();
-            const battleResultText = document.getElementById('battle-result-text').textContent;
-            if (battleResultText && battleResultText !== 'Select battle result to continue') {
+            const battleResultText = document.getElementById('battle-result-text').textContent.trim();
+            if (isBattleResultSelected(battleResultText)) {
                 renderExperienceSection();
             }
         });
         
         document.getElementById('opponent-rating').addEventListener('input', () => {
             updateUnderdogRatingDisplay();
-            const battleResultText = document.getElementById('battle-result-text').textContent;
-            if (battleResultText && battleResultText !== 'Select battle result to continue') {
+            const battleResultText = document.getElementById('battle-result-text').textContent.trim();
+            if (isBattleResultSelected(battleResultText)) {
                 renderExperienceSection();
             }
         });
@@ -1847,26 +1830,6 @@ export const setupSkillSelectionEvents = () => {
 /** Setup modal event handlers using event delegation */
 export const setupModalEvents = () => {
     document.addEventListener('click', (e) => {
-        // Casualty modal buttons
-        if (e.target.id === 'casualty-yes-btn') {
-            const modal = document.getElementById('casualty-modal');
-            const fighterId = modal?.dataset.fighterId;
-            if (fighterId) {
-                applyCasualty(fighterId);
-                modal.remove();
-            }
-        }
-        
-        if (e.target.id === 'casualty-no-btn') {
-            const modal = document.getElementById('casualty-modal');
-            modal.remove();
-        }
-        
-        if (e.target.id === 'close-casualty-modal-btn') {
-            const modal = document.getElementById('casualty-modal');
-            modal.remove();
-        }
-        
         // Generic modal close buttons (for consistency)
         if (e.target.classList.contains('modal-close')) {
             const modal = e.target.closest('.modal');

@@ -4,7 +4,10 @@
  * always run the latest version without aggressive browser caching issues.
  */
 (function() {
-    const CURRENT_VERSION = '1.0.3';
+    const CURRENT_VERSION = '1.0.4';
+    const SCRIPT_BASE_URL = (document.currentScript && document.currentScript.src)
+        ? new URL('.', document.currentScript.src).href
+        : new URL('.', window.location.href).href;
     let isChecking = false;
     let toastShown = false;
 
@@ -52,22 +55,22 @@
                 <div class="flex items-center space-x-2.5">
                     <span class="text-[#c5a059] text-xl"><i class="fas fa-sparkles"></i></span>
                     <h4 class="font-bold text-sm sm:text-base text-yellow-100 font-['Cinzel',serif] tracking-wide">
-                        Nova Versió Disponible
+                        Nueva Versión Disponible
                     </h4>
                 </div>
-                <button type="button" id="dismiss-update-btn" class="text-slate-400 hover:text-white text-sm p-1 transition" title="Tancar">
+                <button type="button" id="dismiss-update-btn" class="text-slate-400 hover:text-white text-sm p-1 transition" title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
-                S'ha publicat la versió <strong class="text-[#dfbc77]">v${newVersion}</strong> amb millores i correccions. Actualitza per aplicar els canvis.
+                Se ha publicado la versión <strong class="text-[#dfbc77]">v${newVersion}</strong> con mejoras y correcciones. Actualiza para aplicar los cambios.
             </p>
             <div class="flex justify-end items-center space-x-2 pt-1">
                 <button type="button" id="dismiss-update-btn-secondary" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition">
-                    Més tard
+                    Más tarde
                 </button>
                 <button type="button" id="apply-update-btn" class="px-4 py-1.5 bg-[#c5a059] hover:bg-[#dfbc77] text-slate-950 font-bold rounded-lg text-xs transition flex items-center shadow cursor-pointer">
-                    <i class="fas fa-sync-alt mr-1.5"></i> Actualitzar Ara
+                    <i class="fas fa-sync-alt mr-1.5"></i> Actualizar Ahora
                 </button>
             </div>
         `;
@@ -76,7 +79,7 @@
 
         const executeUpdate = async () => {
             const btn = document.getElementById('apply-update-btn');
-            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Actualitzant...';
+            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Actualizando...';
             await applyUpdate(newVersion);
         };
 
@@ -91,7 +94,9 @@
 
         try {
             // Cache-busting fetch that cannot be cached by mobile browsers or proxies
-            const res = await fetch('version.json?_t=' + Date.now(), {
+            const versionUrl = new URL('version.json', SCRIPT_BASE_URL);
+            versionUrl.searchParams.set('_t', Date.now().toString());
+            const res = await fetch(versionUrl.toString(), {
                 cache: 'no-store',
                 headers: { 'Cache-Control': 'no-cache, no-store' }
             });
@@ -103,7 +108,7 @@
             const storedVersion = localStorage.getItem('grimheim_app_version');
 
             if (remoteVersion && remoteVersion !== CURRENT_VERSION) {
-                console.log(`[VersionChecker] Nova versió disponible: ${remoteVersion} (actual: ${CURRENT_VERSION})`);
+                console.log(`[VersionChecker] Nueva versión disponible: ${remoteVersion} (actual: ${CURRENT_VERSION})`);
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentVParam = urlParams.get('_v');
