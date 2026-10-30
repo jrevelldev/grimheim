@@ -4,7 +4,7 @@
  * always run the latest version without aggressive browser caching issues.
  */
 (function() {
-    const CURRENT_VERSION = '1.0.4';
+    const CURRENT_VERSION = '1.0.5';
     const SCRIPT_BASE_URL = (document.currentScript && document.currentScript.src)
         ? new URL('.', document.currentScript.src).href
         : new URL('.', window.location.href).href;
@@ -33,14 +33,24 @@
 
     // Force an immediate reload with a cache-busting timestamp/version
     async function applyUpdate(targetVersion) {
+        const versionToApply = targetVersion || CURRENT_VERSION;
         await purgeCaches();
-        localStorage.setItem('grimheim_app_version', targetVersion);
+        try {
+            // Force browser HTTP disk cache to overwrite the current HTML document
+            await fetch(window.location.pathname, { cache: 'reload', credentials: 'same-origin' });
+        } catch (e) {
+            // Ignore network errors
+        }
+        localStorage.setItem('grimheim_app_version', versionToApply);
         
         const url = new URL(window.location.href);
-        url.searchParams.set('_v', targetVersion);
+        url.searchParams.set('_v', versionToApply);
         url.searchParams.set('_t', Date.now().toString());
         window.location.replace(url.toString());
     }
+
+    // Expose manual force-update helper for UI buttons
+    window.forceAppUpdate = () => applyUpdate(CURRENT_VERSION);
 
     // Display a sleek, themed update toast if an update happens while the user is actively working
     function showUpdateToast(newVersion) {
@@ -139,13 +149,20 @@
         checkVersion(true);
     }
 
-    // 2. Check whenever user returns to the tab or unlocks phone
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-            checkVersion(false);
+    // 2. Check when mobile browser restores page from BFCache (iOS Safari / Mobile Chrome)
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            checkVersion(true);
         }
     });
 
-    // 3. Periodic check every 15 minutes
-    setInterval(() => checkVersion(false), 15 * 60 * 1000);
+    // 3. Check whenever user returns to the tab or unlocks phone
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            checkVersion(true);
+        }
+    });
+
+    // 4. Periodic check every 5 minutes
+    setInterval(() => checkVersion(false), 5 * 60 * 1000);
 })();
