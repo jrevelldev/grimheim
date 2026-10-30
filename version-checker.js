@@ -4,7 +4,7 @@
  * always run the latest version without aggressive browser caching issues.
  */
 (function() {
-    const CURRENT_VERSION = '1.0.6';
+    const CURRENT_VERSION = '1.0.7';
     const SCRIPT_BASE_URL = (document.currentScript && document.currentScript.src)
         ? new URL('.', document.currentScript.src).href
         : new URL('.', window.location.href).href;

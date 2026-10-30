@@ -259,25 +259,7 @@ export function matchesFighterType(mType, targetType) {
 export function getWarbandCatalog(fighterType = null) {
     const groups = [];
 
-    // Official Warbands grouped by grade (Core Warbands, Grade 1a, Grade 1b, etc.)
-    WARBANDS.forEach(category => {
-        const warbands = category.warbands || [];
-        if (warbands.length > 0) {
-            const groupName = translateGrade(category.grade) || category.grade || 'Bandas Oficiales';
-
-            groups.push({
-                group: groupName,
-                items: warbands.map(wb => ({
-                    key: `wb_${wb.name}`,
-                    name: translateWarband(wb.name),
-                    type: 'official',
-                    raw: wb
-                }))
-            });
-        }
-    });
-
-    // Saved Warbands from local storage (only include if they contain fighters of the requested type)
+    // Saved Warbands first (only include if they contain fighters of the requested type)
     const saved = getSavedWarbandsList();
     if (saved.length > 0) {
         const filteredSaved = saved.filter(w => {
@@ -298,6 +280,24 @@ export function getWarbandCatalog(fighterType = null) {
             });
         }
     }
+
+    // Official Warbands grouped by grade (Core Warbands, Grade 1a, Grade 1b, etc.)
+    WARBANDS.forEach(category => {
+        const warbands = category.warbands || [];
+        if (warbands.length > 0) {
+            const groupName = translateGrade(category.grade) || category.grade || 'Bandas Oficiales';
+
+            groups.push({
+                group: groupName,
+                items: warbands.map(wb => ({
+                    key: `wb_${wb.name}`,
+                    name: translateWarband(wb.name),
+                    type: 'official',
+                    raw: wb
+                }))
+            });
+        }
+    });
 
     // Auxiliary / Unrestricted Categories based on fighterType
     if (fighterType === 'Hired Sword') {
