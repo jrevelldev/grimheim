@@ -71,6 +71,8 @@ const initFirebase = (onAuthStateChangedCallback) => {
             auth = getAuth(app);
             db = getFirestore(app);
 
+            let initialResolved = false;
+
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
@@ -83,12 +85,14 @@ const initFirebase = (onAuthStateChangedCallback) => {
                 if (typeof onAuthStateChangedCallback === 'function') {
                     onAuthStateChangedCallback(user);
                 }
+                if (!initialResolved) {
+                    initialResolved = true;
+                    resolve({ db, auth, user });
+                }
             });
-
-            resolve({ db, auth });
         } catch (err) {
             console.error("Error al inicializar Firebase SDK:", err);
-            resolve({ db: null, auth: null });
+            resolve({ db: null, auth: null, user: null });
         }
     });
 };

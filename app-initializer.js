@@ -52,8 +52,12 @@ export const initializeAppAndData = async () => {
                         is_superuser: false
                     });
                     hideBlockingLoginScreen();
+                    unsubscribeFromWarbands();
+                    listenToWarbands();
                 } else {
                     applyLocalOrGuestAuthFallback();
+                    unsubscribeFromWarbands();
+                    listenToWarbands();
                 }
             },
             (error) => {

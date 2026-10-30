@@ -31,6 +31,8 @@ let warbandsUnsubscribe = null;
 
 /** Listens for real-time updates to the warbands collection */
 export const listenToWarbands = () => {
+    unsubscribeFromWarbands();
+
     if (useLocalStorage) {
         const localWarbands = JSON.parse(localStorage.getItem('mordheim_warbands')) || [];
         // Add storage location to local storage warbands
