@@ -262,10 +262,12 @@ const server = http.createServer(async (req, res) => {
             const ext = path.extname(filePath).toLowerCase();
             const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-            // Cache static assets locally for fast reloads
+            // Disable caching so edits are immediately visible on refresh
             res.writeHead(200, {
                 'Content-Type': contentType,
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
             });
             res.end(content);
         });

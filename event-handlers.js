@@ -199,14 +199,8 @@ export const setupEventListeners = () => {
         // Function to switch to members tab
         const switchToMembersTab = () => {
             if (mobileMembersTab && mobileManagementTab && mobileMembersContent && mobileManagementContent && isMobile()) {
-                // Update tab styling
-                mobileMembersTab.classList.add('mobile-tab-active');
-                mobileMembersTab.classList.remove('bg-slate-700', 'text-white');
-                mobileMembersTab.classList.add('bg-mordheim-gold', 'text-slate-900');
-                
-                mobileManagementTab.classList.remove('mobile-tab-active');
-                mobileManagementTab.classList.remove('bg-mordheim-gold', 'text-slate-900');
-                mobileManagementTab.classList.add('bg-slate-700', 'text-white');
+                mobileMembersTab.className = 'mobile-tab-active flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg bg-amber-500/20 text-amber-200 border border-amber-500/40 transition flex items-center justify-center gap-2 shadow-xs';
+                mobileManagementTab.className = 'flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg bg-transparent text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-2';
                 
                 // Show/hide content with !important to override CSS (only on mobile)
                 mobileMembersContent.style.setProperty('display', 'block', 'important');
@@ -217,14 +211,8 @@ export const setupEventListeners = () => {
         // Function to switch to management tab
         const switchToManagementTab = () => {
             if (mobileMembersTab && mobileManagementTab && mobileMembersContent && mobileManagementContent && isMobile()) {
-                // Update tab styling
-                mobileManagementTab.classList.add('mobile-tab-active');
-                mobileManagementTab.classList.remove('bg-slate-700', 'text-white');
-                mobileManagementTab.classList.add('bg-mordheim-gold', 'text-slate-900');
-                
-                mobileMembersTab.classList.remove('mobile-tab-active');
-                mobileMembersTab.classList.remove('bg-mordheim-gold', 'text-slate-900');
-                mobileMembersTab.classList.add('bg-slate-700', 'text-white');
+                mobileManagementTab.className = 'mobile-tab-active flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg bg-amber-500/20 text-amber-200 border border-amber-500/40 transition flex items-center justify-center gap-2 shadow-xs';
+                mobileMembersTab.className = 'flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg bg-transparent text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-2';
                 
                 // Show/hide content with !important to override CSS (only on mobile)
                 mobileManagementContent.style.setProperty('display', 'block', 'important');
@@ -258,6 +246,12 @@ export const setupEventListeners = () => {
         window.addEventListener('resize', () => {
             if (!isMobile()) {
                 resetDesktopLayout();
+            } else {
+                if (mobileManagementTab?.classList.contains('mobile-tab-active')) {
+                    switchToManagementTab();
+                } else {
+                    switchToMembersTab();
+                }
             }
         });
 
@@ -304,8 +298,19 @@ export const setupEventListeners = () => {
         const triggerImport = () => {
             if (fileInput) fileInput.click();
         };
+        const closeMobileDrawer = () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            if (mobileMenu) mobileMenu.classList.add('hidden');
+            if (mobileMenuBtn) mobileMenuBtn.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open');
+        };
+
         document.getElementById('import-warband-btn')?.addEventListener('click', triggerImport);
-        document.getElementById('import-warband-btn-mobile')?.addEventListener('click', triggerImport);
+        document.getElementById('import-warband-btn-mobile')?.addEventListener('click', () => {
+            closeMobileDrawer();
+            triggerImport();
+        });
         document.getElementById('quick-import-btn')?.addEventListener('click', triggerImport);
 
         fileInput?.addEventListener('change', (e) => {
@@ -317,7 +322,10 @@ export const setupEventListeners = () => {
 
         const exportAll = () => exportAllWarbandsJSON();
         document.getElementById('export-all-btn')?.addEventListener('click', exportAll);
-        document.getElementById('export-all-btn-mobile')?.addEventListener('click', exportAll);
+        document.getElementById('export-all-btn-mobile')?.addEventListener('click', () => {
+            closeMobileDrawer();
+            exportAll();
+        });
         document.getElementById('quick-export-all-btn')?.addEventListener('click', exportAll);
 
         document.getElementById('export-current-warband-btn')?.addEventListener('click', () => {
@@ -966,25 +974,85 @@ export const setupEventListeners = () => {
         });
 
         // New Warband Modal Buttons
-        document.getElementById('cancel-new-warband-btn').addEventListener('click', () => hideModal('new-warband-modal'));
-        document.getElementById('create-warband-confirm-btn').addEventListener('click', async () => {
-            console.log('Create Warband button clicked');
-            const name = document.getElementById('new-warband-name').value.trim();
-            const type = document.getElementById('new-warband-type').value.trim();
-            console.log('New Warband Name:', name, 'Type:', type);
+        const closeNewWarband = () => hideModal('new-warband-modal');
+        document.getElementById('cancel-new-warband-btn')?.addEventListener('click', closeNewWarband);
+        document.getElementById('close-new-warband-x-btn')?.addEventListener('click', closeNewWarband);
 
-            // Intercept Ostermark creation to show skill set selection modal
-            if (type === 'Mercenaries (Ostermark)') {
-                const skillSet = await showOstermarkSkillSetModal();
-                if (!skillSet) {
-                    // User cancelled — do not create the warband
-                    return;
+        const handleCreateWarbandSubmit = async () => {
+            const nameInput = document.getElementById('new-warband-name');
+            const typeInput = document.getElementById('new-warband-type');
+            const createBtn = document.getElementById('create-warband-confirm-btn');
+            const valMsg = document.getElementById('new-warband-validation-msg');
+            const valText = document.getElementById('new-warband-validation-text');
+
+            if (!nameInput || !typeInput || !createBtn) return;
+
+            const name = nameInput.value.trim();
+            const type = typeInput.value.trim();
+
+            if (!name) {
+                if (valMsg && valText) {
+                    valText.textContent = 'Por favor, introduce un nombre para tu banda.';
+                    valMsg.classList.remove('hidden');
                 }
-                await createNewWarband(name, type, hideModal, loadWarband, { skillSet });
-            } else {
-                await createNewWarband(name, type, hideModal, loadWarband);
+                nameInput.focus();
+                return;
             }
-            showEditorView(); // Automatically open the editor after creating and loading
+
+            if (!type) {
+                if (valMsg && valText) {
+                    valText.textContent = 'Por favor, selecciona un tipo de banda del listado.';
+                    valMsg.classList.remove('hidden');
+                }
+                document.getElementById('warband-selection-container')?.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            if (valMsg) valMsg.classList.add('hidden');
+
+            // Set loading state
+            createBtn.disabled = true;
+            createBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            const originalHTML = createBtn.innerHTML;
+            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Creando...</span>';
+
+            try {
+                // Intercept Ostermark creation to show skill set selection modal
+                if (type === 'Mercenaries (Ostermark)') {
+                    const skillSet = await showOstermarkSkillSetModal();
+                    if (!skillSet) {
+                        createBtn.disabled = false;
+                        createBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                        createBtn.innerHTML = originalHTML;
+                        return;
+                    }
+                    await createNewWarband(name, type, hideModal, loadWarband, { skillSet });
+                } else {
+                    await createNewWarband(name, type, hideModal, loadWarband);
+                }
+
+                // Automatically open the editor only if currentWarband was loaded
+                if (currentWarband) {
+                    showEditorView();
+                }
+            } catch (err) {
+                console.error('Error al crear la banda:', err);
+                showMessage('Error al crear la banda: ' + (err.message || err), 'error');
+            } finally {
+                createBtn.disabled = false;
+                createBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                createBtn.innerHTML = originalHTML;
+            }
+        };
+
+        document.getElementById('create-warband-confirm-btn')?.addEventListener('click', handleCreateWarbandSubmit);
+
+        // Allow Enter key in the warband name input
+        document.getElementById('new-warband-name')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleCreateWarbandSubmit();
+            }
         });
 
         // Rename Warband Modal Buttons

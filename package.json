@@ -1,6 +1,6 @@
 {
   "name": "grimheim-local",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Gestor de Bandas de Mordheim - Versión Local en Castellano",
   "main": "server.js",
   "type": "module",

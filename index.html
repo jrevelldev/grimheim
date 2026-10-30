@@ -3,7 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Grimheim - Gestor de Bandas de Mordheim</title>
     <meta name="description"
         content="Gestor y creador de bandas de Mordheim para juegos de tablero. Crea, gestiona y haz seguimiento de tus bandas, guerreros, equipo y progreso de campaña.">
@@ -40,14 +43,29 @@
 
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind = window.tailwind || {};
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'mordheim-gold': '#c5a059',
+                        'mordheim-gold-bright': '#dfbc77',
+                    }
+                }
+            }
+        };
+    </script>
     <!-- Load Inter & Cinzel fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Load Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
         xintegrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="print.css" media="print">
-    <link rel="stylesheet" href="Cards/cards.css">
+    <link rel="stylesheet" href="styles.css?v=1.0.3">
+    <link rel="stylesheet" href="print.css?v=1.0.3" media="print">
+    <link rel="stylesheet" href="Cards/cards.css?v=1.0.3">
+    <!-- Automatic Version & Cache Management -->
+    <script src="version-checker.js?v=1.0.3"></script>
 
     <script type="application/ld+json">
     {
@@ -97,7 +115,7 @@
     <!-- Hidden main house rule toggle for state management -->
     <input type="checkbox" id="house-rule-toggle" class="hidden">
 
-    <div id="app" class="max-w-7xl mx-auto p-4 md:p-8">
+    <div id="app" class="max-w-7xl mx-auto p-2.5 sm:p-4 md:p-8">
         <!-- Header -->
         <header id="main-header" class="header-bg p-4 rounded-t-xl shadow-lg mb-6 relative">
             <div class="beta-build hidden sm:inline-flex">v1.0 Beta</div>
@@ -376,8 +394,8 @@
                     <!-- Warbands will be listed here -->
                 </div>
                 <button id="create-new-warband-btn" type="button"
-                    class="mt-5 w-full py-3 px-4 bg-slate-800 hover:bg-slate-750 text-amber-100/90 hover:text-white font-semibold text-xs sm:text-sm rounded-xl transition duration-150 border border-amber-600/35 hover:border-amber-500/50 shadow-sm flex items-center justify-center gap-2 tracking-wide uppercase hover:bg-slate-700/90">
-                    <i class="fas fa-plus-circle text-sm text-amber-300/80"></i>
+                    class="mt-5 w-full py-3.5 px-4 bg-gradient-to-r from-slate-800 to-slate-750 hover:from-slate-750 hover:to-slate-700 text-amber-200 hover:text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 border border-amber-600/40 hover:border-amber-500/60 shadow-md flex items-center justify-center gap-2 tracking-wide uppercase">
+                    <i class="fas fa-plus-circle text-sm text-amber-300"></i>
                     <span>Crear Nueva Banda</span>
                 </button>
             </div>
@@ -385,17 +403,17 @@
             <!-- Warband Editor/Viewer (Hidden by default) -->
             <div id="warband-editor-view" class="hidden">
                 <!-- Top Action Breadcrumb & Toolbar -->
-                <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
-                    <button id="back-to-warbands-btn" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-750 transition text-xs sm:text-sm font-medium shadow-xs">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                    <button id="back-to-warbands-btn" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-750 transition text-xs sm:text-sm font-medium shadow-xs">
                         <i class="fas fa-arrow-left text-xs text-amber-300/80"></i> <span class="hidden sm:inline">Volver a la Lista de Bandas</span><span class="sm:hidden">Lista</span>
                     </button>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <button id="turn-actions-btn"
-                            class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs sm:text-sm font-medium rounded-xl border border-slate-750 hover:border-slate-650 transition shadow-xs flex items-center gap-1.5">
+                            class="px-3 sm:px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs sm:text-sm font-medium rounded-xl border border-slate-750 hover:border-slate-650 transition shadow-xs flex items-center gap-1.5">
                             <i class="fas fa-hourglass-half text-xs text-slate-400"></i> <span>Acciones de Turno</span>
                         </button>
                         <button id="battle-view-btn"
-                            class="px-4 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 hover:text-white text-xs sm:text-sm font-semibold rounded-xl border border-amber-500/40 hover:border-amber-400/60 transition shadow-xs flex items-center gap-2">
+                            class="px-3.5 sm:px-4 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 hover:text-white text-xs sm:text-sm font-semibold rounded-xl border border-amber-500/40 hover:border-amber-400/60 transition shadow-xs flex items-center gap-1.5 sm:gap-2">
                             <i class="fas fa-khanda text-xs"></i> <span>Modo Batalla</span>
                         </button>
                         <!-- Options Dropdown -->
@@ -459,8 +477,8 @@
                         </div>
                     </div>
                     <!-- Right KPI Metrics Group -->
-                    <div class="flex items-center gap-3 self-end md:self-center">
-                        <div id="warband-rating-label" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-750 hover:border-amber-500/40 transition cursor-pointer shadow-inner" title="Ver desglose de valoración">
+                    <div class="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3 w-full md:w-auto">
+                        <div id="warband-rating-label" class="flex-1 sm:flex-initial flex items-center gap-3 px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-750 hover:border-amber-500/40 transition cursor-pointer shadow-inner" title="Ver desglose de valoración">
                             <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-300 flex-shrink-0">
                                 <i class="fas fa-trophy text-xs"></i>
                             </div>
@@ -469,7 +487,7 @@
                                 <span id="warband-rating" class="text-lg sm:text-xl font-bold text-amber-200/95 leading-tight">0</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-750 shadow-inner">
+                        <div class="flex-1 sm:flex-initial flex items-center gap-3 px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-750 shadow-inner">
                             <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-300 flex-shrink-0">
                                 <i class="fas fa-coins text-xs"></i>
                             </div>
@@ -482,27 +500,27 @@
                 </div>
 
                 <!-- Mobile Tab Navigation (Hidden on Desktop) -->
-                <div class="lg:hidden flex border-b border-slate-700 mb-4">
-                    <button id="mobile-members-tab"
-                        class="flex-1 px-4 py-2 bg-mordheim-gold text-slate-900 font-medium rounded-t-md transition-colors">
-                        <i class="fas fa-users mr-2"></i>Miembros
+                <div class="lg:hidden p-1 bg-slate-900/90 border border-slate-750 rounded-xl mb-4 flex gap-1 shadow-inner">
+                    <button id="mobile-members-tab" type="button"
+                        class="mobile-tab-active flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg bg-amber-500/20 text-amber-200 border border-amber-500/40 transition flex items-center justify-center gap-2 shadow-xs">
+                        <i class="fas fa-users text-xs"></i><span>Miembros</span>
                     </button>
-                    <button id="mobile-management-tab"
-                        class="flex-1 px-4 py-2 bg-slate-700 text-white font-medium rounded-t-md hover:bg-slate-600 transition-colors">
-                        <i class="fas fa-cog mr-2"></i>Gestión
+                    <button id="mobile-management-tab" type="button"
+                        class="flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg bg-transparent text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-2">
+                        <i class="fas fa-sliders-h text-xs"></i><span>Gestión</span>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Left Column: Roster List -->
                     <div id="mobile-members-content"
-                        class="lg:col-span-2 bg-slate-850/50 border border-slate-750/70 p-5 sm:p-6 rounded-2xl shadow-xl backdrop-blur-sm custom-scroll max-h-[100vh] overflow-y-auto">
-                        <div class="flex flex-wrap justify-between items-center gap-3 mb-5 border-b pb-3.5 border-slate-750/70">
-                            <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2.5">
+                        class="lg:col-span-2 bg-slate-850/50 border border-slate-750/70 p-3.5 sm:p-6 rounded-2xl shadow-xl backdrop-blur-sm custom-scroll lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto">
+                        <div class="flex flex-wrap justify-between items-center gap-2.5 mb-4 border-b pb-3 border-slate-750/70">
+                            <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
                                 <i class="fas fa-users text-amber-300/80 text-sm"></i>
                                 <span>Miembros de la Banda</span>
                             </h3>
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                                 <!-- Roster Toolset Segment -->
                                 <div class="inline-flex items-center rounded-lg bg-slate-900 border border-slate-750 p-0.5 shadow-xs">
                                     <button id="change-order-btn"
@@ -974,25 +992,64 @@
     <!-- Modals -->
     <!-- New Warband Modal -->
     <div id="new-warband-modal"
-        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
-            <h3 class="text-2xl font-bold mb-4 text-mordheim-gold">Crear Nueva Banda</h3>
-            <p class="text-sm text-amber-400/90 mb-4">(Este sitio está en desarrollo; si encuentras algún error o sugerencia, por favor avísanos en la sección de comentarios.)</p>
-            <label class="block mb-2 text-slate-300">Nombre de la Banda</label>
-            <input type="text" id="new-warband-name"
-                class="w-full p-3 mb-4 rounded-lg bg-slate-800 border border-slate-600 text-white"
-                placeholder="Los Filos del Vidente Gris">
-            <label class="block mb-2 text-slate-300">Tipo de Banda</label>
-            <div id="warband-selection-container" class="mb-6 max-h-60 overflow-y-auto custom-scroll">
-                <!-- Grade sections will be populated by ui.js -->
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-2 sm:p-4 z-50">
+        <div class="bg-slate-700 p-4 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] max-h-[90dvh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-slate-600/80 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-shield-alt text-amber-400 text-lg"></i>
+                    <h3 class="text-xl sm:text-2xl font-bold text-mordheim-gold">Crear Nueva Banda</h3>
+                </div>
+                <button id="close-new-warband-x-btn" type="button" class="text-slate-400 hover:text-white transition p-1 rounded-lg hover:bg-slate-600/50"
+                    title="Cerrar">
+                    <i class="fas fa-times text-base"></i>
+                </button>
             </div>
-            <input type="hidden" id="new-warband-type" value="">
 
-            <div class="flex justify-end space-x-3">
-                <button id="cancel-new-warband-btn"
-                    class="py-2 px-4 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition">Cancelar</button>
-                <button id="create-warband-confirm-btn"
-                    class="py-2 px-4 bg-mordheim-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-600 transition">Crear</button>
+            <!-- Modal Body (Scrollable) -->
+            <div class="flex-1 overflow-y-auto custom-scroll space-y-3.5 pr-0.5 mb-3 min-h-0">
+                <div>
+                    <label for="new-warband-name" class="block text-xs uppercase tracking-wider font-semibold mb-1 text-slate-300">
+                        Nombre de la Banda <span class="text-amber-400">*</span>
+                    </label>
+                    <input type="text" id="new-warband-name"
+                        class="w-full p-2.5 sm:p-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-amber-400/80 text-white placeholder-slate-500 text-sm"
+                        placeholder="Los Filos del Vidente Gris"
+                        autocomplete="off">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300">
+                            Tipo de Banda <span class="text-amber-400">*</span>
+                        </label>
+                        <span id="selected-warband-type-pill" class="hidden text-[11px] font-medium text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full truncate max-w-[190px]">
+                        </span>
+                    </div>
+                    <div id="warband-selection-container" class="max-h-52 sm:max-h-60 overflow-y-auto custom-scroll rounded-lg border border-slate-600/70 bg-slate-800/50">
+                        <!-- Grade sections will be populated by ui.js -->
+                    </div>
+                    <input type="hidden" id="new-warband-type" value="">
+                </div>
+
+                <div id="new-warband-validation-msg" class="hidden text-xs text-rose-300 bg-rose-500/15 border border-rose-500/30 px-3 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle flex-shrink-0 text-rose-400"></i>
+                    <span id="new-warband-validation-text">Por favor, rellena todos los campos obligatorios.</span>
+                </div>
+            </div>
+
+            <!-- Modal Footer (Sticky) -->
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-600/80 flex-shrink-0">
+                <button id="cancel-new-warband-btn" type="button"
+                    class="py-2.5 px-4 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg transition text-xs sm:text-sm">
+                    Cancelar
+                </button>
+                <button id="create-warband-confirm-btn" type="button"
+                    class="py-2.5 px-5 bg-mordheim-gold hover:bg-yellow-500 text-slate-950 font-bold rounded-lg shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    <i class="fas fa-plus-circle text-xs"></i>
+                    <span>Crear</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1502,16 +1559,16 @@
                 </button>
             </div>
 
-            <div class="flex justify-between items-center mb-2">
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
                 <p class="text-xs uppercase text-slate-400">Equipo Actual <span id="gear-equipment-total"
                         class="normal-case"></span></p>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <button id="gear-reorder-btn" type="button"
-                        class="py-1 px-3 bg-slate-600 text-white text-xs font-semibold rounded-lg hover:bg-slate-500 transition shadow-md">
-                        <i class="fas fa-sort"></i> Reorder
+                        class="py-1 px-2.5 sm:px-3 bg-slate-600 text-white text-xs font-semibold rounded-lg hover:bg-slate-500 transition shadow-md">
+                        <i class="fas fa-sort"></i> Ordenar
                     </button>
                     <button id="gear-buy-btn" type="button"
-                        class="py-1 px-3 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition shadow-md">
+                        class="py-1 px-2.5 sm:px-3 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition shadow-md">
                         <i class="fas fa-plus"></i> Comprar Equipo
                     </button>
                 </div>
@@ -1891,20 +1948,20 @@
     </script>
 
     <!-- Firebase Script Block -->
-    <script type="module" src="hiring-validation.js"></script>
-    <script type="module" src="firebase.js"></script>
-    <script type="module" src="firebase-logic.js"></script>
-    <script type="module" src="equipment-management.js"></script>
-    <script type="module" src="print-warband.js"></script>
-    <script type="module" src="ui.js"></script>
-    <script type="module" src="Treasury/sell-treasure-modal.js"></script>
-    <script type="module" src="End Battle/replenish-henchmen-modal.js"></script>
-    <script type="module" src="End Battle/end-battle-state.js"></script>
-    <script type="module" src="End Battle/end-battle-hub.js"></script>
-    <script type="module" src="End Battle/end-battle-steps.js"></script>
-    <script type="module" src="Henchmen_Group_Mgmt/henchmen-group-mgmt.js"></script>
-    <script type="module" src="Cards/card-builder.js"></script>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="hiring-validation.js?v=1.0.3"></script>
+    <script type="module" src="firebase.js?v=1.0.3"></script>
+    <script type="module" src="firebase-logic.js?v=1.0.3"></script>
+    <script type="module" src="equipment-management.js?v=1.0.3"></script>
+    <script type="module" src="print-warband.js?v=1.0.3"></script>
+    <script type="module" src="ui.js?v=1.0.3"></script>
+    <script type="module" src="Treasury/sell-treasure-modal.js?v=1.0.3"></script>
+    <script type="module" src="End Battle/replenish-henchmen-modal.js?v=1.0.3"></script>
+    <script type="module" src="End Battle/end-battle-state.js?v=1.0.3"></script>
+    <script type="module" src="End Battle/end-battle-hub.js?v=1.0.3"></script>
+    <script type="module" src="End Battle/end-battle-steps.js?v=1.0.3"></script>
+    <script type="module" src="Henchmen_Group_Mgmt/henchmen-group-mgmt.js?v=1.0.3"></script>
+    <script type="module" src="Cards/card-builder.js?v=1.0.3"></script>
+    <script type="module" src="app.js?v=1.0.3"></script>
     <script type="module">
         import { setupEventListeners } from './event-handlers.js';
         import { initSystemAuth } from './auth-client.js';
@@ -2730,10 +2787,10 @@
         </div>
     </div>
 
-    <script type="module" src="character-review-modal.js"></script>
-    <script type="module" src="special-rules-modal.js"></script>
-    <script type="module" src="rules-modal.js"></script>
-    <script type="module" src="changelog-renderer.js"></script>
+    <script type="module" src="character-review-modal.js?v=1.0.3"></script>
+    <script type="module" src="special-rules-modal.js?v=1.0.3"></script>
+    <script type="module" src="rules-modal.js?v=1.0.3"></script>
+    <script type="module" src="changelog-renderer.js?v=1.0.3"></script>
 
     <!-- Special Thanks Modal -->
     <div id="special-thanks-modal"

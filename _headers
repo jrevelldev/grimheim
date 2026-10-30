@@ -1,0 +1,15 @@
+# Security & Cache-Control rules for Netlify / Cloudflare Pages
+
+# Default for HTML: always revalidate with server
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/exploration.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Version info: never cache
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate

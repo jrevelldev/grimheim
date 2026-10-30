@@ -64,7 +64,13 @@ export const listenToWarbands = () => {
         setWarbands(updatedWarbands || []);
         renderWarbandList(warbands);
         if (currentWarband && !warbands.find(w => w.id === currentWarband.id)) {
-            setCurrentWarband(showListView(warbands));
+            if (recentlyCreatedWarbandIds.has(currentWarband.id)) {
+                // Warband was just created and might not be in the initial snapshot yet; retain it
+                warbands.push(currentWarband);
+                renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+            } else {
+                setCurrentWarband(showListView(warbands));
+            }
         } else if (currentWarband) {
             setCurrentWarband(warbands.find(w => w.id === currentWarband.id) || currentWarband);
             renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
@@ -163,7 +169,19 @@ export const createNewWarband = async (name, type, hideModalCallback, loadWarban
 
         // Add to recently created set to prevent duplicate access tracking
         recentlyCreatedWarbandIds.add(warbandId);
-        setTimeout(() => recentlyCreatedWarbandIds.delete(warbandId), 2000); // Remove after 2 seconds
+        setTimeout(() => recentlyCreatedWarbandIds.delete(warbandId), 5000);
+
+        newWarbandData.id = warbandId;
+        newWarbandData._storageLocation = 'Cloud Firestore';
+        newWarbandData._isV2 = true;
+
+        // Immediately update in-memory warbands list so loadWarband can find it instantly
+        const existingIdx = warbands.findIndex(w => w.id === warbandId);
+        if (existingIdx !== -1) {
+            warbands[existingIdx] = newWarbandData;
+        } else {
+            warbands.push(newWarbandData);
+        }
 
         hideModalCallback('new-warband-modal');
         // Load the newly created warband
@@ -206,14 +224,23 @@ export const saveWarband = async function() {
     // Ensure pre_game field is maintained
     currentWarband.pre_game = currentWarband.pre_game !== false; // Default to true if not set
 
+    // Always keep in-memory warbands list in sync
+    const index = warbands.findIndex(w => w.id === currentWarband.id);
+    if (index !== -1) {
+        warbands[index] = currentWarband;
+    } else {
+        warbands.push(currentWarband);
+    }
+    try {
+        localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
+    } catch (e) {
+        console.warn("Error updating localStorage backup:", e);
+    }
+
+    // Always immediately update the UI so new fighters, equipment, or edits appear instantly
+    renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+
     if (useLocalStorage) {
-        const index = warbands.findIndex(w => w.id === currentWarband.id);
-        if (index !== -1) {
-            warbands[index] = currentWarband;
-            localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
-        }
-        // Manually update UI since there's no listener
-        renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
         return;
     }
 
@@ -227,7 +254,17 @@ export const saveWarband = async function() {
 
 /** Loads a warband into the editor view */
 export const loadWarband = (warbandId) => {
-    const warbandToLoad = warbands.find(w => w.id === warbandId);
+    let warbandToLoad = warbands.find(w => w.id === warbandId);
+    if (!warbandToLoad) {
+        // Fallback: check localStorage
+        try {
+            const local = JSON.parse(localStorage.getItem('mordheim_warbands')) || [];
+            warbandToLoad = local.find(w => w.id === warbandId);
+            if (warbandToLoad) {
+                warbands.push(warbandToLoad);
+            }
+        } catch (e) {}
+    }
     if (warbandToLoad) {
         setCurrentWarband(warbandToLoad);
 
@@ -330,13 +367,14 @@ export const confirmDeleteWarbandFromList = (warbandId, warbandName) => {
 
         if (useLocalStorage) {
             trackWarbandAction('deleted', warbandName, type, true);
-            setWarbands(warbands.filter(w => w.id !== warbandId));
-            localStorage.setItem('mordheim_warbands', JSON.stringify(warbands));
+            const updatedWarbands = warbands.filter(w => w.id !== warbandId);
+            setWarbands(updatedWarbands);
+            localStorage.setItem('mordheim_warbands', JSON.stringify(updatedWarbands));
             showMessage(`Banda "${warbandName}" eliminada con éxito.`);
             if (currentWarband && currentWarband.id === warbandId) {
-                setCurrentWarband(showListView(warbands));
+                setCurrentWarband(showListView(updatedWarbands));
             } else {
-                renderWarbandList(warbands);
+                renderWarbandList(updatedWarbands);
             }
             return;
         }
@@ -344,7 +382,18 @@ export const confirmDeleteWarbandFromList = (warbandId, warbandName) => {
         try {
             trackWarbandAction('deleted', warbandName, type, false);
             await firebaseDeleteWarband(warbandId);
+            
+            // Immediate state & UI update for cloud/authenticated users
+            const updatedWarbands = warbands.filter(w => w.id !== warbandId);
+            setWarbands(updatedWarbands);
+            localStorage.setItem('mordheim_warbands', JSON.stringify(updatedWarbands));
+            
             showMessage(`Banda "${warbandName}" eliminada con éxito.`);
+            if (currentWarband && currentWarband.id === warbandId) {
+                setCurrentWarband(showListView(updatedWarbands));
+            } else {
+                renderWarbandList(updatedWarbands);
+            }
         } catch (error) {
             console.error("Error deleting warband:", error);
             showMessage(`Error al eliminar la banda: ${error.message}`, 'error');
@@ -599,9 +648,21 @@ export const copyWarband = async (warbandId) => {
             
             // Add to recently created set to prevent duplicate access tracking
             recentlyCreatedWarbandIds.add(copiedWarband.id);
-            setTimeout(() => recentlyCreatedWarbandIds.delete(copiedWarband.id), 2000);
+            setTimeout(() => recentlyCreatedWarbandIds.delete(copiedWarband.id), 5000);
             
-            // Load the copied warband (the real-time listener will update the list)
+            copiedWarband._storageLocation = 'Cloud Firestore';
+            copiedWarband._isV2 = true;
+            const existingIdx = warbands.findIndex(w => w.id === copiedWarband.id);
+            if (existingIdx !== -1) {
+                warbands[existingIdx] = copiedWarband;
+            } else {
+                warbands.push(copiedWarband);
+            }
+
+            // Refresh the warband list to show the new copy
+            renderWarbandList(warbands);
+
+            // Load the copied warband
             loadWarband(copiedWarband.id);
         }
         

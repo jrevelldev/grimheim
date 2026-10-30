@@ -403,8 +403,8 @@ export const countItemInStorage = (warband, itemName) => {
 export const showMessage = (message, type = 'success') => {
     const box = document.getElementById('message-box');
     box.textContent = message;
-    box.className = `fixed bottom-4 right-4 p-3 rounded-lg shadow-xl transition-opacity duration-300 z-50`;
-    box.classList.add(type === 'success' ? 'bg-green-600' : 'bg-red-600');
+    box.className = `fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 max-w-[calc(100vw-2rem)] sm:max-w-md p-3.5 rounded-xl shadow-2xl transition-opacity duration-300 z-50 text-center sm:text-left font-medium`;
+    box.classList.add(type === 'success' ? 'bg-emerald-600' : 'bg-red-600');
     box.classList.remove('hidden', 'opacity-0');
     box.classList.add('opacity-100');
     setTimeout(() => {
@@ -422,12 +422,19 @@ export const displayModal = (id) => { // Renamed from showModal
         document.body.appendChild(modal);
         
         // Reset to original classes but ensure proper styling
-        modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-2 sm:p-4 z-50';
         // Clear any inline styles that might have been set by hideModal
         modal.style.display = 'flex';
         modal.style.visibility = 'visible';
         modal.style.removeProperty('display');
         modal.style.removeProperty('visibility');
+
+        // Lock background scroll and hide mobile menu button to prevent overlap
+        document.body.classList.add('modal-open');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.style.setProperty('display', 'none', 'important');
+        }
         
         // Only apply custom sizing to specific modals that need it
         if (modal.children.length > 0) {
@@ -657,6 +664,19 @@ export const hideModal = (id) => {
     } else {
         console.error('Modal not found with id:', id);
     }
+
+    // Check if any other modal is still visible
+    const anyModalOpen = Array.from(document.querySelectorAll('div[id$="-modal"], #system-login-overlay, #admin-users-modal')).some(m => {
+        return !m.classList.contains('hidden') && m.style.display !== 'none';
+    });
+
+    if (!anyModalOpen) {
+        document.body.classList.remove('modal-open');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.style.removeProperty('display');
+        }
+    }
 };
 
 /** Closes all navigation and options dropdown menus except the one specified */
@@ -695,17 +715,25 @@ export const closeAllDropdowns = (exceptId) => {
 /** Shows the new warband modal */
 export const showNewWarbandModal = () => {
     // Reset form fields
-    document.getElementById('new-warband-name').value = '';
-    document.getElementById('new-warband-type').value = '';
+    const nameInput = document.getElementById('new-warband-name');
+    const typeSelect = document.getElementById('new-warband-type');
+    const createBtn = document.getElementById('create-warband-confirm-btn');
+    const pill = document.getElementById('selected-warband-type-pill');
+    const valMsg = document.getElementById('new-warband-validation-msg');
+
+    if (nameInput) nameInput.value = '';
+    if (typeSelect) typeSelect.value = '';
+    if (pill) {
+        pill.textContent = '';
+        pill.classList.add('hidden');
+    }
+    if (valMsg) valMsg.classList.add('hidden');
+
     document.querySelectorAll('#warband-selection-container .warband-option.selected').forEach(opt => {
         opt.classList.remove('selected');
     });
     
     // Reset validation state
-    const createBtn = document.getElementById('create-warband-confirm-btn');
-    const nameInput = document.getElementById('new-warband-name');
-    const typeSelect = document.getElementById('new-warband-type');
-    
     if (createBtn) {
         createBtn.disabled = true;
         createBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -713,28 +741,34 @@ export const showNewWarbandModal = () => {
     
     // Check if we have valid inputs to enable the button
     const checkCreateButtonState = () => {
-        const isValidName = nameInput.value.trim().length > 0;
-        const isValidType = typeSelect.value.length > 0;
+        const isValidName = nameInput && nameInput.value.trim().length > 0;
+        const isValidType = typeSelect && typeSelect.value.trim().length > 0;
         const canCreate = isValidName && isValidType;
         
         if (createBtn) {
             createBtn.disabled = !canCreate;
             if (canCreate) {
                 createBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                if (valMsg) valMsg.classList.add('hidden');
             } else {
                 createBtn.classList.add('opacity-50', 'cursor-not-allowed');
             }
         }
     };
     
-    // Add input event listeners
-    nameInput.addEventListener('input', checkCreateButtonState);
-    typeSelect.addEventListener('change', checkCreateButtonState);
+    // Add input event listeners via direct properties to prevent listener stacking
+    if (nameInput) {
+        nameInput.oninput = checkCreateButtonState;
+    }
+    if (typeSelect) {
+        typeSelect.onchange = checkCreateButtonState;
+    }
     
     // Initial check
     checkCreateButtonState();
     
-    displayModal('new-warband-modal'); // Updated call
+    displayModal('new-warband-modal');
+    setTimeout(() => nameInput?.focus(), 150);
 };
 
 /** Toggles between the editor view and the list view */

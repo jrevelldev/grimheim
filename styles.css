@@ -11,6 +11,11 @@
     --terracotta-red: #a8421c;
     --sage-green: #3d6a54;
 }
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+}
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #0d0e11;
@@ -21,6 +26,13 @@ body {
     background-attachment: fixed;
     color: #d4d4d8;
     min-height: 100vh;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+}
+button, a, select, input {
+    touch-action: manipulation;
 }
 /* Hide browser default number input arrows */
 input[type="number"]::-webkit-inner-spin-button,
@@ -171,19 +183,18 @@ input[type="number"] {
 @media (max-width: 1023px) {
     /* Active tab styling */
     .mobile-tab-active {
-        background-color: var(--mordheim-gold) !important;
-        color: #1e293b !important;
+        background-color: rgba(223, 188, 119, 0.15) !important;
+        color: #dfbc77 !important;
+        border-color: rgba(223, 188, 119, 0.4) !important;
+        font-weight: 700 !important;
     }
     
-    /* Mobile tab content adjustments */
-    #mobile-management-content {
-        width: 100%;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-    
+    /* Mobile tab content adjustments - natural height without trapped nested scroll */
+    #mobile-management-content,
     #mobile-members-content {
         width: 100%;
+        max-height: none !important;
+        overflow: visible !important;
     }
     
     /* Set initial mobile state - management hidden, members visible */
@@ -217,21 +228,31 @@ input[type="number"] {
 }
 
 .warband-option {
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
     border-left: 3px solid transparent;
     color: #cbd5e1;
+    touch-action: manipulation;
 }
 
-.warband-option:hover {
+.warband-option:hover,
+.warband-option:active {
     background-color: #334155;
 }
 
 .warband-option.selected {
-    background-color: #475569;
-    border-left-color: var(--mordheim-gold);
-    color: white;
+    background-color: rgba(223, 188, 119, 0.2) !important;
+    border-left-color: var(--mordheim-gold) !important;
+    color: #fef08a !important;
+    font-weight: 600;
+}
+
+.warband-option-header {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border-top: 1px solid rgba(71, 85, 105, 0.4);
+    border-bottom: 1px solid rgba(71, 85, 105, 0.25);
+    cursor: default !important;
 }
 
 .warband-option.sub-warband {
@@ -387,11 +408,12 @@ input[type="number"] {
     margin-top: 0.5rem;
 }
 
-/* Ensure hamburger menu stays above all content */
+/* Ensure hamburger menu stays above page content and respects safe area */
 #mobile-menu-btn {
     position: fixed;
-    top: 1rem;
-    right: 1rem;
+    top: max(1rem, env(safe-area-inset-top, 1rem));
+    right: max(1rem, env(safe-area-inset-right, 1rem));
+    touch-action: manipulation;
 }
 
 /* Adjust header padding to account for fixed hamburger button */
@@ -402,8 +424,20 @@ input[type="number"] {
     
     /* Prevent body scroll when mobile menu is open */
     body.mobile-menu-open {
-        overflow: hidden;
+        overflow: hidden !important;
+        touch-action: none;
     }
+}
+
+/* Lock body scrolling and hide mobile menu button while any modal is open */
+body.modal-open {
+    overflow: hidden !important;
+    touch-action: none;
+}
+body.modal-open #mobile-menu-btn,
+body:has(div[id$="-modal"]:not(.hidden):not([style*="display: none"])) #mobile-menu-btn,
+body:has(#system-login-overlay:not([style*="display: none"])) #mobile-menu-btn {
+    display: none !important;
 }
 
 /* Blog Styles */
@@ -807,5 +841,151 @@ textarea:focus {
     border-color: rgba(197, 160, 89, 0.5) !important;
     box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.15) !important;
 }
+
+/* Mordheim Gold Theme Utilities */
+.bg-mordheim-gold {
+    background-color: var(--mordheim-gold, #c5a059) !important;
+}
+.text-mordheim-gold {
+    color: var(--mordheim-gold, #c5a059) !important;
+}
+.border-mordheim-gold {
+    border-color: var(--mordheim-gold, #c5a059) !important;
+}
+.hover\:bg-mordheim-gold:hover {
+    background-color: var(--mordheim-gold, #c5a059) !important;
+}
+.hover\:text-mordheim-gold:hover {
+    color: var(--mordheim-gold, #c5a059) !important;
+}
+.hover\:border-mordheim-gold:hover {
+    border-color: var(--mordheim-gold, #c5a059) !important;
+}
+
+/* Primary Action Buttons (e.g. Crear Banda) */
+#create-warband-confirm-btn {
+    min-height: 40px;
+    touch-action: manipulation;
+    font-weight: 700 !important;
+    transition: all 0.2s ease !important;
+}
+
+#create-warband-confirm-btn:not(:disabled) {
+    background: linear-gradient(135deg, #dfbc77 0%, #c5a059 100%) !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 14px rgba(197, 160, 89, 0.35) !important;
+}
+
+#create-warband-confirm-btn:not(:disabled):hover {
+    background: linear-gradient(135deg, #ebd193 0%, #d4af37 100%) !important;
+    box-shadow: 0 6px 18px rgba(197, 160, 89, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+#create-warband-confirm-btn:disabled {
+    background: #2e313c !important;
+    color: #64748b !important;
+    border: 1px solid #3f4251 !important;
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* ==========================================================================
+   Mobile-Specific Optimizations for Modals, Tables & Touch UX (< 640px)
+   ========================================================================== */
+@media (max-width: 639px) {
+    /* Tighten modal backdrop padding so content gets maximum screen real estate */
+    div[id$="-modal"],
+    div[id="system-login-overlay"] {
+        padding: 0.5rem !important;
+        padding-top: max(0.5rem, env(safe-area-inset-top, 0.5rem)) !important;
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem)) !important;
+    }
+
+    div[id$="-modal"] > div.bg-slate-700,
+    div[id$="-modal"] > div.bg-slate-800,
+    div[id$="-modal"] > div.bg-slate-900,
+    div[id="system-login-overlay"] > div {
+        padding: 1rem 0.875rem !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+        border-radius: 1rem !important;
+        width: 100% !important;
+    }
+
+    /* Modals with custom flex layout keep sticky header and footer while body scrolls */
+    div[id$="-modal"] > div.flex-col {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    /* Standard modals without flex-col allow internal scrolling */
+    div[id$="-modal"] > div:not(.flex-col) {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #create-warband-confirm-btn {
+        min-height: 44px;
+    }
+
+    /* Compact fighter stat boxes inside modals */
+    .stat-box {
+        padding: 0.125rem 0.05rem !important;
+        border-width: 1px !important;
+        height: 2.75rem !important;
+        border-radius: 0.375rem !important;
+    }
+    .stat-box-label {
+        font-size: 0.65rem !important;
+        line-height: 1 !important;
+        margin-top: 0 !important;
+    }
+    .stat-box-value {
+        font-size: 0.95rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Modal dialog buttons: thumb-friendly minimum height */
+    div[id$="-modal"] button {
+        min-height: 38px;
+    }
+
+    /* Warband list view and main cards */
+    #warband-list-view {
+        padding: 1rem 0.875rem !important;
+    }
+
+    /* Fighter card inner padding */
+    #mobile-members-content > #roster-container > div {
+        padding: 0.875rem !important;
+    }
+}
+
+/* Horizontal scroll styling for fighter stats table */
+.stats-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 639px) {
+    .stats-table-wrapper .grid-cols-9 {
+        min-width: 290px;
+        padding: 0.35rem 0.25rem !important;
+    }
+    .stats-table-wrapper .grid-cols-9 > div {
+        padding: 2px 1px !important;
+    }
+    .stats-table-wrapper .grid-cols-9 span:first-child {
+        font-size: 9px !important;
+    }
+    .stats-table-wrapper .grid-cols-9 span:last-child {
+        font-size: 13px !important;
+    }
+}
+
 
 

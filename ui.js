@@ -103,7 +103,7 @@ export const renderWarbandList = (warbands) => {
                 </div>
             </div>
             
-            <div class="flex items-center gap-2 self-end md:self-center flex-shrink-0">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0 pt-2 sm:pt-0 border-t border-slate-700/40 sm:border-t-0">
                 <button data-action="load-warband" data-warband-id="${wb.id}" 
                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-700/80 hover:bg-slate-650 hover:bg-slate-600 text-amber-100/90 hover:text-white text-xs font-semibold rounded-lg border border-amber-600/30 hover:border-amber-500/50 transition shadow-sm"
                     title="Abrir y gestionar esta banda">
@@ -541,7 +541,7 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
             <div class="absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${isHenchman ? 'bg-amber-400/80' : 'bg-rose-400/80'}"></div>
             
             <div class="flex flex-wrap justify-between items-start gap-2 mb-3.5 pl-1.5">
-                <div class="flex-1 min-w-[200px]">
+                <div class="flex-1 min-w-[140px] sm:min-w-[200px]">
                     <div class="flex items-center gap-2">
                         <h4 class="text-lg sm:text-xl font-bold text-slate-100 group-hover:text-amber-100 transition-colors">${fighter.name}</h4>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${isHenchman ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'}">
@@ -575,8 +575,10 @@ export const renderWarbandEditor = (currentWarband, getWarbandData, STATS_FIELDS
 
             ${styleInfo ? `<div class="flex flex-wrap gap-2 mb-2.5 pl-1.5">${styleInfo}</div>` : ''}
 
-            <div class="${statsGridClass}">
-                ${statsHTML}
+            <div class="stats-table-wrapper w-full overflow-x-auto custom-scroll -mx-0.5 sm:mx-0">
+                <div class="${statsGridClass}">
+                    ${statsHTML}
+                </div>
             </div>
 
             <div class="mt-3.5 pl-1">
@@ -1075,9 +1077,13 @@ export const populateWarbandTypes = () => {
             if (warband.sublist) {
                 // Add main warband as non-clickable header
                 const mainWarband = document.createElement('div');
-                mainWarband.className = 'warband-option';
-                mainWarband.textContent = translateWarband(warband.name);
-                mainWarband.style.fontWeight = '600';
+                mainWarband.className = 'warband-option warband-option-header select-none';
+                mainWarband.innerHTML = `
+                    <div class="flex items-center justify-between py-0.5">
+                        <span class="font-bold text-slate-200 text-xs sm:text-sm">${translateWarband(warband.name)}</span>
+                        <span class="text-[10px] text-amber-300/80 font-normal bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">elige facción 👇</span>
+                    </div>
+                `;
                 mainWarband.style.cursor = 'default';
                 gradeContent.appendChild(mainWarband);
 
@@ -1126,6 +1132,17 @@ export const populateWarbandTypes = () => {
                 const typeInput = document.getElementById('new-warband-type');
                 typeInput.value = option.dataset.value;
                 typeInput.dispatchEvent(new Event('change'));
+
+                // Update selected pill badge
+                const pill = document.getElementById('selected-warband-type-pill');
+                if (pill) {
+                    pill.textContent = '✓ ' + option.textContent.trim();
+                    pill.classList.remove('hidden');
+                }
+
+                // Hide validation message if shown
+                const valMsg = document.getElementById('new-warband-validation-msg');
+                if (valMsg) valMsg.classList.add('hidden');
                 
                 // Check if create button should be enabled
                 checkCreateButtonState();
@@ -1150,17 +1167,28 @@ const checkCreateButtonState = () => {
     const nameInput = document.getElementById('new-warband-name');
     const typeInput = document.getElementById('new-warband-type');
     const createBtn = document.getElementById('create-warband-confirm-btn');
+    const pill = document.getElementById('selected-warband-type-pill');
+    const valMsg = document.getElementById('new-warband-validation-msg');
     
+    if (!nameInput || !typeInput || !createBtn) return;
+
     const hasName = nameInput.value.trim().length > 0;
     const hasType = typeInput.value.trim().length > 0;
     const canCreate = hasName && hasType;
     
-    if (createBtn) {
-        createBtn.disabled = !canCreate;
-        if (canCreate) {
-            createBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    createBtn.disabled = !canCreate;
+    if (canCreate) {
+        createBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (valMsg) valMsg.classList.add('hidden');
+    } else {
+        createBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    if (pill) {
+        if (hasType) {
+            pill.classList.remove('hidden');
         } else {
-            createBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            pill.classList.add('hidden');
         }
     }
 };
