@@ -4,7 +4,10 @@
  * always run the latest version without aggressive browser caching issues.
  */
 (function() {
-    const CURRENT_VERSION = '1.0.7';
+    const SCRIPT_VERSION = (document.currentScript && document.currentScript.src)
+        ? new URL(document.currentScript.src, window.location.href).searchParams.get('v')
+        : null;
+    const CURRENT_VERSION = SCRIPT_VERSION || '1.0.8';
     const SCRIPT_BASE_URL = (document.currentScript && document.currentScript.src)
         ? new URL('.', document.currentScript.src).href
         : new URL('.', window.location.href).href;
@@ -42,6 +45,9 @@
             // Ignore network errors
         }
         localStorage.setItem('grimheim_app_version', versionToApply);
+        try {
+            sessionStorage.setItem('grimheim_applied_version', versionToApply);
+        } catch (e) {}
         
         const url = new URL(window.location.href);
         url.searchParams.set('_v', versionToApply);
@@ -118,10 +124,20 @@
             const storedVersion = localStorage.getItem('grimheim_app_version');
 
             if (remoteVersion && remoteVersion !== CURRENT_VERSION) {
-                console.log(`[VersionChecker] Nueva versión disponible: ${remoteVersion} (actual: ${CURRENT_VERSION})`);
-
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentVParam = urlParams.get('_v');
+                let appliedInSession = null;
+                try {
+                    appliedInSession = sessionStorage.getItem('grimheim_applied_version');
+                } catch (e) {}
+
+                // Avoid infinite update prompt if user already applied this exact version in this session
+                if (appliedInSession === remoteVersion || currentVParam === remoteVersion) {
+                    localStorage.setItem('grimheim_app_version', remoteVersion);
+                    return;
+                }
+
+                console.log(`[VersionChecker] Nueva versión disponible: ${remoteVersion} (actual: ${CURRENT_VERSION})`);
 
                 // If this is the initial load and the current URL does not reflect the new version,
                 // auto-reload immediately so the user sees the latest version seamlessly
