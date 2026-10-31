@@ -1028,3 +1028,4 @@ export function closeCardViewerModal() {
     viewerModalEl.classList.add('hidden');
     document.body.classList.remove('modal-open');
 }
+
