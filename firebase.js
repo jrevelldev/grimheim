@@ -40,8 +40,28 @@ let auth = null;
 let db = null;
 let currentUser = null;
 let userId = 'local';
+let initialCardSettingsSynced = false;
+let lastSavedCardSettingsSig = '';
+
+const ensureFirebaseInstances = () => {
+    try {
+        if (!app) {
+            app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        }
+        if (!auth && app) {
+            auth = getAuth(app);
+        }
+        if (!db && app) {
+            db = getFirestore(app);
+        }
+    } catch (e) {
+        console.warn("No se pudo asegurar instancia de Firebase:", e);
+    }
+    return { app, auth, db };
+};
 
 const getEffectiveUserId = () => {
+    ensureFirebaseInstances();
     if (auth && auth.currentUser) {
         return auth.currentUser.uid;
     }
@@ -63,13 +83,7 @@ const sanitizeForFirestore = (obj) => {
 const initFirebase = (onAuthStateChangedCallback) => {
     return new Promise((resolve) => {
         try {
-            if (!getApps().length) {
-                app = initializeApp(firebaseConfig);
-            } else {
-                app = getApps()[0];
-            }
-            auth = getAuth(app);
-            db = getFirestore(app);
+            ensureFirebaseInstances();
 
             let initialResolved = false;
 
@@ -104,12 +118,23 @@ const saveCardSettingsToCloud = async (layoutsObj = null, customDeckObj = null) 
     const uid = getEffectiveUserId();
     if (!db || !uid || uid === 'local') return;
     try {
+        // Set flag synchronously BEFORE setDoc so local onSnapshot never re-triggers initial merge
+        initialCardSettingsSynced = true;
+        localStorage.setItem('grimheim_card_layouts_cloud_initialized', '1');
+
         const layouts = layoutsObj !== null
             ? layoutsObj
             : JSON.parse(localStorage.getItem('grimheim_fighter_card_layouts') || '{}');
         const customDeck = customDeckObj !== null
             ? customDeckObj
             : JSON.parse(localStorage.getItem('grimheim_builder_custom_cards') || '{"name":"Custom Card Deck","members":[]}');
+
+        const sig = JSON.stringify({ l: layouts, d: customDeck });
+        if (sig === lastSavedCardSettingsSig) {
+            return;
+        }
+        lastSavedCardSettingsSig = sig;
+
         const payload = sanitizeForFirestore({
             id: '__card_settings__',
             _isCardSettings: true,
@@ -119,11 +144,19 @@ const saveCardSettingsToCloud = async (layoutsObj = null, customDeckObj = null) 
         });
         const docRef = doc(db, 'users', uid, 'warbands_v2', '__card_settings__');
         await setDoc(docRef, payload);
-        localStorage.setItem('grimheim_card_layouts_cloud_initialized', '1');
     } catch (e) {
         console.warn("Error al sincronizar ajustes de cartas en Firestore:", e);
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('grimheim:save-card-layouts-cloud', (e) => {
+        saveCardSettingsToCloud(e.detail || null, null);
+    });
+    window.addEventListener('grimheim:card-deck-updated', (e) => {
+        saveCardSettingsToCloud(null, e.detail || null);
+    });
+}
 
 /**
  * Listens to warbands for the current user in Firestore
@@ -151,21 +184,28 @@ const listenToWarbands = (callback) => {
                     });
                 });
 
-                // Sync card layouts and custom card deck across devices
+                // Sync card layouts and custom card deck across devices without triggering write loops
                 try {
-                    const localLayouts = JSON.parse(localStorage.getItem('grimheim_fighter_card_layouts') || '{}');
-                    const localDeck = JSON.parse(localStorage.getItem('grimheim_builder_custom_cards') || '{"name":"Custom Card Deck","members":[]}');
+                    const currentLayoutsRaw = localStorage.getItem('grimheim_fighter_card_layouts') || '{}';
+                    const currentDeckRaw = localStorage.getItem('grimheim_builder_custom_cards') || '{"name":"Custom Card Deck","members":[]}';
+                    const localLayouts = JSON.parse(currentLayoutsRaw);
+                    const localDeck = JSON.parse(currentDeckRaw);
                     const hasLocalLayouts = Object.keys(localLayouts).length > 0;
                     const hasLocalDeck = Array.isArray(localDeck?.members) && localDeck.members.length > 0;
 
                     if (!cloudCardSettings) {
-                        if (hasLocalLayouts || hasLocalDeck) {
+                        if (!initialCardSettingsSynced && (hasLocalLayouts || hasLocalDeck)) {
+                            initialCardSettingsSynced = true;
+                            localStorage.setItem('grimheim_card_layouts_cloud_initialized', '1');
                             saveCardSettingsToCloud(localLayouts, localDeck);
                         }
                     } else {
                         const cloudLayouts = cloudCardSettings.card_layouts || {};
                         const cloudDeck = cloudCardSettings.custom_deck || { name: 'Custom Card Deck', members: [] };
-                        const wasInitialized = localStorage.getItem('grimheim_card_layouts_cloud_initialized') === '1';
+                        const wasInitialized = localStorage.getItem('grimheim_card_layouts_cloud_initialized') === '1' || initialCardSettingsSynced;
+
+                        initialCardSettingsSynced = true;
+                        localStorage.setItem('grimheim_card_layouts_cloud_initialized', '1');
 
                         if (!wasInitialized && (hasLocalLayouts || hasLocalDeck)) {
                             const mergedLayouts = { ...cloudLayouts, ...localLayouts };
@@ -178,17 +218,25 @@ const listenToWarbands = (callback) => {
                             localStorage.setItem('rosterheim_fighter_card_layouts', layoutsStr);
                             localStorage.setItem('grimheim_builder_custom_cards', deckStr);
                             localStorage.setItem('rosterheim_builder_custom_cards', deckStr);
-                            saveCardSettingsToCloud(mergedLayouts, mergedDeck);
+
+                            if (layoutsStr !== JSON.stringify(cloudLayouts) || deckStr !== JSON.stringify(cloudDeck)) {
+                                saveCardSettingsToCloud(mergedLayouts, mergedDeck);
+                            } else {
+                                lastSavedCardSettingsSig = JSON.stringify({ l: mergedLayouts, d: mergedDeck });
+                            }
+                            window.dispatchEvent(new CustomEvent('grimheim:card-settings-synced'));
                         } else {
                             const layoutsStr = JSON.stringify(cloudLayouts);
                             const deckStr = JSON.stringify(cloudDeck);
-                            localStorage.setItem('grimheim_fighter_card_layouts', layoutsStr);
-                            localStorage.setItem('rosterheim_fighter_card_layouts', layoutsStr);
-                            localStorage.setItem('grimheim_builder_custom_cards', deckStr);
-                            localStorage.setItem('rosterheim_builder_custom_cards', deckStr);
-                            localStorage.setItem('grimheim_card_layouts_cloud_initialized', '1');
+                            lastSavedCardSettingsSig = JSON.stringify({ l: cloudLayouts, d: cloudDeck });
+                            if (layoutsStr !== currentLayoutsRaw || deckStr !== currentDeckRaw) {
+                                localStorage.setItem('grimheim_fighter_card_layouts', layoutsStr);
+                                localStorage.setItem('rosterheim_fighter_card_layouts', layoutsStr);
+                                localStorage.setItem('grimheim_builder_custom_cards', deckStr);
+                                localStorage.setItem('rosterheim_builder_custom_cards', deckStr);
+                                window.dispatchEvent(new CustomEvent('grimheim:card-settings-synced'));
+                            }
                         }
-                        window.dispatchEvent(new CustomEvent('grimheim:card-settings-synced'));
                     }
                 } catch (syncErr) {
                     console.warn("Error procesando sincronización de cartas:", syncErr);
@@ -278,22 +326,26 @@ const deleteWarband = async (warbandId) => {
  * Auth Methods
  */
 const loginWithEmailPassword = async (email, password) => {
+    ensureFirebaseInstances();
     if (!auth) throw new Error("Firebase no está inicializado.");
     return await signInWithEmailAndPassword(auth, email, password);
 };
 
 const registerWithEmailPassword = async (email, password) => {
+    ensureFirebaseInstances();
     if (!auth) throw new Error("Firebase no está inicializado.");
     return await createUserWithEmailAndPassword(auth, email, password);
 };
 
 const loginWithGoogle = async () => {
+    ensureFirebaseInstances();
     if (!auth) throw new Error("Firebase no está inicializado.");
     const provider = new GoogleAuthProvider();
     return await signInWithPopup(auth, provider);
 };
 
 const logout = async () => {
+    ensureFirebaseInstances();
     if (auth) {
         await signOut(auth);
     }
@@ -308,6 +360,7 @@ const logout = async () => {
 };
 
 const resetPassword = async (email) => {
+    ensureFirebaseInstances();
     if (!auth) throw new Error("Firebase no está inicializado.");
     return await sendPasswordResetEmail(auth, email);
 };
