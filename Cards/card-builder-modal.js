@@ -574,6 +574,23 @@ function ensureStudioModal() {
     // Initialize drag-drop on sidebar list
     const sidebarList = document.getElementById('studio-blocks-list');
     setupSidebarListDragDrop(sidebarList, handleReorder);
+
+    // Refresh studio when card layouts or custom deck sync from Firestore
+    window.addEventListener('grimheim:card-settings-synced', () => {
+        if (!modalElement || modalElement.classList.contains('hidden')) return;
+        if (studioMode === 'menu') {
+            activeDeckWarband = getBuilderDeck();
+        }
+        populateFighterDropdown();
+        currentLayout = loadFighterLayout(activeFighterType, selectedFighterId);
+        const densitySelect = document.getElementById('studio-card-density-select');
+        const themeSelect = document.getElementById('studio-card-theme-select');
+        if (densitySelect) densitySelect.value = currentLayout.cardDensity || 'normal';
+        if (themeSelect) themeSelect.value = currentLayout.cardTheme || 'parchment';
+        updateLockButton();
+        renderConfigSidebar();
+        updatePreview();
+    });
 }
 
 /**

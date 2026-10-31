@@ -10,6 +10,7 @@ import { getWarbandData } from '../utility.js';
 import { calculateFighterOrGroupTotalCost } from './card-renderer.js';
 import { getWarbands, currentWarband } from '../state.js';
 import { translateWarband, translateWarriorRole, translateGrade, translateFighterType } from '../i18n.js';
+import { saveCardSettingsToCloud } from '../firebase.js';
 
 const DECK_STORAGE_KEY = 'grimheim_builder_custom_cards';
 const LEGACY_DECK_STORAGE_KEY = 'rosterheim_builder_custom_cards';
@@ -107,6 +108,7 @@ export function saveBuilderDeck(deck) {
         };
         localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(toSave));
         localStorage.setItem(LEGACY_DECK_STORAGE_KEY, JSON.stringify(toSave));
+        saveCardSettingsToCloud(null, toSave);
         window.dispatchEvent(new CustomEvent('grimheim:card-deck-updated', { detail: toSave }));
         window.dispatchEvent(new CustomEvent('rosterheim:card-deck-updated', { detail: toSave }));
     } catch (e) {

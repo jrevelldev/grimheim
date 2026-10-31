@@ -4,6 +4,7 @@
  */
 
 import { DEFAULT_LAYOUTS, AVAILABLE_BLOCKS } from './card-config.js';
+import { saveCardSettingsToCloud } from '../firebase.js';
 
 const STORAGE_KEY = 'grimheim_fighter_card_layouts';
 const LEGACY_STORAGE_KEY = 'rosterheim_fighter_card_layouts';
@@ -28,6 +29,7 @@ function persistSavedLayouts(allSaved) {
         const str = JSON.stringify(allSaved);
         localStorage.setItem(STORAGE_KEY, str);
         localStorage.setItem(LEGACY_STORAGE_KEY, str);
+        saveCardSettingsToCloud(allSaved, null);
     } catch (e) {
         console.error('Failed to save card layouts to localStorage:', e);
     }

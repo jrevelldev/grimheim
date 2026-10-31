@@ -7,7 +7,7 @@
     const SCRIPT_VERSION = (document.currentScript && document.currentScript.src)
         ? new URL(document.currentScript.src, window.location.href).searchParams.get('v')
         : null;
-    const CURRENT_VERSION = SCRIPT_VERSION || '1.0.8';
+    const CURRENT_VERSION = SCRIPT_VERSION || '1.0.9';
     const SCRIPT_BASE_URL = (document.currentScript && document.currentScript.src)
         ? new URL('.', document.currentScript.src).href
         : new URL('.', window.location.href).href;

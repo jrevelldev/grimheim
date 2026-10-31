@@ -412,6 +412,19 @@ function bindViewerEvents() {
         if (e.target === detailOverlay) closeDetailSheet();
     });
 
+    // Live refresh when card layouts or custom deck sync from Firestore
+    window.addEventListener('grimheim:card-settings-synced', () => {
+        if (!viewerModalEl || viewerModalEl.classList.contains('hidden')) return;
+        if (activeViewerWarband?.isCustomDeck || activeViewerWarband?.id === 'custom-card-deck') {
+            activeViewerWarband = getBuilderDeck();
+        }
+        const prevIdx = activeSlideIndex;
+        renderViewerAll();
+        if (prevIdx > 0) {
+            scrollToSlide(prevIdx, false);
+        }
+    });
+
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
         if (!viewerModalEl || viewerModalEl.classList.contains('hidden')) return;
