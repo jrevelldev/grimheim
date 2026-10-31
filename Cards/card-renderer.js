@@ -414,7 +414,7 @@ function renderEquipmentBlock(fighter, options = {}) {
                         const shortRule = showRules ? ruleInfo.short : '';
                         const titleText = escapeAttr(ruleInfo.full || ruleInfo.short || trName);
                         return `
-                            <div class="card-equip-list-item" title="${titleText}">
+                            <div class="card-equip-list-item" data-card-equip="${escapeAttr(name)}" title="${titleText}">
                                 <span class="card-equip-list-name">${trName}${shortRule ? ':' : ''}</span>
                                 ${shortRule ? `<span class="card-equip-list-rule">${shortRule}</span>` : ''}
                             </div>
@@ -434,7 +434,7 @@ function renderEquipmentBlock(fighter, options = {}) {
                     const ruleInfo = getWeaponRuleSummary(name);
                     const shortRule = showRules ? ruleInfo.short : '';
                     const titleText = escapeAttr(ruleInfo.full || ruleInfo.short || trName);
-                    return `<span class="card-pill card-pill-equip" title="${titleText}"><span class="card-equip-name">${trName}</span>${shortRule ? ` <span class="card-pill-rule-tag">${shortRule}</span>` : ''}</span>`;
+                    return `<span class="card-pill card-pill-equip" data-card-equip="${escapeAttr(name)}" title="${titleText}"><span class="card-equip-name">${trName}</span>${shortRule ? ` <span class="card-pill-rule-tag">${shortRule}</span>` : ''}</span>`;
                 }).join(' ')}
             </div>
         </div>
@@ -565,7 +565,7 @@ function renderSkillsBlock(fighter, options = {}) {
         <div class="card-section card-skills">
             <span class="card-label">Habilidades:</span>
             <div class="card-pill-container">
-                ${skills.map(skill => `<span class="card-pill card-pill-skill">${translateSkill(skill)}</span>`).join(' ')}
+                ${skills.map(skill => `<span class="card-pill card-pill-skill" data-card-skill="${escapeAttr(skill)}">${translateSkill(skill)}</span>`).join(' ')}
             </div>
         </div>
     `;
@@ -596,7 +596,7 @@ function renderInjuriesBlock(fighter, options = {}) {
         <div class="card-section card-injuries">
             <span class="card-label">Heridas Graves:</span>
             <div class="card-pill-container">
-                ${injuries.map(injury => `<span class="card-pill card-pill-injury">${translateInjury(injury)}</span>`).join(' ')}
+                ${injuries.map(injury => `<span class="card-pill card-pill-injury" data-card-injury="${escapeAttr(injury)}">${translateInjury(injury)}</span>`).join(' ')}
             </div>
         </div>
     `;
@@ -653,7 +653,7 @@ function renderSpecialRulesBlock(fighter, options = {}) {
                         const desc = showReminders ? (summary.short || summary.full || '') : '';
                         const titleText = escapeAttr(summary.full || trName);
                         return `
-                            <div class="card-rule-row" title="${titleText}">
+                            <div class="card-rule-row" data-card-rule="${escapeAttr(rule)}" title="${titleText}">
                                 <span class="card-rule-row-name">${trName}</span>
                                 ${desc ? `<span class="card-rule-row-desc">${desc}</span>` : ''}
                             </div>
@@ -675,7 +675,7 @@ function renderSpecialRulesBlock(fighter, options = {}) {
                     const reminderTag = showReminders && summary.short
                         ? `<span class="card-pill-rule-tag">${summary.short}</span>`
                         : '';
-                    return `<span class="card-pill card-pill-rule" title="${titleText}"><span class="card-rule-name">${trName}</span>${reminderTag}</span>`;
+                    return `<span class="card-pill card-pill-rule" data-card-rule="${escapeAttr(rule)}" title="${titleText}"><span class="card-rule-name">${trName}</span>${reminderTag}</span>`;
                 }).join(' ')}
             </div>
         </div>
@@ -729,7 +729,7 @@ function renderSpellsBlock(fighter, options = {}) {
         <div class="card-section card-spells">
             <span class="card-label">Hechizos${lore}:</span>
             <div class="card-pill-container">
-                ${spells.map(spell => `<span class="card-pill card-pill-spell">${spell}</span>`).join(' ')}
+                ${spells.map(spell => `<span class="card-pill card-pill-spell" data-card-spell="${escapeAttr(spell)}">${spell}</span>`).join(' ')}
             </div>
         </div>
     `;

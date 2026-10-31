@@ -10,6 +10,7 @@ import { loadLayout, saveLayout, resetLayout, isFighterLayoutLocked, saveFighter
 import { renderFighterCard } from './card-renderer.js';
 import { setupCardPreviewDragDrop, setupSidebarListDragDrop } from './card-drag-drop.js';
 import { openPrintModal } from './card-print.js';
+import { openCardViewerModal } from './card-viewer-modal.js';
 import {
     getBuilderDeck,
     saveBuilderDeck,
@@ -68,9 +69,12 @@ function ensureStudioModal() {
                     <div class="studio-title-group">
                         <h2><span id="studio-header-title">Creador de Cartas de Guerreros</span> <span class="text-xs text-slate-400 font-normal hidden sm:inline">(63mm &times; 88mm Cartulina Estándar)</span></h2>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button id="studio-open-print-btn" class="px-3.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs sm:text-sm font-semibold rounded-lg transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fas fa-print"></i> Imprimir Cartas
+                    <div class="flex items-center space-x-1.5 sm:space-x-2">
+                        <button id="studio-open-viewer-btn" class="px-2.5 sm:px-3.5 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/35 text-xs sm:text-sm font-semibold rounded-lg transition flex items-center gap-1.5 shadow-sm" title="Ver todas las cartas en carrusel horizontal para jugar">
+                            <i class="fas fa-layer-group"></i> <span>Modo Mesa</span>
+                        </button>
+                        <button id="studio-open-print-btn" class="px-2.5 sm:px-3.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs sm:text-sm font-semibold rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fas fa-print"></i> <span class="hidden sm:inline">Imprimir Cartas</span><span class="sm:hidden">Imprimir</span>
                         </button>
                         <button id="studio-close-btn" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition flex items-center justify-center" title="Cerrar Creador de Cartas">
                             <i class="fas fa-times text-lg"></i>
@@ -238,6 +242,12 @@ function ensureStudioModal() {
 
     // Attach base events
     document.getElementById('studio-close-btn').addEventListener('click', closeCardBuilderModal);
+    document.getElementById('studio-open-viewer-btn')?.addEventListener('click', () => {
+        const deck = getActiveDeck();
+        const fId = (selectedFighterId && selectedFighterId !== 'sample' && selectedFighterId !== 'blank') ? selectedFighterId : null;
+        closeCardBuilderModal();
+        openCardViewerModal(deck, fId);
+    });
     document.getElementById('studio-open-print-btn').addEventListener('click', () => {
         openPrintModal(getActiveDeck());
     });

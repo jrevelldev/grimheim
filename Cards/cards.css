@@ -1754,7 +1754,6 @@
 
 /* Overflow Warning Badge */
 .card-overflow-badge {
-.card-overflow-badge {
     position: absolute;
     bottom: 12px;
     left: 50%;
@@ -1814,6 +1813,9 @@
     }
 
     .studio-dialog {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
         width: 100vw !important;
         max-width: 100vw !important;
         height: 100% !important;
@@ -1888,6 +1890,8 @@
     .studio-body {
         flex-direction: column !important;
         width: 100% !important;
+        min-height: 0 !important;
+        flex: 1 !important;
     }
 
     /* When Card Preview is active on mobile */
@@ -1899,6 +1903,7 @@
         display: flex !important;
         width: 100% !important;
         height: 100% !important;
+        min-height: 0 !important;
         flex: 1 !important;
     }
 
@@ -1908,6 +1913,7 @@
         width: 100% !important;
         min-width: 0 !important;
         height: 100% !important;
+        min-height: 0 !important;
         flex: 1 !important;
         border-right: none !important;
     }
@@ -1995,7 +2001,310 @@
 
     .workspace-preview-area {
         padding: 12px 6px !important;
+        min-height: 0 !important;
+        flex: 1 !important;
     }
+}
+
+/* ==========================================================================
+   4b. Card Viewer Carousel ("Modo Mesa" Horizontal Swipe View)
+   ========================================================================== */
+
+#card-viewer-modal {
+    --viewer-card-scale: 1.15;
+    --viewer-scaled-w: 274px;
+    --viewer-scaled-h: 382px;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.card-viewer-carousel {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    gap: 16px;
+    padding: 8px calc(50vw - (var(--viewer-scaled-w, 274px) / 2) - 8px);
+}
+
+.card-viewer-slide {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    flex: 0 0 auto;
+    width: calc(var(--viewer-scaled-w, 274px) + 16px);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-viewer-slide-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.card-viewer-card-stage {
+    width: var(--viewer-scaled-w, 274px);
+    height: var(--viewer-scaled-h, 382px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.card-viewer-scale-box {
+    transform: scale(var(--viewer-card-scale, 1.15));
+    transform-origin: center center;
+    position: relative;
+    border-radius: 3mm;
+    box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.85);
+}
+
+/* Allow vertical scrolling inside a card if content exceeds 88mm height */
+.card-viewer-scale-box .mordheim-card .card-inner-frame {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Interactive tap cue on weapons, skills, rules, injuries, spells inside viewer */
+.card-viewer-scale-box [data-card-equip],
+.card-viewer-scale-box [data-card-skill],
+.card-viewer-scale-box [data-card-rule],
+.card-viewer-scale-box [data-card-injury],
+.card-viewer-scale-box [data-card-spell] {
+    cursor: pointer;
+    transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.card-viewer-scale-box [data-card-equip]:active,
+.card-viewer-scale-box [data-card-skill]:active,
+.card-viewer-scale-box [data-card-rule]:active,
+.card-viewer-scale-box [data-card-injury]:active,
+.card-viewer-scale-box [data-card-spell]:active {
+    filter: brightness(0.88);
+    transform: scale(0.97);
+}
+
+/* Card visual states in Tabletop Mode */
+.card-viewer-scale-box .mordheim-card.viewer-card-ooa {
+    filter: grayscale(0.75) brightness(0.68);
+}
+
+.card-viewer-scale-box .mordheim-card.viewer-card-down {
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.75);
+}
+
+.card-viewer-scale-box .mordheim-card.viewer-card-stunned {
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.85);
+}
+
+.card-viewer-status-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 25;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+}
+
+.card-viewer-status-stamp.stamp-knocked {
+    background: rgba(120, 53, 15, 0.9);
+    color: #fde68a;
+    border: 2px solid #f59e0b;
+}
+
+.card-viewer-status-stamp.stamp-stunned {
+    background: rgba(124, 45, 18, 0.92);
+    color: #fed7aa;
+    border: 2px solid #f97316;
+}
+
+.card-viewer-status-stamp.stamp-ooa {
+    background: rgba(127, 29, 29, 0.94);
+    color: #fecaca;
+    border: 2px solid #ef4444;
+}
+
+.card-viewer-activated-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    background: rgba(6, 95, 70, 0.92);
+    color: #a7f3d0;
+    border: 1px solid rgba(52, 211, 153, 0.6);
+    pointer-events: none;
+    z-index: 25;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Tabletop Control Panel below each card */
+.card-viewer-tabletop-bar {
+    width: var(--viewer-scaled-w, 274px);
+    max-width: 92vw;
+    background: #14151b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
+.card-viewer-counters-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.card-viewer-counter-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.card-viewer-counter-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #9da1b0;
+}
+
+.card-viewer-stepper {
+    display: inline-flex;
+    align-items: center;
+    background: #0d0e12;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-viewer-step-btn {
+    width: 24px;
+    height: 22px;
+    min-height: 22px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e2e8f0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.card-viewer-step-btn:hover,
+.card-viewer-step-btn:active {
+    background: rgba(197, 160, 89, 0.25);
+    color: #dfbc77;
+}
+
+.card-viewer-wound-val,
+.card-viewer-group-val {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0 7px;
+    color: #f8fafc;
+    min-width: 30px;
+    text-align: center;
+}
+
+.card-viewer-activate-btn {
+    padding: 3px 9px;
+    min-height: 24px !important;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #0d0e12;
+    color: #9da1b0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.card-viewer-activate-btn.is-activated {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.45);
+}
+
+.card-viewer-status-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+}
+
+.card-viewer-status-btn {
+    padding: 4px 2px;
+    min-height: 24px !important;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    background: #0d0e12;
+    color: #9da1b0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-viewer-status-btn.status-standing.active {
+    background: rgba(16, 185, 129, 0.16);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.45);
+}
+
+.card-viewer-status-btn.status-knocked.active {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde68a;
+    border-color: rgba(245, 158, 11, 0.55);
+}
+
+.card-viewer-status-btn.status-stunned.active {
+    background: rgba(249, 115, 22, 0.22);
+    color: #fed7aa;
+    border-color: rgba(249, 115, 22, 0.55);
+}
+
+.card-viewer-status-btn.status-ooa.active {
+    background: rgba(239, 68, 68, 0.22);
+    color: #fecaca;
+    border-color: rgba(239, 68, 68, 0.55);
 }
 
 /* ==========================================================================
