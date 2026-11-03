@@ -161,6 +161,10 @@ function ensureViewerModal() {
                         <i class="fas fa-undo-alt text-[11px]"></i>
                         <span class="hidden md:inline">Reiniciar</span>
                     </button>
+                    <button type="button" id="card-viewer-print-btn" class="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Imprimir cartas en A4 (63x88mm + sangrado 3mm)">
+                        <i class="fas fa-print text-[11px]"></i>
+                        <span class="hidden sm:inline">Imprimir</span>
+                    </button>
                     <button type="button" id="card-viewer-open-studio-btn" class="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white border border-white/10 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Personalizar diseño en el Creador de Cartas">
                         <i class="fas fa-sliders-h text-[11px] text-[#dfbc77]"></i>
                         <span class="hidden sm:inline">Diseño</span>
@@ -285,6 +289,14 @@ function bindViewerEvents() {
         });
         refreshSlideStatesUI();
         renderThumbStrip();
+    });
+
+    // Print button (opens A4 2x3 Card Print modal for active deck/warband)
+    document.getElementById('card-viewer-print-btn')?.addEventListener('click', () => {
+        const targetWarband = activeViewerWarband;
+        import('./card-print.js').then(mod => {
+            mod.openPrintModal(targetWarband);
+        });
     });
 
     // Open Studio button (jumps to Card Builder for the active fighter)

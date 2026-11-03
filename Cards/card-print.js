@@ -1,6 +1,8 @@
 /**
  * Card Print Module
- * Handles fighter selection, 3x3 sheet generation (standard 9 cards per page), and print triggers.
+ * Handles fighter selection, A4 2x3 sheet generation (63x88mm trim + 3mm bleed = 69x94mm,
+ * 6 cards per A4 sheet with 8mm gap and external crop marks, identical to Configurador-Mordheim),
+ * and print triggers.
  */
 
 import { renderFighterCard } from './card-renderer.js';
@@ -11,11 +13,98 @@ import { translateWarriorRole } from '../i18n.js';
 let printModalElement = null;
 
 /**
+ * Exact physical constants (in mm) matching Configurador-Mordheim.html
+ */
+const A4_PRINT_SPEC = {
+    paperW: 210,
+    paperH: 297,
+    cardW: 63,
+    cardH: 88,
+    bleed: 3,
+    gapX: 8,
+    gapY: 8,
+    cols: 2,
+    rows: 3,
+    perPage: 6,
+    // Centered trim origin on 210x297mm A4:
+    // gridW = 63*2 + 8 = 134mm -> trimOriginX = (210 - 134)/2 = 38mm (bleedOriginX = 35mm)
+    // gridH = 88*3 + 8*2 = 280mm -> trimOriginY = (297 - 280)/2 = 8.5mm (bleedOriginY = 5.5mm)
+    trimOriginX: 38,
+    trimOriginY: 8.5
+};
+
+/**
+ * Builds the full-page A4 SVG overlay (210x297mm) with external crop marks, bleed boundary,
+ * and optional dashed trim contour at exact millimeter coordinates matching Configurador-Mordheim.
+ * @param {number} populatedSlots - Number of populated card slots on this sheet (1..6)
+ * @param {string} cutGuides - 'crop' | 'both' | 'dashed' | 'none'
+ * @returns {string} SVG markup string
+ */
+function buildSheetMarksSvg(populatedSlots, cutGuides) {
+    if (cutGuides === 'none') return '';
+
+    const { paperW, paperH, cardW, cardH, bleed, gapX, gapY, cols, trimOriginX, trimOriginY } = A4_PRINT_SPEC;
+    const mStart = bleed + 0.4; // 3.4mm outside trim
+    const mEnd = mStart + 1.5;  // 4.9mm outside trim
+    const showCropMarks = cutGuides === 'crop' || cutGuides === 'both';
+    const showDashedTrim = cutGuides === 'dashed' || cutGuides === 'both';
+
+    const parts = [];
+
+    for (let i = 0; i < populatedSlots; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = trimOriginX + col * (cardW + gapX);
+        const y = trimOriginY + row * (cardH + gapY);
+
+        // Subtle outer bleed boundary (69x94mm), matching Configurador-Mordheim
+        parts.push(
+            `<rect x="${x - bleed}" y="${y - bleed}" width="${cardW + 2 * bleed}" height="${cardH + 2 * bleed}" fill="none" stroke="#b7765b" stroke-width="0.13" opacity="0.5"/>`
+        );
+
+        // Dashed trim guide right on the 63x88mm cut line (when requested)
+        if (showDashedTrim) {
+            parts.push(
+                `<rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" fill="none" stroke="#5d655f" stroke-width="0.23" stroke-dasharray="1 0.8"/>`
+            );
+        }
+
+        // External crop marks outside the 3mm bleed aligned with the 63x88mm trim lines
+        if (showCropMarks) {
+            const lines = [
+                [x - mEnd, y, x - mStart, y],
+                [x - mEnd, y + cardH, x - mStart, y + cardH],
+                [x + cardW + mStart, y, x + cardW + mEnd, y],
+                [x + cardW + mStart, y + cardH, x + cardW + mEnd, y + cardH],
+                [x, y - mEnd, x, y - mStart],
+                [x + cardW, y - mEnd, x + cardW, y - mStart],
+                [x, y + cardH + mStart, x, y + cardH + mEnd],
+                [x + cardW, y + cardH + mStart, x + cardW, y + cardH + mEnd]
+            ];
+            lines.forEach(([x1, y1, x2, y2]) => {
+                parts.push(
+                    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#333333" stroke-width="0.16"/>`
+                );
+            });
+        }
+    }
+
+    return `<svg class="cards-print-marks-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${paperW} ${paperH}" width="${paperW}mm" height="${paperH}mm" aria-hidden="true">${parts.join('')}</svg>`;
+}
+
+/**
  * Ensures the print options modal exists in the DOM
  */
 function ensurePrintModal() {
     let existing = document.getElementById('card-print-modal');
-    if (existing && (existing.querySelector('#quick-print-preview-btn') || existing.querySelector('.fa-check-double'))) {
+    if (
+        existing &&
+        (
+            existing.querySelector('#quick-print-preview-btn') ||
+            existing.querySelector('.fa-check-double') ||
+            !existing.querySelector('option[value="both"]')
+        )
+    ) {
         existing.remove();
         existing = null;
     }
@@ -37,8 +126,9 @@ function ensurePrintModal() {
                     </button>
                 </div>
 
-                <div class="mb-4 text-sm text-slate-300">
-                    Las cartas tienen formato de <strong>63mm &times; 88mm</strong> estándar. Caben <strong>9 cartas por página (cuadrícula 3&times;3)</strong> en A4 o Carta.
+                <div class="mb-4 text-sm text-slate-300 leading-relaxed">
+                    Formato idéntico al Configurador Mordheim: tamaño de corte real de <strong>63 &times; 88 mm</strong> con <strong>3 mm de sangrado</strong> (69 &times; 94 mm), <strong>6 cartas por hoja A4 (2&times;3)</strong> con separación de 8 mm y marcas de corte.
+                    <span class="block text-xs text-[#dfbc77] mt-1 font-medium"><i class="fas fa-ruler-combined mr-1"></i>En el diálogo de impresión, usa Papel A4, Escala 100% (Tamaño real) y Márgenes: Ninguno.</span>
                 </div>
 
                 <!-- Print Options -->
@@ -53,12 +143,14 @@ function ensurePrintModal() {
                         <span class="block text-[11px] text-slate-400 mt-1">Mantiene el tema de cada carta o fuerza un modo económico en B/N.</span>
                     </div>
                     <div>
-                        <label class="block text-slate-400 text-xs font-semibold mb-1">Guías de Corte</label>
+                        <label class="block text-slate-400 text-xs font-semibold mb-1">Guías de Corte (63&times;88 mm)</label>
                         <select id="card-print-guides-select" class="w-full bg-[#15161a] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:border-[#dfbc77] focus:outline-none transition">
-                            <option value="dashed">Líneas de corte punteadas</option>
-                            <option value="crop">Marcas de corte en esquinas</option>
+                            <option value="crop" selected>Marcas de corte exteriores (Sangrado 3mm)</option>
+                            <option value="both">Marcas exteriores + guía punteada 63&times;88mm</option>
+                            <option value="dashed">Solo guía punteada en corte (63&times;88mm)</option>
                             <option value="none">Sin guías de corte</option>
                         </select>
+                        <span class="block text-[11px] text-slate-400 mt-1">Las marcas exteriores quedan fuera del sangrado de 3 mm.</span>
                     </div>
                 </div>
 
@@ -230,7 +322,8 @@ export function closePrintModal() {
 }
 
 /**
- * Assembles the 3x3 sheets and executes window.print()
+ * Assembles the A4 2x3 sheets (63x88mm trim + 3mm bleed = 69x94mm, 8mm trim gap,
+ * external crop marks) matching Configurador-Mordheim.html and executes window.print()
  */
 function executePrint(fighters, warband, theme, cutGuides) {
     if (!fighters || fighters.length === 0) {
@@ -238,23 +331,38 @@ function executePrint(fighters, warband, theme, cutGuides) {
         return;
     }
 
-    // Remove any existing print container
+    const activeGuides = cutGuides || 'crop';
+
+    // Remove any existing print container or temporary @page style override
     const oldContainer = document.getElementById('cards-print-container');
     if (oldContainer) oldContainer.remove();
+    const oldPageStyle = document.getElementById('cards-print-page-override');
+    if (oldPageStyle) oldPageStyle.remove();
+
+    // Inject @page { size: A4 portrait; margin: 0mm !important; } so print.css margin: 8mm
+    // never overrides card printing and browsers do not shrink the 210x297mm A4 sheet
+    const pageStyle = document.createElement('style');
+    pageStyle.id = 'cards-print-page-override';
+    pageStyle.textContent = '@media print { @page { size: A4 portrait; margin: 0mm !important; } }';
+    document.head.appendChild(pageStyle);
 
     const printContainer = document.createElement('div');
     printContainer.id = 'cards-print-container';
-    printContainer.className = `cards-print-container guides-${cutGuides || 'dashed'}`;
+    printContainer.className = `cards-print-container guides-${activeGuides}`;
 
-    // Chunk fighters into groups of 9 for 3x3 sheets
+    // Chunk fighters into groups of 6 for 2x3 A4 sheets (matching Configurador-Mordheim)
+    const { perPage } = A4_PRINT_SPEC;
     const sheets = [];
-    for (let i = 0; i < fighters.length; i += 9) {
-        sheets.push(fighters.slice(i, i + 9));
+    for (let i = 0; i < fighters.length; i += perPage) {
+        sheets.push(fighters.slice(i, i + perPage));
     }
 
     sheets.forEach((sheetFighters) => {
         const sheetElement = document.createElement('div');
         sheetElement.className = 'cards-print-sheet';
+
+        const gridElement = document.createElement('div');
+        gridElement.className = 'cards-print-grid';
 
         sheetFighters.forEach(fighter => {
             const layout = loadFighterLayout(fighter.type, fighter.id);
@@ -264,17 +372,25 @@ function executePrint(fighters, warband, theme, cutGuides) {
             const cardHtml = renderFighterCard(fighter, warband, activeLayout, false);
 
             const cardCell = document.createElement('div');
-            cardCell.className = 'cards-print-cell';
+            cardCell.className = `cards-print-cell bleed-${activeTheme}`;
             cardCell.innerHTML = cardHtml;
-            sheetElement.appendChild(cardCell);
+            gridElement.appendChild(cardCell);
         });
 
-        // Fill remaining cells if less than 9 to maintain 3x3 grid alignment
-        const remaining = 9 - sheetFighters.length;
+        // Fill remaining cells if less than 6 to maintain 2x3 grid alignment
+        const remaining = perPage - sheetFighters.length;
         for (let j = 0; j < remaining; j++) {
             const emptyCell = document.createElement('div');
             emptyCell.className = 'cards-print-cell empty-cell';
-            sheetElement.appendChild(emptyCell);
+            gridElement.appendChild(emptyCell);
+        }
+
+        sheetElement.appendChild(gridElement);
+
+        // Append full-sheet A4 SVG overlay with external crop marks / cut guides
+        const marksSvg = buildSheetMarksSvg(sheetFighters.length, activeGuides);
+        if (marksSvg) {
+            sheetElement.insertAdjacentHTML('beforeend', marksSvg);
         }
 
         printContainer.appendChild(sheetElement);
@@ -294,6 +410,10 @@ function executePrint(fighters, warband, theme, cutGuides) {
         document.body.classList.remove('printing-cards');
         if (printContainer && printContainer.parentNode) {
             printContainer.parentNode.removeChild(printContainer);
+        }
+        const styleEl = document.getElementById('cards-print-page-override');
+        if (styleEl && styleEl.parentNode) {
+            styleEl.parentNode.removeChild(styleEl);
         }
         window.removeEventListener('afterprint', cleanup);
     };
