@@ -34,6 +34,30 @@ const A4_PRINT_SPEC = {
 };
 
 /**
+ * Builds the background SVG layer (z-index: 0) with 69x94mm bleed rectangles so the
+ * 3mm parchment bleed always prints even when Chrome's "Background graphics" option is unchecked.
+ * @param {string[]} slotThemes - Array of 'parchment' | 'clean' for each populated slot
+ * @returns {string} SVG markup string
+ */
+function buildSheetBleedBgSvg(slotThemes) {
+    const { paperW, paperH, cardW, cardH, bleed, gapX, gapY, cols, trimOriginX, trimOriginY } = A4_PRINT_SPEC;
+    const parts = [];
+
+    slotThemes.forEach((slotTheme, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = trimOriginX + col * (cardW + gapX);
+        const y = trimOriginY + row * (cardH + gapY);
+        const fill = slotTheme === 'clean' ? '#ffffff' : '#f6eedb';
+        parts.push(
+            `<rect x="${x - bleed}" y="${y - bleed}" width="${cardW + 2 * bleed}" height="${cardH + 2 * bleed}" fill="${fill}"/>`
+        );
+    });
+
+    return `<svg class="cards-print-bg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${paperW} ${paperH}" width="${paperW}mm" height="${paperH}mm" aria-hidden="true">${parts.join('')}</svg>`;
+}
+
+/**
  * Builds the full-page A4 SVG overlay (210x297mm) with external crop marks, bleed boundary,
  * and optional dashed trim contour at exact millimeter coordinates matching Configurador-Mordheim.
  * @param {number} populatedSlots - Number of populated card slots on this sheet (1..6)
@@ -340,10 +364,20 @@ function executePrint(fighters, warband, theme, cutGuides) {
     if (oldPageStyle) oldPageStyle.remove();
 
     // Inject @page { size: A4 portrait; margin: 0mm !important; } so print.css margin: 8mm
-    // never overrides card printing and browsers do not shrink the 210x297mm A4 sheet
+    // never overrides card printing and #app is strictly hidden even with html.auth-verified
     const pageStyle = document.createElement('style');
     pageStyle.id = 'cards-print-page-override';
-    pageStyle.textContent = '@media print { @page { size: A4 portrait; margin: 0mm !important; } }';
+    pageStyle.textContent = `
+        @media print {
+            @page { size: A4 portrait; margin: 0mm !important; }
+            html body.printing-cards > *:not(#cards-print-container),
+            html.auth-verified body.printing-cards #app,
+            body.printing-cards #app {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        }
+    `;
     document.head.appendChild(pageStyle);
 
     const printContainer = document.createElement('div');
@@ -363,11 +397,13 @@ function executePrint(fighters, warband, theme, cutGuides) {
 
         const gridElement = document.createElement('div');
         gridElement.className = 'cards-print-grid';
+        const slotThemes = [];
 
         sheetFighters.forEach(fighter => {
             const layout = loadFighterLayout(fighter.type, fighter.id);
             // Override layout theme with print theme selection if explicitly forced
             const activeTheme = (theme === 'clean' || theme === 'parchment') ? theme : (layout?.cardTheme || 'parchment');
+            slotThemes.push(activeTheme);
             const activeLayout = { ...layout, cardTheme: activeTheme };
             const cardHtml = renderFighterCard(fighter, warband, activeLayout, false);
 
@@ -383,6 +419,12 @@ function executePrint(fighters, warband, theme, cutGuides) {
             const emptyCell = document.createElement('div');
             emptyCell.className = 'cards-print-cell empty-cell';
             gridElement.appendChild(emptyCell);
+        }
+
+        // Prepend background SVG so 69x94mm parchment bleed prints even without "Background graphics"
+        const bgSvg = buildSheetBleedBgSvg(slotThemes);
+        if (bgSvg) {
+            sheetElement.insertAdjacentHTML('beforeend', bgSvg);
         }
 
         sheetElement.appendChild(gridElement);

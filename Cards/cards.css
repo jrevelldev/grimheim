@@ -2318,9 +2318,12 @@
    ========================================================================== */
 
 @media print {
-    /* Hide all main app UI and modals when printing cards */
-    body.printing-cards > *:not(#cards-print-container) {
+    /* Hide all main app UI and modals when printing cards (higher specificity than html.auth-verified #app) */
+    html body.printing-cards > *:not(#cards-print-container),
+    html.auth-verified body.printing-cards #app,
+    body.printing-cards #app {
         display: none !important;
+        visibility: hidden !important;
     }
 
     html,
@@ -2348,16 +2351,16 @@
         visibility: visible !important;
     }
 
-    /* Exact A4 210x297mm sheet container */
+    /* Exact A4 210x297mm sheet container (296.5mm height avoids Chrome subpixel page-break overflow) */
     .cards-print-sheet {
         position: relative !important;
         display: block !important;
         width: 210mm !important;
         min-width: 210mm !important;
         max-width: 210mm !important;
-        height: 297mm !important;
-        min-height: 297mm !important;
-        max-height: 297mm !important;
+        height: 296.5mm !important;
+        min-height: 296.5mm !important;
+        max-height: 296.5mm !important;
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
@@ -2390,6 +2393,19 @@
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        z-index: 10 !important;
+    }
+
+    /* Full-sheet A4 SVG background layer for 69x94mm bleed fills */
+    .cards-print-bg-svg {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+        display: block !important;
     }
 
     /* 69mm x 94mm Bleed Box (63x88mm trim + 3mm bleed padding on all sides) */
