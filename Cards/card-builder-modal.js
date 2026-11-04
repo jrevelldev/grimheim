@@ -241,7 +241,13 @@ function ensureStudioModal() {
     modalElement = document.getElementById('card-builder-studio-modal');
 
     // Attach base events
-    document.getElementById('studio-close-btn').addEventListener('click', closeCardBuilderModal);
+    document.getElementById('studio-close-btn').addEventListener('click', () => {
+        if (window.history.state?.view === 'card-builder') {
+            window.history.back();
+        } else {
+            closeCardBuilderModal();
+        }
+    });
     document.getElementById('studio-open-viewer-btn')?.addEventListener('click', () => {
         const deck = getActiveDeck();
         const fId = (selectedFighterId && selectedFighterId !== 'sample' && selectedFighterId !== 'blank') ? selectedFighterId : null;
@@ -1358,6 +1364,11 @@ export function openCardBuilderModal(overrideWarband = null, initialSelectedFigh
 
         if (modalElement) {
             modalElement.classList.remove('hidden');
+            if (typeof window !== 'undefined' && window.history) {
+                if (!window.history.state || window.history.state.view !== 'card-builder') {
+                    window.history.pushState({ view: 'card-builder' }, '', window.location.href);
+                }
+            }
         }
     } catch (err) {
         console.error('Card Builder Studio failed to populate:', err);

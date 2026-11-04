@@ -286,7 +286,11 @@ export const setupEventListeners = () => {
                 mobileMenuBtn?.classList.remove('active');
                 document.body.classList.remove('mobile-menu-open');
             }
-            setCurrentWarband(showListView(getWarbands()));
+            if (window.history.state?.view && window.history.state.view !== 'list') {
+                window.history.back();
+            } else {
+                setCurrentWarband(showListView(getWarbands()));
+            }
         };
 
         document.getElementById('nav-home-btn')?.addEventListener('click', handleGoToHome);
@@ -334,7 +338,13 @@ export const setupEventListeners = () => {
             }
         });
 
-        document.getElementById('back-to-warbands-btn').addEventListener('click', () => { setCurrentWarband(showListView(getWarbands())); });
+        document.getElementById('back-to-warbands-btn').addEventListener('click', () => {
+            if (window.history.state?.view && window.history.state.view !== 'list') {
+                window.history.back();
+            } else {
+                setCurrentWarband(showListView(getWarbands()));
+            }
+        });
         document.getElementById('change-order-btn').addEventListener('click', () => {
             const newMode = !getIsOrderingMode();
             setIsOrderingMode(newMode);
@@ -423,16 +433,24 @@ export const setupEventListeners = () => {
 
         // Back to Warband Editor from Turn Tracker
         document.getElementById('back-to-warband-editor-btn').addEventListener('click', () => {
-            showEditorView();
-            renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+            if (window.history.state?.view === 'turn-order') {
+                window.history.back();
+            } else {
+                showEditorView();
+                renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+            }
         });
 
         // Back to Warband Editor from Battle View
         document.getElementById('back-to-warband-editor-from-battle-btn').addEventListener('click', () => {
             // Reset battle casualties when leaving battle view
             resetBattleCasualties();
-            showEditorView();
-            renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+            if (window.history.state?.view === 'battle') {
+                window.history.back();
+            } else {
+                showEditorView();
+                renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+            }
         });
 
         // Back to Main from Special Rules View
@@ -1187,6 +1205,10 @@ export const setupEventListeners = () => {
 
         // Warband List Clicks (supports clicking 'Ver Banda' button or tapping anywhere on the warband card)
         document.getElementById('warbands-container').addEventListener('click', (e) => {
+            if (e.target.closest('.warband-dropdown-menu') && !e.target.closest('[data-action]')) {
+                return;
+            }
+
             const actionEl = e.target.closest('[data-action]');
             if (!actionEl) return;
 
@@ -1207,6 +1229,68 @@ export const setupEventListeners = () => {
                 confirmDeleteWarbandFromList(warbandId, warbandName);
             } else if (action === 'toggle-warband-menu') {
                 toggleWarbandMenu(warbandId);
+            }
+        });
+
+        // Browser Back / Forward buttons and touch swipe gesture history navigation
+        window.addEventListener('popstate', (e) => {
+            const state = e.state;
+
+            // 1. Close Card Studio Modal if open
+            const cardStudio = document.getElementById('card-builder-studio-modal');
+            if (cardStudio && !cardStudio.classList.contains('hidden')) {
+                cardStudio.classList.add('hidden');
+            }
+
+            // 2. Close Card Viewer Modal if open
+            const cardViewer = document.getElementById('card-viewer-modal');
+            if (cardViewer && !cardViewer.classList.contains('hidden')) {
+                cardViewer.classList.add('hidden');
+            }
+
+            // 3. Close any open modals
+            const openModals = document.querySelectorAll('div[id$="-modal"]:not(.hidden)');
+            openModals.forEach(m => {
+                if (m.id !== 'card-builder-studio-modal' && m.id !== 'card-viewer-modal' && m.id !== 'system-login-overlay') {
+                    m.classList.add('hidden');
+                    m.style.display = 'none';
+                }
+            });
+            document.body.classList.remove('modal-open');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.style.removeProperty('display');
+            }
+
+            // 4. View routing based on history state
+            if (!state || state.view === 'list') {
+                const editorView = document.getElementById('warband-editor-view');
+                const battleView = document.getElementById('battle-view');
+                const turnView = document.getElementById('turn-order-tracker-view');
+                const specialRulesView = document.getElementById('special-rules-view');
+                const rulesView = document.getElementById('rules-view');
+
+                const isNotInList = (!editorView?.classList.contains('hidden')) ||
+                                    (!battleView?.classList.contains('hidden')) ||
+                                    (!turnView?.classList.contains('hidden')) ||
+                                    (specialRulesView && !specialRulesView.classList.contains('hidden')) ||
+                                    (rulesView && !rulesView.classList.contains('hidden'));
+
+                if (isNotInList) {
+                    setCurrentWarband(showListView(getWarbands(), { pushHistory: false }));
+                }
+            } else if (state.view === 'editor') {
+                if (state.warbandId && (!currentWarband || String(currentWarband.id) !== String(state.warbandId))) {
+                    loadWarband(state.warbandId);
+                }
+                showEditorView({ pushHistory: false });
+                if (currentWarband) {
+                    renderWarbandEditor(currentWarband, getWarbandData, STATS_FIELDS);
+                }
+            } else if (state.view === 'battle') {
+                showBattleView({ pushHistory: false });
+            } else if (state.view === 'turn-order') {
+                showTurnOrderTrackerView({ pushHistory: false });
             }
         });
 

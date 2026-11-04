@@ -240,7 +240,13 @@ function ensureViewerModal() {
 function bindViewerEvents() {
     if (!viewerModalEl) return;
 
-    document.getElementById('card-viewer-close-btn')?.addEventListener('click', closeCardViewerModal);
+    document.getElementById('card-viewer-close-btn')?.addEventListener('click', () => {
+        if (window.history.state?.view === 'card-viewer') {
+            window.history.back();
+        } else {
+            closeCardViewerModal();
+        }
+    });
 
     // Deck selector change
     document.getElementById('card-viewer-deck-select')?.addEventListener('change', (e) => {
@@ -1036,6 +1042,12 @@ export function openCardViewerModal(warbandOrDeck = null, initialFighterId = nul
 
     viewerModalEl.classList.remove('hidden');
     document.body.classList.add('modal-open');
+
+    if (typeof window !== 'undefined' && window.history) {
+        if (!window.history.state || window.history.state.view !== 'card-viewer') {
+            window.history.pushState({ view: 'card-viewer' }, '', window.location.href);
+        }
+    }
 
     renderViewerAll();
 

@@ -103,7 +103,7 @@ export const renderWarbandList = (warbands) => {
                 </div>
             </div>
             
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0 pt-2 sm:pt-0 border-t border-slate-700/40 sm:border-t-0" onclick="event.stopPropagation()">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0 pt-2 sm:pt-0 border-t border-slate-700/40 sm:border-t-0">
                 <button type="button" data-action="load-warband" data-warband-id="${wb.id}" 
                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-700/80 hover:bg-slate-650 hover:bg-slate-600 text-amber-100/90 hover:text-white text-xs font-semibold rounded-lg border border-amber-600/30 hover:border-amber-500/50 transition shadow-sm"
                     title="Abrir y gestionar esta banda">
@@ -147,7 +147,7 @@ export const renderWarbandList = (warbands) => {
 
 
 /** Toggles between the list view and the editor view */
-export const showListView = (warbands) => {
+export const showListView = (warbands, options = {}) => {
     trackScreenView('Warband List');
     document.getElementById('warband-list-view').classList.remove('hidden');
     document.getElementById('warband-editor-view').classList.add('hidden');
@@ -161,11 +161,18 @@ export const showListView = (warbands) => {
     document.getElementById('main-footer').classList.remove('hidden');
     
     renderWarbandList(warbands); // Re-render the list to show any updates
+
+    if (typeof window !== 'undefined' && window.history) {
+        if (!window.history.state || window.history.state.view !== 'list') {
+            window.history.replaceState({ view: 'list' }, '', window.location.href);
+        }
+    }
+
     return null; // The caller will set currentWarband to null
 };
 
 /** Toggles to show the Turn Order Tracker view */
-export const showTurnOrderTrackerView = () => {
+export const showTurnOrderTrackerView = (options = { pushHistory: true }) => {
     trackScreenView('Turn Order Tracker');
     document.getElementById('warband-list-view').classList.add('hidden');
     document.getElementById('warband-editor-view').classList.add('hidden');
@@ -174,6 +181,12 @@ export const showTurnOrderTrackerView = () => {
     // Show header and footer in turn order tracker view
     document.getElementById('main-header').classList.remove('hidden');
     document.getElementById('main-footer').classList.remove('hidden');
+
+    if (options?.pushHistory !== false && typeof window !== 'undefined' && window.history) {
+        if (!window.history.state || window.history.state.view !== 'turn-order') {
+            window.history.pushState({ view: 'turn-order' }, '', window.location.href);
+        }
+    }
 };
 
 
@@ -4057,7 +4070,7 @@ let battleState = {
 };
 
 /** Toggles to show the Battle View */
-export const showBattleView = () => {
+export const showBattleView = (options = { pushHistory: true }) => {
     trackScreenView('Battle View');
     document.getElementById('warband-list-view').classList.add('hidden');
     document.getElementById('warband-editor-view').classList.add('hidden');
@@ -4067,6 +4080,12 @@ export const showBattleView = () => {
     // Hide header and footer for battle view to save space
     document.getElementById('main-header').classList.add('hidden');
     document.getElementById('main-footer').classList.add('hidden');
+
+    if (options?.pushHistory !== false && typeof window !== 'undefined' && window.history) {
+        if (!window.history.state || window.history.state.view !== 'battle') {
+            window.history.pushState({ view: 'battle' }, '', window.location.href);
+        }
+    }
     
     // Check for sickness injuries before starting battle
     checkSicknessAtBattleStart(() => {

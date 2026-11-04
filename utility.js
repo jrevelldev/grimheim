@@ -772,12 +772,14 @@ export const showNewWarbandModal = () => {
 };
 
 /** Toggles between the editor view and the list view */
-export const showEditorView = () => {
+export const showEditorView = (options = { pushHistory: true }) => {
     trackScreenView('Warband Editor');
     document.getElementById('warband-list-view').classList.add('hidden');
     document.getElementById('warband-editor-view').classList.remove('hidden');
     document.getElementById('turn-order-tracker-view').classList.add('hidden'); // Hide the turn order tracker
     document.getElementById('battle-view').classList.add('hidden'); // Hide the battle view
+    document.getElementById('special-rules-view')?.classList.add('hidden');
+    document.getElementById('rules-view')?.classList.add('hidden');
     
     // Show header and footer when returning from battle view
     document.getElementById('main-header').classList.remove('hidden');
@@ -786,6 +788,13 @@ export const showEditorView = () => {
     // Reset mobile tabs to members view when returning to editor
     if (window.resetMobileTabs) {
         window.resetMobileTabs();
+    }
+
+    if (options && options.pushHistory !== false && typeof window !== 'undefined' && window.history) {
+        const currentId = currentWarband?.id || null;
+        if (!window.history.state || window.history.state.view !== 'editor' || window.history.state.warbandId !== currentId) {
+            window.history.pushState({ view: 'editor', warbandId: currentId }, '', window.location.href);
+        }
     }
 };
 
