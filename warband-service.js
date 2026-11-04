@@ -256,12 +256,12 @@ export const saveWarband = async function() {
 
 /** Loads a warband into the editor view */
 export const loadWarband = (warbandId) => {
-    let warbandToLoad = warbands.find(w => w.id === warbandId);
+    let warbandToLoad = warbands.find(w => String(w.id) === String(warbandId));
     if (!warbandToLoad) {
         // Fallback: check localStorage
         try {
             const local = JSON.parse(localStorage.getItem('mordheim_warbands')) || [];
-            warbandToLoad = local.find(w => w.id === warbandId);
+            warbandToLoad = local.find(w => String(w.id) === String(warbandId));
             if (warbandToLoad) {
                 warbands.push(warbandToLoad);
             }
@@ -364,12 +364,12 @@ export const loadWarband = (warbandId) => {
 /** Confirms and deletes a warband from the list view */
 export const confirmDeleteWarbandFromList = (warbandId, warbandName) => {
     showConfirmationModal(`¿Estás seguro de que deseas eliminar permanentemente la banda "${warbandName}"? Esta acción no se puede deshacer.`, async () => {
-        const warbandToDelete = warbands.find(w => w.id === warbandId);
+        const warbandToDelete = warbands.find(w => String(w.id) === String(warbandId));
         const type = warbandToDelete ? warbandToDelete.type : '';
 
         if (useLocalStorage) {
             trackWarbandAction('deleted', warbandName, type, true);
-            const updatedWarbands = warbands.filter(w => w.id !== warbandId);
+            const updatedWarbands = warbands.filter(w => String(w.id) !== String(warbandId));
             setWarbands(updatedWarbands);
             localStorage.setItem('mordheim_warbands', JSON.stringify(updatedWarbands));
             showMessage(`Banda "${warbandName}" eliminada con éxito.`);
@@ -676,7 +676,7 @@ export const copyWarband = async (warbandId) => {
 
 /** Export a single warband as a downloadable JSON file */
 export const exportWarbandJSON = (warbandId) => {
-    const warband = warbands.find(w => w.id === warbandId);
+    const warband = warbands.find(w => String(w.id) === String(warbandId));
     if (!warband) {
         showMessage("No se ha encontrado la banda para exportar.", 'error');
         return;

@@ -74,8 +74,8 @@ export const renderWarbandList = (warbands) => {
         const storageIcon = isDbStored ? 'fa-database text-slate-400' : 'fa-laptop text-slate-400';
 
         return `
-        <div class="group relative bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-amber-600/30 rounded-xl p-4 sm:p-4.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-start sm:items-center gap-3.5">
+        <div data-action="load-warband" data-warband-id="${wb.id}" class="group relative bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/50 hover:border-amber-600/30 rounded-xl p-4 sm:p-4.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm cursor-pointer select-none">
+            <div class="flex items-start sm:items-center gap-3.5 pointer-events-none">
                 <div class="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700/70 flex items-center justify-center flex-shrink-0 text-amber-200/80 shadow-inner group-hover:border-amber-600/30 transition-colors">
                     <i class="fas fa-shield-alt text-lg"></i>
                 </div>
@@ -103,35 +103,35 @@ export const renderWarbandList = (warbands) => {
                 </div>
             </div>
             
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0 pt-2 sm:pt-0 border-t border-slate-700/40 sm:border-t-0">
-                <button data-action="load-warband" data-warband-id="${wb.id}" 
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0 pt-2 sm:pt-0 border-t border-slate-700/40 sm:border-t-0" onclick="event.stopPropagation()">
+                <button type="button" data-action="load-warband" data-warband-id="${wb.id}" 
                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-700/80 hover:bg-slate-650 hover:bg-slate-600 text-amber-100/90 hover:text-white text-xs font-semibold rounded-lg border border-amber-600/30 hover:border-amber-500/50 transition shadow-sm"
                     title="Abrir y gestionar esta banda">
                     <i class="fas fa-eye text-xs"></i>
                     <span>Ver Banda</span>
                 </button>
                 <div class="relative">
-                    <button data-action="toggle-warband-menu" data-warband-id="${wb.id}" 
+                    <button type="button" data-action="toggle-warband-menu" data-warband-id="${wb.id}" 
                         class="p-2 bg-slate-800/80 hover:bg-slate-750 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs rounded-lg border border-slate-700/60 transition shadow-sm"
                         title="Opciones de la banda">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <div id="warband-menu-${wb.id}" 
                         class="warband-dropdown-menu hidden absolute right-0 mt-2 w-48 bg-slate-850 border border-slate-700/80 rounded-xl shadow-xl z-50 py-1 backdrop-blur-md">
-                        <button data-action="copy-warband" data-warband-id="${wb.id}" class="w-full text-left px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-750 transition flex items-center gap-2 text-xs">
+                        <button type="button" data-action="copy-warband" data-warband-id="${wb.id}" class="w-full text-left px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-750 transition flex items-center gap-2 text-xs">
                             <i class="fas fa-copy text-slate-400"></i>
                             <span>Duplicar Banda</span>
                         </button>
-                        <button data-action="rename-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-750 transition flex items-center gap-2 text-xs">
+                        <button type="button" data-action="rename-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-750 transition flex items-center gap-2 text-xs">
                             <i class="fas fa-edit text-slate-400"></i>
                             <span>Renombrar</span>
                         </button>
-                        <button data-action="export-warband" data-warband-id="${wb.id}" class="w-full text-left px-3.5 py-2 text-amber-200/90 hover:text-amber-100 hover:bg-slate-750 transition flex items-center gap-2 text-xs">
+                        <button type="button" data-action="export-warband" data-warband-id="${wb.id}" class="w-full text-left px-3.5 py-2 text-amber-200/90 hover:text-amber-100 hover:bg-slate-750 transition flex items-center gap-2 text-xs">
                             <i class="fas fa-download"></i>
                             <span>Exportar (JSON)</span>
                         </button>
                         <div class="h-px bg-slate-750 my-1"></div>
-                        <button data-action="delete-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-3.5 py-2 text-rose-300 hover:text-rose-200 hover:bg-rose-950/30 transition flex items-center gap-2 text-xs">
+                        <button type="button" data-action="delete-warband" data-warband-id="${wb.id}" data-warband-name="${wb.name}" class="w-full text-left px-3.5 py-2 text-rose-300 hover:text-rose-200 hover:bg-rose-950/30 transition flex items-center gap-2 text-xs">
                             <i class="fas fa-trash-alt"></i>
                             <span>Eliminar</span>
                         </button>

@@ -1185,16 +1185,18 @@ export const setupEventListeners = () => {
 
         // --- Event Delegation for Dynamically Generated Content ---
 
-        // Warband List Clicks
+        // Warband List Clicks (supports clicking 'Ver Banda' button or tapping anywhere on the warband card)
         document.getElementById('warbands-container').addEventListener('click', (e) => {
-            const button = e.target.closest('button');
-            if (!button) return;
+            const actionEl = e.target.closest('[data-action]');
+            if (!actionEl) return;
 
-            const { action, warbandId, warbandName } = button.dataset;
+            const { action, warbandId, warbandName } = actionEl.dataset;
 
             if (action === 'load-warband') {
-                loadWarband(warbandId);
-                showEditorView();
+                if (warbandId) {
+                    loadWarband(warbandId);
+                    showEditorView();
+                }
             } else if (action === 'copy-warband') {
                 copyWarband(warbandId);
             } else if (action === 'rename-warband') {
